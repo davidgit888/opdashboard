@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en">
+<head>    
+<meta charset="UTF-8">   
+ <title>登录页面</title>
+ 
+{% load staticfiles %}
+<link href="{% static 'css/login.css' %}" rel="stylesheet">    
+
+
+
+
+</head> <body>
+<!--<p id="image_logo"><img src="login.png"></p> -->
+<div id="login_frame"> 
+
+<h1>生产数据展示平台</h>
+
+<form method="post" action="/op/login/">  
+  {% csrf_token %}          
+ <p><label class="label_input">用户名</label><input type="text" id="username" name="username" class="text_field"/></p>       
+  <p><label class="label_input">密码</label><input type="password" id="password" name="password" class="text_field"/></p>         
+  <div id="login_control">           
+   <input type="submit" id="label_input" value="登录"> 
+   <br/>  
+   {% if error_message %}<p style="color:red"><strong>{{ error_message }}</strong></p>{% endif %}
+   <h3>HEXAGON</h3>
+   <br/>        
+    
+    </div>    
+    </form></div> </body></html>

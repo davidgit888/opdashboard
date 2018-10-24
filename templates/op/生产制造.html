@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        {% load staticfiles %}
+  
+        <script type="text/javascript" src="{% static 'js/jquery-1.9.1.js' %}"></script>
+        <meta http-equiv="refresh" content="3600">
+        <style>
+           
+        </style>
+        <script> 
+
+
+        </script>
+        <script>
+            $(function(){
+                $("#first").load("Installed_CMM"); 
+            });
+            $(function(){
+                $('#second').load('Delivered_CMM');
+            });
+
+            $(function(){
+                $('#third').load('New_order');
+            });
+            $(function(){
+                $('#fourth').load('Installed_each_year');
+            });
+            $(function(){
+                $('#fifth').load('Installed_each_year_bar');
+            });
+            $(function(){
+                $('#sixth').load("Waiting_Order_and_Inventory");
+            });
+        </script>
+    </head>
+    <body>
+
+        <div id='first' style="width:83%;height:600px">
+        
+        </div>
+
+        <div id='second' style="width:'83%';height:600px">
+
+        </div>
+        <div id='third' style="width:'83%';height:600px">
+
+        </div>
+
+        <div id='fourth' style="width:'83%';height:600px">
+
+        </div>
+        <div id='fifth' style="width:'83%';height:600px">
+
+        </div>
+        <div id='sixth' style="width:'83%';height:600px">
+
+        </div>
+
+
+    </body>
+
+</html>

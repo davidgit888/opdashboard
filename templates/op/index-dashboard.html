@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+     {% load staticfiles %}
+    <link href="{% static 'css/layout.css' %}" rel="stylesheet">    
+    <link href="{% static 'css/menu.css' %}" rel="stylesheet">    
+    
+    <link href="{% static 'css/dash.css' %}" rel="stylesheet">    
+    <script type="text/javascript" src="{% static 'js/jquery-1.9.1.js' %}"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+    <script type="text/javascript">
+        var liNum;
+        $(function () {
+            var h = $(window).height();
+            $("#show").css("height", h);
+            //var listC = "";
+            //listC = {{ List|safe}};
+            //var lc = listC.responseText.split('\r\n');
+            lc = {{List|safe}}
+            
+            for (var i = 0; i < lc.length; i++) {
+                if (lc[i] == '生产制造')
+                {
+                    $("#nav").append("<li onclick="+'cutlist("produced")'+"><a  href='#'>" + "生产制造" + "</a></li>");
+                }
+                if (lc[i] == '配置缺件')
+                {
+                    $("#nav").append("<li onclick="+'cutlist("plans")'+"><a  href='#'>" + "配置缺件" + "</a></li>");
+                }
+               //$("#nav").append("<li onclick='cutlist(this)'><a  href='#'>" + lc[i] + "</a></li>");
+            }; 
+
+            
+
+            '{% if admin == "Admin" %}'
+            //var jadmin = '{{admin|safe}}'
+            $("#nav").append("<li onclick="+'cutlist("Admin")'+"><a  href='#'>"+"管理页面"+"</a></li>");
+            '{% endif %}'
+
+            '{% if update == "update" %}'
+            $("#nav").append("<li onclick="+'cutlist("update")'+"><a  href='#'>"+"更新数据"+"</a></li>");
+            '{% endif %}'
+            $("#nav").append("<li onclick='cutlist(this)'><a  href='logout/'>注销</a></li>");
+
+            liNum = $('#nav').find('li').length;
+            //document.write(lc)
+            change();
+
+            //显示日期时间
+            var t = null;
+            t = setTimeout(time, 2000000);//开始执行
+            function time() {
+                clearTimeout(t);//清除定时器
+                var today = new Date();//定义日期对象     
+                var yyyy = today.getFullYear();//通过日期对象的getFullYear()方法返回年      
+                var MM = today.getMonth() + 1;//通过日期对象的getMonth()方法返回年      
+                var dd = today.getDate();//通过日期对象的getDate()方法返回年       
+                var hh = today.getHours();//通过日期对象的getHours方法返回小时     
+                var mm = today.getMinutes();//通过日期对象的getMinutes方法返回分钟     
+                var ss = today.getSeconds();//通过日期对象的getSeconds方法返回秒  
+                document.getElementById("time").innerHTML = yyyy + "年" + MM + "月" + dd + "日" + hh + "时" + mm + "分" ;
+                //t = setTimeout(time, 2000000); //设定定时器，循环执行            
+            }
+        });
+
+        var falg = 0;
+        var i = 0;
+        function change() {
+            if(falg==0)
+            {
+                var j = 0;
+                $('#nav').find('li').each(function () {
+                    if (j == i)
+                    { cutlist("produced"); }
+
+                    j++;
+                    if (j == liNum)
+                    { j = 0 }
+                })
+                i++;
+                if (i == liNum)
+                { i = 0; }
+            } 
+            //$('#nav').find('li').each(cutlist('produced'))
+            //setTimeout("change()", 300000);
+        } 
+
+        function changeflag()
+        {            
+            if (falg == 0)
+            { setInterval("falg=0;", 100000); }
+            //falg = 1;
+        }
+        function cutlist(lihtml) {
+
+            $("#show").attr("src", lihtml);
+        }
+    </script>
+	<style>
+
+	{% comment %} #nav,#nav ul {
+		background-color: #27727b;
+		list-style: none outside none;
+		margin: 0;
+		padding: 0;
+	}
+	#nav ul {
+		padding: 0px;
+	}
+	#nav {
+		width: 96%;
+	}
+	#nav li a {
+		background-color: #0e697e;
+		border-color: #0a6175 #0197ba #1f778b #0e697e;
+		border-style: solid;
+		border-width: 1px;
+		color: #fff;
+		display: block;
+		font-size: 15px;
+		padding: 10px 0px 10px 6px;
+		text-decoration: none;
+		width:100%;
+	}
+	.container{
+		width:10%;
+		min-height:1000px;
+		float:left;
+		font-size:large;
+		box-shadow: 4px 0px 6px #a9aaaa;
+		background: url(../images/left_bg.jpg) no-repeat #0197ba;	
+	}
+    .date {
+        margin-bottom:4px;
+        color:white;
+        font-size:medium;
+        position:fixed;
+        bottom:10px;
+        left:30px;    
+    } {% endcomment %}
+	</style>
+</head>
+<body onclick="changeflag()">
+    <div>
+        <div class="container">
+			<image src="/static/image/logo.png" style="margin:10px;" />
+            <ul id="nav"></ul>
+            <div class="date">
+			<h3></h3>
+                <a id="time"></a>
+            </div>
+        </div>
+        <iframe id="show" class="showop" src="" style="float:left;width:90%;border:none;"></iframe>
+    </div>
+
+    <script type="text/javascript">
+
+    </script>
+</body>
+</html>
