@@ -4,12 +4,17 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 import json
-from .permissions import get_user_permissions, get_update_list
+from .permissions import get_user_permissions, get_update_list, get_all_logs
 from .productionUpdate import updateProduction
+from django.contrib.admin.models import LogEntry
+from .shortageUpdate import update_shortage
+
+
 
 # check login details and redirect
+
 def loginIndex(request):
-    global user
+   
 
     if 'username' in request.POST:
         username = request.POST['username']
@@ -62,11 +67,15 @@ def dashboard(request):
     else:
         admin = ''
         update = ''
-
+    if request.user.username == 'admin':
+        log = 'log'
+    else:
+        log = ''
     return render(request,'op/index-dashboard.html',{
             'List':json.dumps(navList),
             'admin':admin,
             'update':update,
+            'log':log,
         })
 
         # Redirect to a success page.
@@ -133,3 +142,20 @@ def updateProductionData(request):
 @login_required(login_url='/accounts/login/')
 def adminUtl(request):
     return HttpResponseRedirect('/admin')
+
+@login_required(login_url='/accounts/login/')
+def log(request):
+    logs = LogEntry.objects.all()[:100]
+    list_logs = get_all_logs(logs)
+    return render(request, 'op/log.html', {
+        'messages':list_logs,
+    })
+
+@login_required(login_url='/accounts/login/')
+def updateShortageData(request):
+    results = update_shortage()
+    user_permission = userAllPermisions(request)
+    update_shortage_list = get_update_list(user_permission)
+   
+    update_shortage_list['shortageMessage'] = json.dumps(results)
+    return render(request,'op/updateList.html',update_shortage_list)

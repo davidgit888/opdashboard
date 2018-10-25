@@ -2,21 +2,22 @@ from pyecharts import Bar,Line, Overlap
 import pandas as pd
 import plotly.offline as off
 import plotly.graph_objs as go
-import sqlite3
+
+from .models import InstalledCmm, DeliveredCmm, NewOrder, WaitingOrderAndInventory,InstalledEachYear
 
 
 
 #######################1 first 3 bar chart and 3 lines together ##################
-def waitingOrderInventory(path1,fileName1):
-    data1 = pd.read_excel(path1+fileName1,sheet_name='backlog')
+def waitingOrderInventory(waiting):
+    
 
-    dfOrder = data1.loc[0][2:]
-    dfShip = data1.loc[1][2:]
-    dfAss = data1.loc[2][2:]
-    dfBack = data1.loc[6][2:]
-    dfExcue = data1.loc[7][2:]
-    dfNet = data1.loc[8][2:]
-    months = data1.columns[2:]
+    dfOrder = waiting.iloc[0]
+    dfShip = waiting.iloc[1]
+    dfAss = waiting.iloc[2]
+    dfBack = waiting.iloc[6]
+    dfExcue = waiting.iloc[7]
+    dfNet = waiting.iloc[8]
+    months = waiting.columns
     str_date_1 = [str(i) for i in months]
     bar_1 = Bar(title='整机“待执行订单” & “整机库存”数据汇总', title_pos="40%",title_top='1%',width='100%',height=700)
 
@@ -53,26 +54,64 @@ def waitingOrderInventory(path1,fileName1):
 
 ##############Get Data#################
 def getIdpData():
-    conn = sqlite3.connect('db.sqlite3')
-    installed = pd.read_sql('select * from op_installedcmm ORDER BY Year desc LIMIT 3',conn)
-    del installed['id']
+    # conn = sqlite3.connect('db.sqlite3')
+    # installed = pd.read_sql('select * from op_installedcmm ORDER BY Year desc LIMIT 3',conn)
+    # del installed['id']
     
-    installed = installed.sort_values('Year')
+    # installed = installed.sort_values('Year')
+    # installed = installed.set_index('Year')
+    # installed = installed.T
+    
+    # delivered = pd.read_sql('select * from op_deliveredcmm ORDER BY Year desc LIMIT 3',conn)
+    # del delivered['id']
+    # delivered = delivered.sort_values('Year')
+    # delivered = delivered.set_index('Year')
+    # delivered = delivered.T
+
+    # produced = pd.read_sql('select * from op_neworder ORDER BY Year desc LIMIT 3',conn)
+    # del produced['id']
+    # produced = produced.sort_values('Year')
+    # produced = produced.set_index('Year')
+    # produced = produced.T
+
+    inLen=InstalledCmm.objects.all().count()
+    installedObj = InstalledCmm.objects.all().values()[inLen-3:inLen]
+    installed = pd.DataFrame(list(installedObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
+    del installed['id']
     installed = installed.set_index('Year')
     installed = installed.T
-    
-    delivered = pd.read_sql('select * from op_deliveredcmm ORDER BY Year desc LIMIT 3',conn)
+    # print(installed)
+    inLen2=DeliveredCmm.objects.all().count()
+    deliveredObj = DeliveredCmm.objects.all().values()[inLen2-3:inLen2]
+    delivered = pd.DataFrame(list(deliveredObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
     del delivered['id']
-    delivered = delivered.sort_values('Year')
     delivered = delivered.set_index('Year')
     delivered = delivered.T
 
-    produced = pd.read_sql('select * from op_neworder ORDER BY Year desc LIMIT 3',conn)
+    inLen3=NewOrder.objects.all().count()
+    producedObj = NewOrder.objects.all().values()[inLen3-3:inLen3]
+    produced = pd.DataFrame(list(producedObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
     del produced['id']
-    produced = produced.sort_values('Year')
     produced = produced.set_index('Year')
     produced = produced.T
-    return installed,delivered,produced
+
+    
+    wObj = WaitingOrderAndInventory.objects.all().values()
+    waiting = pd.DataFrame(list(wObj),columns=['id','YearAndMonth','OrderQty','ShipmentQty','AuctalAssemblyQty','ToBeExcutedTendency','BackLogTendency','NetAvailableTendency','Backlog','ToBeExcutedOrder','NetAvailable'])
+    waiting.sort_values('id')
+    del waiting['id']
+    waiting = waiting.set_index('YearAndMonth')
+    waiting = waiting.T
+    
+
+    eObj = InstalledEachYear.objects.all().values()
+    eachYear = pd.DataFrame(list(eObj),columns=['id','Year','Global_A','Global_B','Global_C','Global_D','Global_EF','Explorer','Inspector_Pioneer_InspectorP_GlobalP','MH3D_Inspector454_Explorer454','Optive_Vision','Toro_ToroImage','Micro_Plus','Alpha_Apollo','Function_Pluse','Zoo_ZC','Stinger_ll','Global_Mini','Auctual_Build_Qty'])
+    eachYear.sort_values('id')
+    del eachYear['id']
+    eachYear = eachYear.set_index('Year')
+    eachYear = eachYear.T
+    eachYear = eachYear.fillna('-')
+    return installed,delivered,produced,waiting,eachYear
 
 
 ###############2 installed line and bar chart##########################   
@@ -186,34 +225,33 @@ def newOrder(produced):
     pline.render('templates/op/New_order.html')
 
 ###################5&6 Build Qty bar line chart and table############
-def installedEachYear(path1, fileName1):
-    dataBuild = pd.read_excel(path1+fileName1,sheet_name='Sheet1')
-    date_b = dataBuild.columns[1:]
+def installedEachYear(eachYear):
+    
+    date_b = eachYear.columns
     bar_build = Bar(title='历年生产装机量汇总', title_pos="46%",title_top='1%',width='100%',height=600)
 
-    bar_build.add(dataBuild['Model'][0],date_b, dataBuild.loc[0][1:],legend_top='8%',label_color=['#FFB90F'],is_label_show=True,is_toolbox_show =False,
-    )
-    bar_build.add(dataBuild['Model'][1],date_b, dataBuild.loc[1][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][2],date_b, dataBuild.loc[2][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][3],date_b, dataBuild.loc[3][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][4],date_b, dataBuild.loc[4][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][5],date_b, dataBuild.loc[5][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][6],date_b, dataBuild.loc[6][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][7],date_b, dataBuild.loc[7][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][8],date_b, dataBuild.loc[8][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][9],date_b, dataBuild.loc[9][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][10],date_b, dataBuild.loc[10][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][11],date_b, dataBuild.loc[11][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][12],date_b, dataBuild.loc[12][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][13],date_b, dataBuild.loc[13][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][14],date_b, dataBuild.loc[14][1:],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
-    bar_build.add(dataBuild['Model'][15],date_b, dataBuild.loc[15][1:],yaxis_max="1000",legend_orient='horizontal',legend_pos='center',legend_top='8%',
+    bar_build.add("Global A",date_b, eachYear.iloc[0],legend_top='8%',label_color=['#FFB90F'],is_label_show=True,is_toolbox_show =False,)
+    bar_build.add("Global B",date_b, eachYear.iloc[1],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Global C",date_b, eachYear.iloc[2],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Global D",date_b, eachYear.iloc[3],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Global E/F", date_b, eachYear.iloc[4],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Explorer",date_b, eachYear.iloc[5],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Inspector /Pioneer /Inspector+ /Global+",date_b, eachYear.iloc[6],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("MH3D /Inspector454 /Explorer454", date_b, eachYear.iloc[7],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Optiv/Vision",date_b, eachYear.iloc[8],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Toro /Toro Image",date_b, eachYear.iloc[9],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Micro Plus",date_b, eachYear.iloc[10],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Alpha/Apollo",date_b, eachYear.iloc[11],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Function Plus",date_b, eachYear.iloc[12],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Zoo/ZC",date_b, eachYear.iloc[13],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Stinger II",date_b, eachYear.iloc[14],legend_top='8%',is_label_show=True,legend_selectedmode='multiple')
+    bar_build.add("Global Mini",date_b, eachYear.iloc[15],yaxis_max="1000",legend_orient='horizontal',legend_pos='center',legend_top='8%',
         visual_pos='20%',is_label_show=True,is_datazoom_show=True,datazoom_type='both',legend_selectedmode='multiple',xaxis_type='category',
         tooltip_trigger = 'axis')
 
     str_date = [str(i) for i in date_b]
     line_build = Line(width='100%')
-    line_build.add(dataBuild['Model'][16],str_date, dataBuild.loc[16][1:], label_color=['#FFB90F'],
+    line_build.add("Actual Build Qty",str_date, eachYear.iloc[16], label_color=['#FFB90F'],
         line_width=3,
         is_label_show=True,
         legend_orient='horizontal',
@@ -245,14 +283,14 @@ def installedEachYear(path1, fileName1):
 
     ######################6, table 历年生产装机量汇总 #####################
 
-    columns = dataBuild.columns
-    dataBuild=dataBuild.fillna(0)
+    columns = eachYear.columns
+    eachYear=eachYear.fillna(0)
     trace = go.Table(
-        header=dict(values=list(dataBuild.columns),
+        header=dict(values=['Year'] + list(eachYear.columns),
                     fill = dict(color='#C2D4FF'),
                     
                     align = ['center']),
-        cells=dict(values=[list(dataBuild[columns[i]]) for i in range(len(columns))],
+        cells=dict(values=[list(eachYear.index)]+[list(eachYear[columns[i]]) for i in range(len(columns))],
                 fill = dict(color='#F5F8FF'),
                 align = ['center']),
                     hoverinfo='all',
@@ -269,31 +307,27 @@ def installedEachYear(path1, fileName1):
 
     data = [trace] 
     fig1 = dict(data=[trace], layout=layout1)
-    off.plot(fig1,filename='templates/op/Installed each year bar.html',show_link=False,auto_open=False)
+    off.plot(fig1,filename='templates/op/Installed_each_year_bar.html',show_link=False,auto_open=False)
 
 
-path = '../excel/'
-fileName = 'dashboard.xlsx'
-path1 = "../excel/"
-fileName1 = 'history.xlsx'
+# path = '../excel/'
+# fileName = 'dashboard.xlsx'
+# path1 = "../excel/"
+# fileName1 = 'history.xlsx'
 
-# try:
-#     waitingOrderInventory(path1,fileName1)
-#     print("Waiting Order is successful")
-# except Exception as ex:
-#     template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-#     message = template.format(type(ex).__name__, ex.args)
-#     print("Error in Waiting Order",message)
+
 def updateProduction():
     results = []
     try:
-        installed, delivered,produced = getIdpData()
-        global g_installed
-        global g_delivered
-        global g_produced
-        g_installed = installed
-        g_delivered = delivered
-        g_produced = produced 
+        installed, delivered,produced,waiting, eachYear = getIdpData()
+        # # global g_installed
+        # global g_delivered
+        # global g_produced
+        # global g_waiting
+        # # g_installed = installed
+        # g_delivered = delivered
+        # g_produced = produced 
+        # g_waiting = waiting
 
         #results.append("Get data successfully")
     except Exception as ex:
@@ -303,7 +337,7 @@ def updateProduction():
         results.append('Cannot get Data'+message)
 
     try:
-        installedCmm(g_installed)
+        installedCmm(installed)
         # print("Installed CMM is successful")
         results.append('Installed CMM is successful')
     except Exception as ex:
@@ -312,7 +346,7 @@ def updateProduction():
         results.append("Error in Installed CMM" + message)
 
     try:
-        deliveredCmm(g_delivered)
+        deliveredCmm(delivered)
         print("Delivered CMM is successful")
         results.append('Delivered CMM is successful')
     except Exception as ex:
@@ -321,7 +355,7 @@ def updateProduction():
         # print("Error in Delivered CMM", message)
         results.append("Error in Delivered CMM" + message)
     try:
-        newOrder(g_produced)
+        newOrder(produced)
         # print('New Order is successful')
         results.append('New Order is successful')
     except Exception as ex:
@@ -330,13 +364,21 @@ def updateProduction():
         # print("Error in New Order", message)
         results.append("Error in New Order" + message)
 
-    return results
-# try:
-#     installedEachYear(path,fileName1)
-#     print('Installed CMM Each Year is successful')
-# except Exception as ex:
-#     template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-#     message = template.format(type(ex).__name__, ex.args)
-#     print('Installed CMM Each Year cannot be executed',message)
+    try:
+        waitingOrderInventory(waiting)
+        results.append('Waiting Order is successful')
+    except Exception as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        results.append("Error in Waiting Order" + message)
 
+    
+    try:
+        installedEachYear(eachYear)
+        results.append('Installed CMM Each Year is successful')
+    except Exception as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        results.append('Installed CMM Each Year cannot be executed' + message)
+    return results
 # input("Press enter key to exit ")

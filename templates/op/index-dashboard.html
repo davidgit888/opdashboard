@@ -20,11 +20,11 @@
             lc = {{List|safe}}
             
             for (var i = 0; i < lc.length; i++) {
-                if (lc[i] == '生产制造')
+                if (lc[i] == 'produced')
                 {
                     $("#nav").append("<li onclick="+'cutlist("produced")'+"><a  href='#'>" + "生产制造" + "</a></li>");
                 }
-                if (lc[i] == '配置缺件')
+                if (lc[i] == 'plans')
                 {
                     $("#nav").append("<li onclick="+'cutlist("plans")'+"><a  href='#'>" + "配置缺件" + "</a></li>");
                 }
@@ -41,11 +41,16 @@
             '{% if update == "update" %}'
             $("#nav").append("<li onclick="+'cutlist("update")'+"><a  href='#'>"+"更新数据"+"</a></li>");
             '{% endif %}'
+            
+            '{% if log == "log" %}'
+            $("#nav").append("<li onclick="+'cutlist("log")'+"><a  href='#'>"+"追溯记录"+"</a></li>");
+            '{% endif %}'
+
             $("#nav").append("<li onclick='cutlist(this)'><a  href='logout/'>注销</a></li>");
 
             liNum = $('#nav').find('li').length;
             //document.write(lc)
-            change();
+            change(lc);
 
             //显示日期时间
             var t = null;
@@ -66,13 +71,13 @@
 
         var falg = 0;
         var i = 0;
-        function change() {
+        function change(lc) {
             if(falg==0)
             {
                 var j = 0;
                 $('#nav').find('li').each(function () {
                     if (j == i)
-                    { cutlist("produced"); }
+                    { cutlist(lc[0]); }
 
                     j++;
                     if (j == liNum)

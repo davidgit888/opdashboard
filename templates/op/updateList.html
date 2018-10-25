@@ -24,13 +24,12 @@
 {% if shortage %}
 <p>配置缺件更新</p>
 {% if shortageMessage %}
-{% comment %} {% for i in message %}
-<p>{{i|safe}}</p>
-{% endfor %} {% endcomment %}
 
-<p>{{shortage|safe}}</p>
+
+<p>{{shortageMessage|safe}}</p>
+
 {% endif %}
-<input type='button' value='Update'>
+<input type='submit' id='label_shortage' value='Update'>
 <br/>
 <br/>
 <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>

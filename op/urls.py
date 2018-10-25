@@ -44,6 +44,8 @@ urlpatterns = [
     path('dashboard/update/', views.updateData),
     path('dashboard/Admin/', views.adminUtl),
     path('updateProduction/', views.updateProductionData),
+    path('updateShortage/', views.updateShortageData),
+    path('dashboard/log/', views.log),
 
 
 ]
