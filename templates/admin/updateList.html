@@ -1,0 +1,39 @@
+
+<form method="get" action="/op/updateProduction/">  
+  {% csrf_token %}          
+ 
+{% if produced %}
+<br/>
+<br/>
+<p>生产制造更新</p>
+{% if producedMessage %}
+
+<p>{{producedMessage|safe}}</p>
+{% endif %}
+<input type="submit" id="label_input" value="Update"> 
+<br/>
+<br/>
+<HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>
+<br/>
+<br/>
+{% endif %}
+</form>
+
+<form method="get" action="/op/updateShortage/">  
+  {% csrf_token %}          
+{% if shortage %}
+<p>配置缺件更新</p>
+{% if shortageMessage %}
+
+
+<p>{{shortageMessage|safe}}</p>
+
+{% endif %}
+<input type='submit' id='label_shortage' value='Update'>
+<br/>
+<br/>
+<HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>
+<br/>
+<br/>
+{% endif %}
+</form>

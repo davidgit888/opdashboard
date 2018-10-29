@@ -331,7 +331,7 @@ def updateProduction():
 
         #results.append("Get data successfully")
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
 
         results.append('Cannot get Data'+message)
@@ -339,46 +339,55 @@ def updateProduction():
     try:
         installedCmm(installed)
         # print("Installed CMM is successful")
-        results.append('Installed CMM is successful')
+        results.append('Successful')
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         results.append("Error in Installed CMM" + message)
 
     try:
         deliveredCmm(delivered)
-        print("Delivered CMM is successful")
-        results.append('Delivered CMM is successful')
+        
+        results.append('Successful')
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         # print("Error in Delivered CMM", message)
         results.append("Error in Delivered CMM" + message)
     try:
         newOrder(produced)
         # print('New Order is successful')
-        results.append('New Order is successful')
+        results.append('Successful')
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         # print("Error in New Order", message)
         results.append("Error in New Order" + message)
 
     try:
         waitingOrderInventory(waiting)
-        results.append('Waiting Order is successful')
+        results.append('Successful')
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         results.append("Error in Waiting Order" + message)
 
     
     try:
         installedEachYear(eachYear)
-        results.append('Installed CMM Each Year is successful')
+        results.append('Successful')
     except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        template = " An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         results.append('Installed CMM Each Year cannot be executed' + message)
-    return results
+
+    results = list(set(results))
+    if len(results) == 1 and results[0] == 'Successful':
+        message = "全部更新成功"
+
+    if len(results) > 1:
+        if "Successful" in results:
+            results.remove('Successful')
+        message = '错误: ' + ' '.join(results)
+    return message
 # input("Press enter key to exit ")

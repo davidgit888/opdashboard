@@ -68,7 +68,7 @@ def update_shortage():
     results = []  
     try:
         supplier, overdue, delivered, reason = getAllRdata()
-        results.append('Geting Data is successful')
+        results.append('Successful')
     except Exception as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
@@ -77,7 +77,7 @@ def update_shortage():
 
     try:
         deliveredBar(delivered)
-        results.append('Shortage is successful')
+        results.append('Successful')
     except Exception as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
@@ -85,7 +85,7 @@ def update_shortage():
 
     try:
         supplierBar(supplier)
-        results.append('Supplier is successful')
+        results.append('Successful')
     except Exception as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
@@ -93,7 +93,7 @@ def update_shortage():
 
     try:
         overduePie(overdue)
-        results.append('Overdue is successful')
+        results.append('Successful')
     except Exception as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
@@ -101,11 +101,21 @@ def update_shortage():
 
     try:
         reasonPie(reason)
-        results.append('Reason is successful')
+        results.append('Successful')
     except Exception as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
         results.append('Reason cannot be executed ' + message)
-    return results
+
+    results = list(set(results))
+    if len(results) == 1 and results[0] == 'Successful':
+        message = "全部更新成功"
+
+    if len(results) > 1:
+        if "Successful" in results:
+            results.remove('Successful')
+        message = '错误: ' + ' '.join(results)
+    return message
+
 
 

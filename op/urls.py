@@ -4,6 +4,7 @@ from . import views
 from . import sites
 from . import productionUpdate
 from django.utils.encoding import iri_to_uri
+from .admin import produced_admin_site
 
 
 app_name = 'op'
@@ -46,6 +47,7 @@ urlpatterns = [
     path('updateProduction/', views.updateProductionData),
     path('updateShortage/', views.updateShortageData),
     path('dashboard/log/', views.log),
+    path('produced-admin/',produced_admin_site.urls)
 
 
 ]

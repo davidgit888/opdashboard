@@ -63,12 +63,13 @@ def dashboard(request):
     # navList = ['生产制造','配置缺件']
     if request.user.is_staff:
         admin = 'Admin'
-        update = 'update'
+        update = ''
     else:
         admin = ''
         update = ''
     if request.user.username == 'admin':
         log = 'log'
+        update = 'update'
     else:
         log = ''
     return render(request,'op/index-dashboard.html',{
