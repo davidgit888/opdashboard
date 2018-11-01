@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'op.apps.OpConfig',
     'shortageConf.apps.ShortageconfConfig',
+    'report.apps.ReportConfig',
 
     
 ]

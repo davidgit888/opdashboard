@@ -14,6 +14,29 @@ class UserAdmin(BaseUserAdmin):
         if not request.user.is_superuser:
             return qs.filter(is_superuser=False)
         return qs
+    # hide is_superuser if user is not superuser
+    staff_fieldsets = (
+    (None, {'fields': ('username', 'password')}),
+    (('个人信息'), {'fields': ('last_name', 'first_name', 'email')}),
+    # No permissions
+    (('重要日期'), {'fields': ('last_login', 'date_joined')}),
+    (('权限'), {'fields': ('is_active','is_staff','groups',)}),
+        )
+
+    def change_view(self, request, *args, **kwargs):
+        # for non-superuser
+        if not request.user.is_superuser:
+            try:
+                self.fieldsets = self.staff_fieldsets
+                response = super(UserAdmin, self).change_view(request, *args, **kwargs)
+            finally:
+                # Reset fieldsets to its original value
+                self.fieldsets = UserAdmin.fieldsets
+            return response
+        else:
+            return super(UserAdmin, self).change_view(request, *args, **kwargs)
+
+
 
 # Register your models here.
 class DeliveredTotalAdmin(admin.ModelAdmin):

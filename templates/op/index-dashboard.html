@@ -1,7 +1,7 @@
-﻿<!DOCTYPE html>
+﻿{% load i18n static %}<!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Hexagon Dashboard</title>
      {% load staticfiles %}
     <link href="{% static 'css/layout.css' %}" rel="stylesheet">    
     <link href="{% static 'css/menu.css' %}" rel="stylesheet">    
@@ -51,10 +51,11 @@
             liNum = $('#nav').find('li').length;
             //document.write(lc)
             change(lc);
+            time();
 
             //显示日期时间
             var t = null;
-            t = setTimeout(time, 2000000);//开始执行
+            //t = setTimeout(time, 1000);//开始执行
             function time() {
                 clearTimeout(t);//清除定时器
                 var today = new Date();//定义日期对象     
@@ -64,8 +65,10 @@
                 var hh = today.getHours();//通过日期对象的getHours方法返回小时     
                 var mm = today.getMinutes();//通过日期对象的getMinutes方法返回分钟     
                 var ss = today.getSeconds();//通过日期对象的getSeconds方法返回秒  
-                document.getElementById("time").innerHTML = {{user.last_name}} ;
-                //t = setTimeout(time, 2000000); //设定定时器，循环执行            
+                document.getElementById("user").innerHTML =  '你好 '+'{{user.last_name}}{{user.first_name}}';//yyyy + "年" + MM + "月" + dd + "日" + hh + "时" + mm + "分" ; 
+                document.getElementById('date').innerHTML = '当前时间: ' + yyyy + "年" + MM + "月" + dd + "日" ; 
+                document.getElementById('time').innerHTML = hh + "时" + mm + "分" + ss +'秒';
+                t = setTimeout(time, 1000); //设定定时器，循环执行            
             }
         });
 
@@ -135,15 +138,15 @@
 		font-size:large;
 		box-shadow: 4px 0px 6px #a9aaaa;
 		background: url(../images/left_bg.jpg) no-repeat #0197ba;	
-	}
+	}{% endcomment %}
     .date {
-        margin-bottom:4px;
+        margin-bottom:1px;
         color:white;
         font-size:medium;
         position:fixed;
         bottom:10px;
-        left:30px;    
-    } {% endcomment %}
+        left:1px;    
+    } 
 	</style>
 </head>
 <body onclick="changeflag()">
@@ -151,9 +154,13 @@
         <div class="container">
 			<image src="/static/image/logo.png" style="margin:10px;" />
             <ul id="nav"></ul>
-            <div class="date">
+            <div id="info" class="date">
 			<h3></h3>
-                <a id="time"></a>
+           
+                <p id="user"></p>
+                <p id='date'></p>
+                <p id='time'></p>
+            
             </div>
         </div>
         <iframe id="show" class="showop" src="" style="float:left;width:90%;border:none;"></iframe>
