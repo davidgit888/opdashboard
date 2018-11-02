@@ -80,8 +80,10 @@ def dashboard(request):
         })
 
         # Redirect to a success page.
-        
 
+@login_required(login_url='/accounts/login/')       
+def report(request):
+    return HttpResponseRedirect('/report/')
 
 @login_required(login_url='/accounts/login/')
 def InstalledCmm(request):
