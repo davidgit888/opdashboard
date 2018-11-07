@@ -22,15 +22,19 @@
             for (var i = 0; i < lc.length; i++) {
                 if (lc[i] == 'produced')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("produced")'+"><a  href='#'>" + "生产制造" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("produced")'+"><a onclick='active(this)' href='#'>" + "生产制造" + "</a></li>");
                 }
                 if (lc[i] == 'plans')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("plans")'+"><a  href='#'>" + "配置缺件" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("plans")'+"><a onclick='active(this)' href='#'>" + "配置缺件" + "</a></li>");
                 }
                 if (lc[i] == 'report')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("report")'+"><a  href='#'>" + "报工平台" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("report")'+"><a onclick='active(this)' href='#'>" + "报工平台" + "</a></li>");
+                }
+                if (lc[i] == 'reporAnalysis')
+                {
+                    $("#nav").append("<li onclick="+'cutlist("reporAnalysis")'+"><a onclick='active(this)' href='#'>" + "数据分析" + "</a></li>");
                 }
                //$("#nav").append("<li onclick='cutlist(this)'><a  href='#'>" + lc[i] + "</a></li>");
             }; 
@@ -39,19 +43,20 @@
 
             '{% if admin == "Admin" %}'
             //var jadmin = '{{admin|safe}}'
-            $("#nav").append("<li onclick="+'cutlist("Admin")'+"><a  href='#'>"+"管理页面"+"</a></li>");
+            $("#nav").append("<li onclick="+'cutlist("Admin")'+"><a onclick='active(this)' href='#'>"+"管理页面"+"</a></li>");
             '{% endif %}'
 
             '{% if update == "update" %}'
-            $("#nav").append("<li onclick="+'cutlist("update")'+"><a  href='#'>"+"更新数据"+"</a></li>");
+            $("#nav").append("<li onclick="+'cutlist("update")'+"><a onclick='active(this)' href='#'>"+"更新数据"+"</a></li>");
             '{% endif %}'
             
             '{% if log == "log" %}'
-            $("#nav").append("<li onclick="+'cutlist("log")'+"><a  href='#'>"+"追溯记录"+"</a></li>");
+            $("#nav").append("<li onclick="+'cutlist("log")'+"><a onclick='active(this)' href='#'>"+"追溯记录"+"</a></li>");
             '{% endif %}'
 
             $("#nav").append("<li onclick='cutlist(this)'><a  href='logout/'>注销</a></li>");
-
+            
+     
             liNum = $('#nav').find('li').length;
             //document.write(lc)
             change(lc);
@@ -79,6 +84,8 @@
         var falg = 0;
         var i = 0;
         function change(lc) {
+            var allA = $('#nav').find("a")
+            allA[0].style.background='orange';
             if(falg==0)
             {
                 var j = 0;
@@ -107,10 +114,20 @@
         function cutlist(lihtml) {
 
             $("#show").attr("src", lihtml);
+           
+            
+        }
+        function active(tag){
+            //$("#nav :a").children().style.background='white';
+            var allA = $('#nav').find("a")
+            for(i=0;i<allA.length;i++){
+                allA[i].style.background='#0e697e';
+            }
+            tag.style.background='orange';
         }
     </script>
 	<style>
-
+    .active {background:red}
 	{% comment %} #nav,#nav ul {
 		background-color: #27727b;
 		list-style: none outside none;

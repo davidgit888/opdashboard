@@ -10,6 +10,8 @@ def get_user_permissions(data):
             navList.append('plans')
         if '报工平台' in data[i]:
             navList.append('report')
+        if '班组长' in data[i]:
+            navList.append('reporAnalysis')
 
     navList = list(set(navList))
     navList.sort(reverse=True)

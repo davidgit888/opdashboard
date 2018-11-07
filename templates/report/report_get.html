@@ -2,14 +2,15 @@
 <head>
 {% load staticfiles %}
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
+<script src="{% static 'js/Calendar.js' %}"></script>   
 <script>
 
 
     function valid_report(){
         var sfg_id = document.getElementById('sfg_id').value;
         var real_time = document.getElementById('real_time').value;
-        if (isNaN(sfg_id) || sfg_id== ''){
-            alert("SFG 必须是数字且不为空");
+        if (sfg_id== ''){
+            alert("SFG 必须不为空");
             return false;
         }else if (isNaN(real_time) || real_time == ''){
             alert("制造工时必须是数字且不为空");
@@ -21,13 +22,10 @@
     }
 
     function valid_support(){
-        var supportive_time = document.getElementById('supportive_time').value;
-        var borrow_time = document.getElementById('borrow_time').value;
-        if (isNaN(supportive_time) || supportive_time == ''){
-            alert("辅助工时必须是数字且不为空");
-            return false;
-        }else if (isNaN(borrow_time) || borrow_time == ''){
-            alert("外借必须是数字且不为空");
+        var rest = document.getElementById('rest').value;
+        var clean = document.getElementById('clean').value;
+        if (isNaN(rest) ||(isNaN(clean))){
+            alert("休息工时必须是数字且不为空");
             return false;
         }else{
             document.forms[1].action ='/report/supportive_time/';
@@ -62,131 +60,347 @@
         }); 
     });
 
+    window.onload = function (){
+        var today = new Date();//定义日期对象     
+        var yyyy = today.getFullYear();//通过日期对象的getFullYear()方法返回年      
+        var MM = today.getMonth() +1;//通过日期对象的getMonth()方法返回年   
+        var dd = today.getDate() ;//通过日期对象的getDate()方法返回年
+        submitTime = yyyy + '-' + MM +'-' + dd
+        $("#prodate").attr('value',submitTime);
+        $("#suportdate").attr('value',submitTime);
+
+        var lPro = document.getElementById('liproduce');
+        var lRep = document.getElementById('lireport');
+        var dPro = document.getElementById('dproduce');
+        var dRep = document.getElementById('dreport');
+        //dRep.style.display='block';
+        lPro.onclick = function (){
+            dPro.style.display='block';
+            lPro.style.background='orange';
+            dRep.style.display='none';
+            lRep.style.background='';
+
+        }
+        lRep.onclick = function (){
+            dPro.style.display='none';
+            lPro.style.background='';
+            dRep.style.display='block';
+            lRep.style.background='orange';
+        }
+
+    }
+
     
 
 
 </script>
 <style type="text/css">
-    .div1{float:left;width:45%;height50%;}
-
+    .div1{float:left;width:45%;height50%;margin=10}
+    .divsupport{float:left,width:30%,margin=10}
+    .divsupportlog{float:left,width:65%,margin:10}
+    .div2 {display:none}
+    #main_content
+    {
+     margin-top:20px;
+     width:100%;
+     margin-left:20px;
+    }
+    #main_content li
+    {
+     display:inline;
+     list-style-type:none;
+     background-color:#6AC1F7;
+     padding:10px;
+     border-radius:5px 5px 0px 0px;
+     color:#292A0A;
+     font-weight:bold;
+     cursor:pointer;
+    }
+    #main_content li.notselected
+    {
+     background-color:None;
+     color:#292A0A; 
+    }
+    .active {background-color:orange;display:block}
 
 </style>
 </head>
 <body>
-<div class='div1'>
-    <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/><br/>
-
-
-    <form onsubmit='valid_report()' action="/report/" method="post" >
-        {% csrf_token %}
+    <div id='main_content'>
+        <li class='notselected' id='liproduce' style='background:orange'>制造工时</li>
+        <li class='notselected' id='lireport'>辅助工时</li>
         
-        {% if save_message %}
-        <p>{{save_message}}</p>
-        <br/>
-        {% endif %}
-        <label>SFG</lable>
-        <input id='sfg_id' type='text' name='sfg_id' >
-        <br/><br/>
-        <label>机型</lable>
-        <input id='prod_type' type='text' name='type' value='' readonly ><br/><br/>
-        {% if groups %}
-                <label>测头</lable>
-                <select id='prob_info' name='prob_info' >
-                <option value=' '>---</option>
-                {% for entry in prob_list %}
-                    <option value="{{ entry.prob_info  }}">{{ entry.prob_info }}</option>
-                {% endfor %}
-                </select>
-                <br/><br/>
-            {% else %}
-                <select id = 'prob_info' name='prob_info' style='display:none'>
-                    <option value=' '></option>
-                </select>
-            <br/><br/>
-            {% endif %}
-
-        <label>工步</lable>
-            <select id='op_id' name="op_id">
-                <option value=' '>---</option>
-                {% for entry in op_list  %}
-                    <option value = "{{entry.op_id}}">{{entry.op_id}}</option>
-                {% endfor %}
-            </select>
-        <br/><br/>
-
-        <label>数量</lable>
-        <input id='qty' type='text' name='qty'>
-        <br/><br/>
-
-        <input type='text' name='user_name' value='{{user.last_name}}{{user.first_name}}' readonly style='display:none'>
-    
-        <label>标准工时</lable>
-        <input id='standard_time' type='text' name='standard_time' value='' readonly>
-        <br/><br/>
-        <label>制造工时</lable>
-        <input id = 'real_time' type='text' name='real_time'>
-        <br/><br/>
-        <input type="submit" value="提交">
-        <br/><br/><br/><br/>
-    </form>
-</div>
-<div class='div1'>
-    <h3>当天报工记录查询</h3>
-
-    <table border="1">
-        <tr>
-            <th>SFG</th>
-            <th>机型</th>
-            <th>工步</th>
-            <th>测针（如果有）</th>
-            <th>数量</th>
-            <th>标准工时</th>
-            <th>制造工时</th>
-            <th>日期</th>
-        </tr>
-            {% for i in logs %}
-            <tr>
-                <td>{{i.sfg}} </td>
-                <td>{{i.type}} </td>
-                <td>{{i.op}} </td>
-                <td>{{i.prob}} </td>
-                <td>{{i.qty}} </td>
-                <td>{{i.standard }}</td>
-                <td>{{i.real}} </td>
-                <td>{{i.date}}</td>
-            </tr>
-            {% endfor %}
-    </table>
-    <br/>
-    <p>当天KPI (KIP算法：标准工时/制造工时)</p>
-    <p>{{today_kpi}}</p>
-    <p>{{stand_time_today}}</P>
-</div>
+        <div id='dproduce' style='display:block;'>
+            {% comment %} 制造工时表 {% endcomment %}
+            <div class='div1'>
+                <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/><br/>
 
 
-<div style="width:100%">
-<br/><br/><br/><br/><br/><br/><br/><br/>
-<HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>
-<br/><br/><br/>
-</div>
-<div>
-<form action='/report/' method='post' onsubmit='valid_support()'>
-    {% csrf_token %}
-    
-    <h2>其他信息</h2>
-    <br/>
-    {{support}}{{borrow}}
-    <br/>
+                <form onsubmit='valid_report()' action="/report/" method="post" >
+                    {% csrf_token %}
+                    
+                    {% if save_message %}
+                    <p>保存成功</p>
+                    <br/>
+                    {% endif %}
+                    <label>SFG</lable>
+                    <input id='sfg_id' type='text' name='sfg_id' >
+                    <br/><br/>
+                    <label>机型</lable>
+                    <input id='prod_type' type='text' name='type' value='' readonly ><br/><br/>
+                    {% if groups %}
+                            <label>测头</lable>
+                            <select id='prob_info' name='prob_info' >
+                            <option value='None'>---</option>
+                            {% for entry in prob_list %}
+                                
+                                <option value="{{ entry.prob_info  }}">{{ entry.prob_info }}</option>
+                            {% endfor %}
+                            </select>
+                            <br/><br/>
+                        {% else %}
+                            <select id = 'prob_info' name='prob_info' style='display:none'>
+                                <option value='None'>---</option>
+                            </select>
+                        <br/><br/>
+                        {% endif %}
 
-    <label>辅助工时</lable>
-    <input id='supportive_time' name='supportive_time'>
-    
-    </lable>外借工时</lable>
-    <input id='borrow_time' name='borrow_time'>
-    <br/><br/><br/>
-    
-    <input type='submit' value='提交'>
-</form>
-</div>
+                    <label>工步</lable>
+                        <select id='op_id' name="op_id">
+                            <option value=' '>---</option>
+                            {% for entry in op_list  %}
+                                <option value = "{{entry.op_id}}">{{entry.op_id}}</option>
+                            {% endfor %}
+                        </select>
+                    <br/><br/>
+
+                    <label>数量</lable>
+                    <input id='qty' type='text' name='qty'>
+                    <br/><br/>
+
+                    <input type='text' name='user_name' value='{{user.id}}' readonly style='display:none'>
+                
+                    <label>标准工时</lable>
+                    <input id='standard_time' type='text' name='standard_time' value='' readonly>
+                    <br/><br/>
+                    <label>制造工时</lable>
+                    <input id = 'real_time' type='text' name='real_time'>
+                    <br/><br/>
+                    <font>日期:</font>
+                    <input id='prodate' name='prodate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                    
+                    <br/><br/>
+                    <input type="submit" value="提交">
+                    <br/><br/><br/><br/>
+                </form>
+            </div>
+            {% comment %} 制造工时记录 {% endcomment %}
+            <div class='div1'>
+                <h3>当天报工记录查询</h3>
+
+                <table border="1">
+                    <tr>
+                        <th>SFG</th>
+                        <th>机型</th>
+                        <th>工步</th>
+                        <th>测针（如果有）</th>
+                        <th>数量</th>
+                        <th>标准工时</th>
+                        <th>制造工时</th>
+                        <th>日期</th>
+                    </tr>
+                        {% for i in logs %}
+                        <tr>
+                            <td>{{i.sfg}} </td>
+                            <td>{{i.type}} </td>
+                            <td>{{i.op}} </td>
+                            <td>{{i.prob}} </td>
+                            <td>{{i.qty}} </td>
+                            <td>{{i.standard }}</td>
+                            <td>{{i.real}} </td>
+                            <td>{{i.date}}</td>
+                        </tr>
+                        {% endfor %}
+                </table>
+                <br/>
+                <p>当天KPI (KIP算法：标准工时/制造工时)</p>
+                <p>{{today_kpi}}</p>
+                <p>当月KPI</p>
+                <p>{{month_kpi}}</P>
+                <p>本年KPI</p>
+                <p>{{year_kpi}}</P>
+                <p>总辅助工时{{supportive_total}}</p>
+            </div>
+        </div>
+
+        {% comment %} <div style="width:100%">
+            <br/><br/><br/>
+            <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>
+            <br/>
+        </div> {% endcomment %}
+        <div id='dreport' style='display:none'>
+            <div style='width:28%;float:left'>
+                <form onsubmit='valid_support()' action='/report/' method='post' >
+                    {% csrf_token %}
+                    
+                    <h2>辅助工时</h2>
+                    {% if supportive_save_message %}{{supportive_save_message}}{% endif %}
+                    {% if error_message %}<p style='color:red'>{{error_message}}<p>{% endif %}
+                    <br/>
+                    <fieldset>
+                        <legend>日常</legend>
+                            <label>休息</lable>
+                            <input id='rest' type="text" name='rest' />
+                            
+                            <label>卫生</lable>
+                            <input id='clean' type="text" name='clean' />
+                            <label>记录</lable>
+                            <input type="text" name='record' />
+                            <!-- etc -->
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>培训</legend>
+                            <label>组内</lable>
+                            <input type="text" name='inside_group' />
+                            <label>组外</lable>
+                            <input type="text" name='outside_group' />
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>搬运</legend>
+                            <label>整机</lable>
+                            <input type="text" name='complete_machine' />
+                            <label>花岗石</lable>
+                            <input type="text" name='granite' />
+                            <label>测头</lable>
+                            <input type="text" name='prob' />
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>返工</legend>
+                            <label>补缺件</lable>
+                            <input type="text" name='shortage' />
+                            <label>计划调整</lable>
+                            <input type="text" name='plan_change' />
+                            <label>人为质量问题</lable>
+                            <input type="text" name='human_quality_issue_rework' />
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>返修</legend>
+                            <label>零件质量问题</lable>
+                            <input type="text" name='item_quality_issue' />
+                            <label>人为质量问题</lable>
+                            <input type="text" name='human_quality_issue_repair' />
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>其他</legend>
+                            <label>设备维护</lable>
+                            <input type="text" name='equipment_mantainence' />
+                            <label>库存核查</lable>
+                            <input type="text" name='inventory_check' />
+                            <label>质量审核</lable>
+                            <input type="text" name='quality_check' />
+                            <label>档案整理</lable>
+                            <input type="text" name='document' />
+                            <label>会议</lable>
+                            <input type="text" name='conference' />
+                            <label>班组管理</lable>
+                            <input type="text" name='group_management' />
+  
+                            
+                    
+                    </fieldset>
+                    <br/>
+                    <fieldset>
+                        <legend>外借</legend>
+                            <label>外借1</lable>
+                            <input type="text" name='equipment_mantainence' />
+                            <label>外借2</lable>
+                            <input type="text" name='inventory_check' />
+                            <label>外借3</lable>
+                            <input type="text" name='quality_check' />
+
+
+                    </fieldset>
+                    <br/><br/>
+                    <font>日期:</font>
+                    <input id='suportdate' name='suportdate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" >       
+                    <br/><br/>
+                    
+                    <input type='submit' value='提交'>
+                </form>
+            </div>
+
+            <div style='width:68%;float:left;margin:10;overflow:scroll;'>
+                <h3>当天报工记录查询</h3>
+
+                <table border="1">
+                    <tr>
+                        <th>日期</th>
+                        <th>休息</th>
+                        <th>卫生</th>
+                        <th>记录</th>
+                        <th>组内</th>
+                        <th>组外</th>
+                        <th>整机</th>
+                        <th>花岗石</th>
+                        <th>测头</th>
+                        <th>补缺件</th>
+                        <th>计划调整</th>
+                        <th>人为质量问题</th>
+                        <th>零件质量问题</th>
+                        <th>人为质量问题</th>
+                        <th>设备维护</th>
+                        <th>库存核查</th>
+                        <th>质量审核</th>
+                        <th>档案整理</th>
+                        <th>会议</th>
+                        <th>班组管理</th>
+                        
+                    </tr>
+                        {% for i in supportive_logs %}
+                        <tr>
+                            <td>{{i.date}} </td>
+                            <td>{{i.rest}} </td>
+                            <td>{{i.clean}} </td>
+                            <td>{{i.record}} </td>
+                            <td>{{i.inside_group}} </td>
+                            <td>{{i.outside_group}} </td>
+                            <td>{{i.complete_machine}} </td>
+                            <td>{{i.granite }}</td>
+                            <td>{{i.prob}} </td>
+                            <td>{{i.shortage}}</td>
+                            <td>{{i.plan_change}} </td>
+                            <td>{{i.human_quality_issue_rework}} </td>
+                            <td>{{i.item_quality_issue}} </td>
+                            <td>{{i.human_quality_issue_repair}} </td>
+                            <td>{{i.equipment_mantainence}} </td>
+                            <td>{{i.inventory_check }}</td>
+                            <td>{{i.quality_check}} </td>
+                            <td>{{i.document}}</td>
+                            <td>{{i.group_management}} </td>
+                            <td>{{i.conference}} </td>
+
+                            
+            
+                        </tr>
+                        {% endfor %} 
+                </table>
+                <br/>
+            
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -40,6 +40,7 @@ urlpatterns = [
     path('dashboard/配置缺件/', sites.plan),
     path('dashboard/plans/', sites.plan),
     path('dashboard/report/', views.report),
+    path('dashboard/reporAnalysis',views.report_analysis),
     path('dashboard/logout.html', views.logoutUser),
     path('dashboard/logout/', views.logoutUser),
     path('dashboard/管理页面.html/', views.adminUtl),

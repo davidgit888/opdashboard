@@ -40,18 +40,23 @@ def loginIndex(request):
         return render(request, 'op/login.html')
 #check navList to identify the permission of user
 def userAllPermisions(request):
-    userId = User.objects.get(username=request.user.username).groups.values()
-    user_group_list=[]
-    for i in range(len(userId)):
-        user_group_list.append(userId[i]['id'])
+    # userId = User.objects.get(username=request.user.username).groups.values()
+    # user_group_list=[]
+    # for i in range(len(userId)):
+    #     user_group_list.append(userId[i]['id'])
 
+    # user_all_permissions = []
+
+    # # groups = Group.objects.get(id=userId).permissions.values()
+    # for i in range(len(user_group_list)):
+    #     group = Group.objects.get(id=user_group_list[i]).permissions.values()
+    #     for j in range(len(group)):
+    #         user_all_permissions.append(group[j]['name'])
     user_all_permissions = []
-
-    # groups = Group.objects.get(id=userId).permissions.values()
-    for i in range(len(user_group_list)):
-        group = Group.objects.get(id=user_group_list[i]).permissions.values()
-        for j in range(len(group)):
-            user_all_permissions.append(group[j]['name'])
+    user = User.objects.get(id=request.user.id)
+    groups = user.groups
+    for i in groups.select_related():
+        user_all_permissions.append(i.name)
 
     navList = get_user_permissions(user_all_permissions)
     return navList
@@ -84,6 +89,9 @@ def dashboard(request):
 @login_required(login_url='/accounts/login/')       
 def report(request):
     return HttpResponseRedirect('/report/')
+
+def report_analysis(request):
+    return HttpResponseRedirect('/report/report_analysis/')
 
 @login_required(login_url='/accounts/login/')
 def InstalledCmm(request):

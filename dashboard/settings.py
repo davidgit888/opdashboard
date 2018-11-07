@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'op.apps.OpConfig',
     'shortageConf.apps.ShortageconfConfig',
     'report.apps.ReportConfig',
+    #'OpReport.apps.OpreportConfig',
 
     
 ]
