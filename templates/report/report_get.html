@@ -9,13 +9,23 @@
     function valid_report(){
         var sfg_id = document.getElementById('sfg_id').value;
         var real_time = document.getElementById('real_time').value;
+        var prod_type = document.getElementById('prod_type').value;
+        var standard_time = document.getElementById('standard_time').value;
         if (sfg_id== ''){
             alert("SFG 必须不为空");
             return false;
         }else if (isNaN(real_time) || real_time == ''){
             alert("制造工时必须是数字且不为空");
             return false;
-        }else{
+        }else if (prod_type == '找不到SFG ID'){
+            alert("找不到SFG ID");
+            
+        }else if (isNaN(standard_time)){
+            alert("标准工时找不到");
+            
+        }
+        
+        else{
             document.forms[0].action = '/report/get_data/';
         }
         
@@ -95,10 +105,11 @@
 
 </script>
 <style type="text/css">
-    .div1{float:left;width:45%;height50%;margin=10}
-    .divsupport{float:left,width:30%,margin=10}
-    .divsupportlog{float:left,width:65%,margin:10}
-    .div2 {display:none}
+    .div1{float:left;width:30%;height:100%;margin=10};
+    .div2{float:left;width:65%;height:100%;margin=10};
+    .divsupport{float:left,width:30%,margin=10};
+    .divsupportlog{float:left,width:65%,margin:10};
+    
     #main_content
     {
      margin-top:20px;
@@ -140,14 +151,16 @@
                     {% csrf_token %}
                     
                     {% if save_message %}
-                    <p>保存成功</p>
+                    <p>{{save_message}}</p>
+
                     <br/>
                     {% endif %}
+                    {% if error_message %}<p style='color:red'>{{error_message}} </p>{% endif %}
                     <label>SFG</lable>
                     <input id='sfg_id' type='text' name='sfg_id' >
                     <br/><br/>
                     <label>机型</lable>
-                    <input id='prod_type' type='text' name='type' value='' readonly ><br/><br/>
+                    <input id='prod_type' type='text' name='type' style="width: 300px;"  value='' readonly ><br/><br/>
                     {% if groups %}
                             <label>测头</lable>
                             <select id='prob_info' name='prob_info' >
@@ -193,9 +206,10 @@
                     <input type="submit" value="提交">
                     <br/><br/><br/><br/>
                 </form>
+                {{c_standard_time_total}}{{c_real_time_total}}
             </div>
             {% comment %} 制造工时记录 {% endcomment %}
-            <div class='div1'>
+            <div class='div2'>
                 <h3>当天报工记录查询</h3>
 
                 <table border="1">
@@ -223,13 +237,40 @@
                         {% endfor %}
                 </table>
                 <br/>
-                <p>当天KPI (KIP算法：标准工时/制造工时)</p>
+                {% comment %} <p>当天KPI (KIP算法：标准工时/制造工时)</p>
                 <p>{{today_kpi}}</p>
                 <p>当月KPI</p>
                 <p>{{month_kpi}}</P>
                 <p>本年KPI</p>
                 <p>{{year_kpi}}</P>
-                <p>总辅助工时{{supportive_total}}</p>
+                <p>总辅助工时{{supportive_total}}</p>  {% endcomment %}
+                
+                <fieldset>
+                    <legend>本日</legend>
+                    <p>标准工时：{{g_today_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_today_real_time_total}}小时</p>
+                    <p>辅助工时：{{g_today_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_today}} （标准工时/制造工时）</p>
+                    <p>工时有效率：{{efficiency_today}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>本月</legend>
+                    <p>标准工时：{{g_month_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_month_real_time_total}}小时</p>
+                    <p>辅助工时：{{g_month_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_month}} （标准工时/制造工时）</p>
+                    <p>工时有效率：{{efficiency_month}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>本年</legend>
+                    <p>标准工时：{{g_year_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_year_real_time_total}}小时</p>
+                    <p>辅助工时：{{g_year_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_year}} （标准工时/制造工时）</p>
+                    <p>工时有效率：{{efficiency_year}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset> 
             </div>
         </div>
 
@@ -245,15 +286,16 @@
                     
                     <h2>辅助工时</h2>
                     {% if supportive_save_message %}{{supportive_save_message}}{% endif %}
-                    {% if error_message %}<p style='color:red'>{{error_message}}<p>{% endif %}
+                    {% if supportive_error_message %}<p style='color:red'>{{supportive_error_message}}<p>{% endif %}
                     <br/>
                     <fieldset>
                         <legend>日常</legend>
                             <label>休息</lable>
                             <input id='rest' type="text" name='rest' />
-                            
+                             <br/><br/>
                             <label>卫生</lable>
                             <input id='clean' type="text" name='clean' />
+                            <br/><br/>
                             <label>记录</lable>
                             <input type="text" name='record' />
                             <!-- etc -->
@@ -263,6 +305,7 @@
                         <legend>培训</legend>
                             <label>组内</lable>
                             <input type="text" name='inside_group' />
+                             <br/><br/>
                             <label>组外</lable>
                             <input type="text" name='outside_group' />
                             
@@ -273,8 +316,10 @@
                         <legend>搬运</legend>
                             <label>整机</lable>
                             <input type="text" name='complete_machine' />
+                             <br/><br/>
                             <label>花岗石</lable>
                             <input type="text" name='granite' />
+                            <br/><br/>
                             <label>测头</lable>
                             <input type="text" name='prob' />
                             
@@ -285,8 +330,10 @@
                         <legend>返工</legend>
                             <label>补缺件</lable>
                             <input type="text" name='shortage' />
+                            <br/><br/>
                             <label>计划调整</lable>
                             <input type="text" name='plan_change' />
+                            <br/><br/>
                             <label>人为质量问题</lable>
                             <input type="text" name='human_quality_issue_rework' />
                             
@@ -297,6 +344,7 @@
                         <legend>返修</legend>
                             <label>零件质量问题</lable>
                             <input type="text" name='item_quality_issue' />
+                            <br/><br/>
                             <label>人为质量问题</lable>
                             <input type="text" name='human_quality_issue_repair' />
                             
@@ -307,14 +355,19 @@
                         <legend>其他</legend>
                             <label>设备维护</lable>
                             <input type="text" name='equipment_mantainence' />
+                            <br/><br/>
                             <label>库存核查</lable>
                             <input type="text" name='inventory_check' />
+                            <br/><br/>
                             <label>质量审核</lable>
                             <input type="text" name='quality_check' />
+                            <br/><br/>
                             <label>档案整理</lable>
                             <input type="text" name='document' />
+                            <br/><br/>
                             <label>会议</lable>
                             <input type="text" name='conference' />
+                            <br/><br/>
                             <label>班组管理</lable>
                             <input type="text" name='group_management' />
   
@@ -324,13 +377,13 @@
                     <br/>
                     <fieldset>
                         <legend>外借</legend>
-                            <label>外借1</lable>
-                            <input type="text" name='equipment_mantainence' />
-                            <label>外借2</lable>
-                            <input type="text" name='inventory_check' />
-                            <label>外借3</lable>
-                            <input type="text" name='quality_check' />
-
+                            <select id='borrow' name="borrow_type">
+                                <option value=' '>---</option>
+                                {% for borrows in borrow_time  %}
+                                    <option value = "{{borrows.borrow}}">{{borrows.borrow}}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name='borrow_time' />
 
                     </fieldset>
                     <br/><br/>
@@ -342,7 +395,7 @@
                 </form>
             </div>
 
-            <div style='width:68%;float:left;margin:10;overflow:scroll;'>
+            <div style='width:68%;float:left;margin:10'>
                 <h3>当天报工记录查询</h3>
 
                 <table border="1">
@@ -367,6 +420,8 @@
                         <th>档案整理</th>
                         <th>会议</th>
                         <th>班组管理</th>
+                        <th>外借</th>
+                        <th>外借分类</th>
                         
                     </tr>
                         {% for i in supportive_logs %}
@@ -391,13 +446,16 @@
                             <td>{{i.document}}</td>
                             <td>{{i.group_management}} </td>
                             <td>{{i.conference}} </td>
+                            <td>{{i.borrow_time}} </td>
+                            <td>{{i.borrow_name}} </td>
 
                             
             
                         </tr>
                         {% endfor %} 
                 </table>
-                <br/>
+                <br/><br/>
+                <p>本日辅助工时汇总: {{g_today_supportive_total}}</p>
             
             </div>
         </div>

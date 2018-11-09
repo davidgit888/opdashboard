@@ -1,0 +1,62 @@
+<div width=100%>
+    <br/><br/><br/>
+    <strong><h2 style='text-align:center'>生产进度表 </h2></strong>
+
+    <table border=1 align="center" style="overflow:scroll;text-align:center">
+        <tr>
+            <th>SFG</th>
+            <th width=200>机型</th>
+            {% for i in op_list  %}
+                <th colspan="2">{{i}}</th>
+
+            {% endfor %}
+            
+
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            {% for i in op_list  %}
+                <td width=50>员工</td>
+                <td width=70>日期</td>
+
+             {% endfor %}
+            
+        </tr>
+        
+                   {% for  i in schedule_list  %}
+                   <tr>
+                        
+                        {% for key, value in i.items %}
+                            
+                            <td>{{value}}</td>
+                        {% endfor %}
+                        
+                    </tr>   
+                    
+                    {% endfor %}        
+                            
+                     
+               
+           
+            </tr>
+            
+    </table>
+
+    {% comment %} <br/> <br/> <br/>
+    {{schedule_list}}
+    <br/> <br/> <br/>
+    <p>Value</p>
+     {% for  i in schedule_list  %}
+         
+        {% for key,value in i.items %}
+        
+        <p>value: {{value}}</p>
+        {% endfor %}
+        
+    {% endfor %}                   {% endcomment %}
+                
+ 
+ 
+    
+<div>

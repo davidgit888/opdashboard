@@ -6,7 +6,7 @@ def get_user_permissions(data):
     for i in range(len(data)):
         if "生产" in data[i]:
             navList.append('produced')
-        if '发货缺件' in data[i]:
+        if '配置缺件' in data[i]:
             navList.append('plans')
         if '报工平台' in data[i]:
             navList.append('report')

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 def index(request):
     return render(request, 'op/login.html')
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def loginAuth(request):
     return HttpResponseRedirect('op/dashboard/')
 

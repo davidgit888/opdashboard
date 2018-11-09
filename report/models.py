@@ -4,7 +4,7 @@ from datetime import date
 # Create your models here.
 class SfmProd(models.Model):
     sfg_id = models.CharField(max_length=15, verbose_name='SFG',default='')
-    type_name = models.CharField(max_length=30, verbose_name='机型')
+    type_name = models.CharField(max_length=50, verbose_name='机型')
     class Meta:
         verbose_name = 'SFM信息'
         verbose_name_plural = 'SFM信息'
@@ -50,7 +50,7 @@ class Op(models.Model):
 class Report(models.Model):
     # sfg_id = models.ForeignKey(SfmProd, db_column='sfg_id', related_name='sfmprod_sfgid',on_delete=models.CASCADE)
     sfg_id = models.CharField(max_length=15, verbose_name='SFG',default='')
-    type_name = models.CharField(max_length=20,default='',verbose_name='机型')
+    type_name = models.CharField(max_length=50,default='',verbose_name='机型')
     op_id = models.ForeignKey(Op, db_column='op_id',on_delete=models.CASCADE,verbose_name='工步')
     prob = models.CharField(max_length=20,default='',verbose_name='测头')
     qty = models.FloatField(max_length=4, default=1,verbose_name='数量')
@@ -62,8 +62,8 @@ class Report(models.Model):
     def __str__(self):
         return '%s %s %s %s  %s  %s  %s  %s  %s ' % (self.sfg_id, self.type_name, self.op_id, self.prob,self.qty,self.user,self.standard_tiem,self.real_time,self.date)
     class Meta:
-        verbose_name = '报工平台'
-        verbose_name_plural = '报工平台'
+        verbose_name = '制造工时'
+        verbose_name_plural = '制造工时'
 
 class SupportiveTime(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
@@ -86,6 +86,8 @@ class SupportiveTime(models.Model):
     conference = models.FloatField(verbose_name='会议',max_length=10,null=True, default=0, blank=True)
     group_management = models.FloatField(verbose_name='班组管理',max_length=10,null=True, default=0, blank=True)
     record = models.FloatField(verbose_name='记录',max_length=10,null=True, default=0, blank=True)
+    borrow_time = models.FloatField(verbose_name='外借时间',max_length=10,null=True, default=0, blank=True)
+    borrow_name = models.CharField(max_length=15, verbose_name='外借分类',default='')
     date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
     
     def __str__(self):
@@ -93,6 +95,46 @@ class SupportiveTime(models.Model):
     class Meta:
         verbose_name = '辅助工时'
         verbose_name_plural = '辅助工时'
+
+class CoefficientSupport(models.Model):
+    rest = models.FloatField(verbose_name='休息',max_length=10,null=True, default=0, blank=True)
+    clean_time = models.FloatField(verbose_name='卫生',max_length=10,null=True, default=0, blank=True)
+    inside_group = models.FloatField(verbose_name='组内',max_length=10,null=True, default=0, blank=True)
+    outside_group = models.FloatField(verbose_name='组外',max_length=10,null=True, default=0, blank=True)
+    complete_machine = models.FloatField(verbose_name='整机',max_length=10,null=True, default=0, blank=True)
+    granite = models.FloatField(verbose_name='花岗石',max_length=10,null=True, default=0, blank=True)
+    prob = models.FloatField(verbose_name='测头',max_length=10,null=True, default=0, blank=True)
+    shortage = models.FloatField(verbose_name='补缺件',max_length=10,null=True, default=0, blank=True)
+    plan_change = models.FloatField(verbose_name='计划调整',max_length=10,null=True, default=0, blank=True)
+    human_quality_issue_rework = models.FloatField(verbose_name='人为质量问题返工',max_length=10,null=True, default=0, blank=True)
+    item_quality_issue = models.FloatField(verbose_name='零件质量问题',max_length=10,null=True, default=0, blank=True)
+    human_quality_issue_repair = models.FloatField(verbose_name='人为质量问题返修',max_length=10,null=True, default=0, blank=True)
+    equipment_mantainence = models.FloatField(verbose_name='设备维护',max_length=10,null=True, default=0, blank=True)
+    inventory_check =models.FloatField(verbose_name='库存核查',max_length=10,null=True, default=0, blank=True)
+    quality_check = models.FloatField(verbose_name='质量审核',max_length=10,null=True, default=0, blank=True)
+    document = models.FloatField(verbose_name='档案整理',max_length=10,null=True, default=0, blank=True)
+    conference = models.FloatField(verbose_name='会议',max_length=10,null=True, default=0, blank=True)
+    group_management = models.FloatField(verbose_name='班组管理',max_length=10,null=True, default=0, blank=True)
+    record = models.FloatField(verbose_name='记录',max_length=10,null=True, default=0, blank=True)
+    borrow_time = models.FloatField(verbose_name='外借',max_length=10,null=True, default=0, blank=True)
+    class Meta:
+        verbose_name = '辅助工时系数'
+        verbose_name_plural = '辅助工时系数'
+    
+class Borrow(models.Model):
+    borrow = models.CharField(verbose_name='外借分类',max_length=10,null=True, default='', blank=True)
+    def __str__(self):
+        return '%s ' % (self.borrow)
+    class Meta:
+        verbose_name = '外借工时'
+        verbose_name_plural = '外借'
+
+class GroupOp(models.Model):
+    group_name = models.CharField(verbose_name='组名', max_length=10)
+    op_id = models.ForeignKey(Op, db_column='op_id',on_delete=models.CASCADE,verbose_name='工步')
+    class Meta:
+        verbose_name = '工步与组对应关系'
+        verbose_name_plural = '工步与组对应关系'
 
 # class SupportTime(models.Model):
     
