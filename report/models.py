@@ -21,10 +21,10 @@ class Prob(models.Model):
         
         return '%s' % (self.prob_info)
 class TypeStandard(models.Model):
-    type_name = models.CharField(max_length=30,verbose_name='机型')
+    type_name = models.CharField(max_length=50,verbose_name='机型')
     op_id = models.IntegerField( verbose_name='工步')
     prob_info = models.ForeignKey(Prob, verbose_name='测头信息',db_column='prob_info',on_delete=models.CASCADE,null=True, blank=True)
-    standard_time = models.CharField(verbose_name='标准工时',max_length=10)
+    standard_time = models.CharField(verbose_name='标准工时',max_length=20)
     class Meta:
         verbose_name = '标准工时'
         verbose_name_plural = '标准工时'
@@ -133,8 +133,8 @@ class GroupOp(models.Model):
     group_name = models.CharField(verbose_name='组名', max_length=10)
     op_id = models.ForeignKey(Op, db_column='op_id',on_delete=models.CASCADE,verbose_name='工步')
     class Meta:
-        verbose_name = '工步与组对应关系'
-        verbose_name_plural = '工步与组对应关系'
+        verbose_name = '班组长-工步与组对应关系'
+        verbose_name_plural = '班组长-工步与组对应关系'
 
 # class SupportTime(models.Model):
     

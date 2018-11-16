@@ -5,13 +5,22 @@
 <script src="{% static 'js/Calendar.js' %}"></script>   
 <script>
 
-
+    // validate produce time and save data
     function valid_report(){
         var sfg_id = document.getElementById('sfg_id').value;
         var real_time = document.getElementById('real_time').value;
         var prod_type = document.getElementById('prod_type').value;
         var standard_time = document.getElementById('standard_time').value;
-        if (sfg_id== ''){
+        var qty_check = document.getElementById('qty_check').value;
+        var qty = document.getElementById('qty').value;
+        var op = document.getElementById('op_id').value;
+        //alert(qty_check);
+        //alert(op);
+        if (qty > qty_check && op !=11){
+            alert('数量累计不能超过1, 总数量现剩余：'+qty_check +', 填报为：'+qty);
+            return false;
+        }
+        else if (sfg_id== ''){
             alert("SFG 必须不为空");
             return false;
         }else if (isNaN(real_time) || real_time == ''){
@@ -19,9 +28,11 @@
             return false;
         }else if (prod_type == '找不到SFG ID'){
             alert("找不到SFG ID");
+            return false;
             
         }else if (isNaN(standard_time)){
             alert("标准工时找不到");
+            return false;
             
         }
         
@@ -31,6 +42,17 @@
         
     }
 
+    // filter produce time log
+    function prod_time_log(){
+        //alert('not ready yet')
+        document.forms[1].action = '/report/get_prod_time_log/';
+    }
+
+    //filter supportive logs according to date
+    function support_time_log(){
+        document.forms[3].action = '/report/get_support_time_log/';
+    }
+    //validate support time
     function valid_support(){
         var rest = document.getElementById('rest').value;
         var clean = document.getElementById('clean').value;
@@ -38,17 +60,35 @@
             alert("休息工时必须是数字且不为空");
             return false;
         }else{
-            document.forms[1].action ='/report/supportive_time/';
+            document.forms[2].action ='/report/supportive_time/';
         }
 
     }
+    // validate qty
+    function validateQty(ret){
+        var qty = ret;
+        alert(qty.real_time_estimate)
+
+    }
+
     $(document).ready(function(){
         $("#sfg_id").change(function(){
         //$(" rel="nofollow"#sum").click(function(){
             var a = $("#sfg_id").val();
             //var b = $("#b").val();
             $.get("/report/get_sfg/",{'a':a}, function(ret){
-                $('#prod_type').val(ret.result)
+                //$('#prod_type').val(ret.result)
+                //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                var $el = $("#prod_type");
+                $el.empty(); // remove old options
+                    
+                    {% comment %} $.each(ret, function(k,v) {
+                        $el.append('<option value="' + k + '">' + v + '</option>');
+                    });		 {% endcomment %}
+                for (var i = 0; i < ret.result.length; i++) {
+                     $el.append('<option value="' + ret.result[i] + '">' + ret.result[i] + '</option>');
+
+                 }
             })
         //});
         }); 
@@ -56,7 +96,7 @@
 
     $(document).ready(function(){
         //$("#op_id").change(function(){
-        $("#qty").change(function(){
+        $("#standard_time").mouseover(function(){
         //$(" rel="nofollow"#sum").click(function(){
             var a = $("#prod_type").val();
             var b = $('#op_id option:selected').val()
@@ -65,6 +105,24 @@
             //var b = $("#b").val();
             $.get("/report/get_standard_time/",{'type':a,'op':b,'prob':c,'qty':d}, function(ret){
                 $('#standard_time').val(ret.result)
+            })
+        //});
+        }); 
+    });
+    
+    $(document).ready(function(){
+        //$("#op_id").change(function(){
+        $("#op_id").click(function(){
+        //$(" rel="nofollow"#sum").click(function(){
+            var a = $("#sfg_id").val();
+            var b = $('#op_id option:selected').val()
+            
+            //var b = $("#b").val();
+            $.get("/report/get_real_time_estimate/",{'sfg':a,'op':b}, function(ret){
+                $('#qty').val(ret.real_time_estimate);
+                $('#qty_check').val(ret.real_time_estimate);
+                //var result = ret;
+                //validateQty(ret);
             })
         //});
         }); 
@@ -160,7 +218,9 @@
                     <input id='sfg_id' type='text' name='sfg_id' >
                     <br/><br/>
                     <label>机型</lable>
-                    <input id='prod_type' type='text' name='type' style="width: 300px;"  value='' readonly ><br/><br/>
+                    <select id='prod_type'  name='prod_type'>
+                    </select>
+                    <br/><br/>
                     {% if groups %}
                             <label>测头</lable>
                             <select id='prob_info' name='prob_info' >
@@ -190,6 +250,7 @@
                     <label>数量</lable>
                     <input id='qty' type='text' name='qty'>
                     <br/><br/>
+                    <input id='qty_check' name='qty_check' type='text' style='display:none'>
 
                     <input type='text' name='user_name' value='{{user.id}}' readonly style='display:none'>
                 
@@ -211,17 +272,23 @@
             {% comment %} 制造工时记录 {% endcomment %}
             <div class='div2'>
                 <h3>当天报工记录查询</h3>
-
-                <table border="1">
+                <form onsubmit='prod_time_log()' action="/report/" method="post" >
+                    {% csrf_token %}
+                    <p>From: <input id='prod_from_date' name='prod_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    <p>To: <input id='prod_to_date' name='prod_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                
+                    <input type='submit' value='Submit'>
+                </form>
+                <table border="1" style="overflow:scroll;text-align:center">
                     <tr>
-                        <th>SFG</th>
-                        <th>机型</th>
-                        <th>工步</th>
-                        <th>测针（如果有）</th>
-                        <th>数量</th>
-                        <th>标准工时</th>
-                        <th>制造工时</th>
-                        <th>日期</th>
+                        <th width=50>SFG</th>
+                        <th width=300>机型</th>
+                        <th width=50>工步</th>
+                        <th width=50>测头</th>
+                        <th width=50>数量</th>
+                        <th width=80>标准工时</th>
+                        <th width=80>制造工时</th>
+                        <th width=80>日期</th>
                     </tr>
                         {% for i in logs %}
                         <tr>
@@ -249,6 +316,7 @@
                     <legend>本日</legend>
                     <p>标准工时：{{g_today_standard_time_total}}小时</p>
                     <p>制造工时：{{g_today_real_time_total}}小时</p>
+                    <p>工作时间（无系数）：{{g_today_real_time_total}} + {{g_today_supportive_total_without_coef}} = {{g_today_real_time_total|add:g_today_supportive_total_without_coef}}</p>
                     <p>辅助工时：{{g_today_supportive_total}}小时</p>
                     <p>工效比：{{kpi_today}} （标准工时/制造工时）</p>
                     <p>工时有效率：{{efficiency_today}} （制造工时/（制造工时+辅助工时））</p>
@@ -397,31 +465,37 @@
 
             <div style='width:68%;float:left;margin:10'>
                 <h3>当天报工记录查询</h3>
-
-                <table border="1">
+                 <form onsubmit='support_time_log()' action="/report/" method="post" >
+                    {% csrf_token %}
+                    <p>From: <input id='support_from_date' name='support_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    <p>To: <input id='support_to_date' name='support_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                
+                    <input type='submit' value='Submit'>
+                </form>
+                <table border="1" style="overflow:scroll;text-align:center">
                     <tr>
-                        <th>日期</th>
-                        <th>休息</th>
-                        <th>卫生</th>
-                        <th>记录</th>
-                        <th>组内</th>
-                        <th>组外</th>
-                        <th>整机</th>
-                        <th>花岗石</th>
-                        <th>测头</th>
-                        <th>补缺件</th>
-                        <th>计划调整</th>
-                        <th>人为质量问题</th>
-                        <th>零件质量问题</th>
-                        <th>人为质量问题</th>
-                        <th>设备维护</th>
-                        <th>库存核查</th>
-                        <th>质量审核</th>
-                        <th>档案整理</th>
-                        <th>会议</th>
-                        <th>班组管理</th>
-                        <th>外借</th>
-                        <th>外借分类</th>
+                        <th width=50>日期</th>
+                        <th width=50>休息</th>
+                        <th width=50>卫生</th>
+                        <th width=50>记录</th>
+                        <th width=50>组内</th>
+                        <th width=50>组外</th>
+                        <th width=50>整机</th>
+                        <th width=50>花岗石</th>
+                        <th width=50>测头</th>
+                        <th width=50>补缺件</th>
+                        <th width=50>计划调整</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>零件质量问题</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>设备维护</th>
+                        <th width=50>库存核查</th>
+                        <th width=50>质量审核</th>
+                        <th width=50>档案整理</th>
+                        <th width=50>会议</th>
+                        <th width=50>班组管理</th>
+                        <th width=50>外借</th>
+                        <th width=50>外借分类</th>
                         
                     </tr>
                         {% for i in supportive_logs %}

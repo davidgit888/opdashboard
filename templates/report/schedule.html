@@ -1,45 +1,85 @@
+{% load staticfiles %}
+<script src="{% static 'js/Calendar.js' %}"></script>
+<script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
+<script>
+    function support_time_log(){
+        document.forms[0].action = '/report/report_analysis/';
+    }
+     
+    $(function () {
+        $("#filterName").keyup(function () {
+        $("table tbody tr").stop().hide() //将tbody中的tr都隐藏
+            .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
+        });
+     });
+</script>
+<style>
+    .parent{
+        background: lightgray;
+    }
+</style>
+
 <div width=100%>
     <br/><br/><br/>
     <strong><h2 style='text-align:center'>生产进度表 </h2></strong>
-
+    {% if message %}
+        {{message}}
+    {% endif %}
+    <div align='center'>
+        <fieldset style = 'width:300px'>
+            <legend>查询</legend>
+            <form onsubmit='support_time_log()' action="/report/" method="post" >
+                    {% csrf_token %}
+                    <p>From: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
+                    <p>To: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
+                    <span>筛选：</span><input type="text" id="filterName">
+                    <input type='submit' value='Submit'>
+            </form>
+        </fieldset>
+    </div>
+    <br/><br/>
     <table border=1 align="center" style="overflow:scroll;text-align:center">
-        <tr>
-            <th>SFG</th>
-            <th width=200>机型</th>
-            {% for i in op_list  %}
-                <th colspan="2">{{i}}</th>
+        <thead>
+            <tr class = 'parent'>
+                <th>SFG</th>
+                <th width=200>机型</th>
+                {% for i in op_list  %}
+                    <th colspan="2">{{i}}</th>
 
-            {% endfor %}
-            
+                {% endfor %}
+                
 
-        </tr>
-        <tr>
-            <td></td>
-            <td></td>
-            {% for i in op_list  %}
-                <td width=50>员工</td>
-                <td width=70>日期</td>
-
-             {% endfor %}
-            
-        </tr>
-        
-                   {% for  i in schedule_list  %}
-                   <tr>
-                        
-                        {% for key, value in i.items %}
-                            
-                            <td>{{value}}</td>
-                        {% endfor %}
-                        
-                    </tr>   
-                    
-                    {% endfor %}        
-                            
-                     
-               
-           
             </tr>
+    
+            <tr>
+                <td></td>
+                <td></td>
+                {% for i in op_list  %}
+                    <td width=50>员工</td>
+                    <td width=70>日期</td>
+
+                {% endfor %}
+                
+            
+        </thead>
+        <tbody>
+                    {% for  i in schedule_list  %}
+                    <tr>
+                            
+                            {% for key, value in i.items %}
+                                
+                                <td>{{value}}</td>
+                            {% endfor %}
+                            
+                        </tr>   
+                        
+                        {% endfor %}        
+                                
+                        
+                
+            
+            </tr>
+        </tbody>
             
     </table>
 

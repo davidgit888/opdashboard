@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 class UserAdmin(BaseUserAdmin):
     # Hide super user for no super user's (Pre-populating data)
     # class UserAdmin(BaseUserAdmin):
+    list_display = ('username','email','last_name','first_name','is_staff','is_active')
     def get_queryset(self, request):
         qs = super(UserAdmin, self).get_queryset(request)
         if not request.user.is_superuser:
@@ -16,7 +17,7 @@ class UserAdmin(BaseUserAdmin):
         return qs
     # hide is_superuser if user is not superuser
     staff_fieldsets = (
-    (None, {'fields': ('username', 'password')}),
+    (('用户名'), {'fields': ('username', 'password')}),
     (('个人信息'), {'fields': ('last_name', 'first_name', 'email')}),
     # No permissions
     (('重要日期'), {'fields': ('last_login', 'date_joined')}),

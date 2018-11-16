@@ -11,5 +11,8 @@ urlpatterns = [
     path('get_sfg/', views.get_sfgid),
     path('get_standard_time/',views.get_standard_time),
     path('report_analysis/',views.report_analysis),
+    path('get_real_time_estimate/', views.get_real_time_estimate),
+    path('get_prod_time_log/',views.get_produce_time_bytime),
+    path('get_support_time_log/',views.get_support_time_log),
     #path('upload_excel/',)
 ]

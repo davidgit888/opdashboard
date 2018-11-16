@@ -60,11 +60,11 @@ class TypeStandarAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             excel_file = request.FILES["file"]
             data = pd.read_excel(excel_file)
-            # data = data.loc[:,~data.columns.str.contains('^Unnamed')]
-            # data = data.dropna()
-            # data = data[data['ProductNo']!='ProductNo']
-            # data.index=range(len(data))
-            # data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
+            data = data.loc[:,~data.columns.str.contains('^Unnamed')]
+            data = data.dropna()
+            data = data[data['ProductNo']!='ProductNo']
+            data.index=range(len(data))
+            data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
             data = data.fillna(0)
             try:
                 
@@ -123,12 +123,12 @@ class SfmProdAdmin(admin.ModelAdmin):
             data = data.dropna()
             data = data[data['ProductNo']!='ProductNo']
             data.index=range(len(data))
-            data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
+            #data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
             try:
                 
                     # a =SfmProd.objects.all()
                 try:
-                    SfmProd.objects.all().delete()
+                    SfmProd.objects.exclude(sfg_id__contains='小部件').delete()
                 except:
                     pass
                 for i in range(len(data)):
