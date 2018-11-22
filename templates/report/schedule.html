@@ -1,6 +1,10 @@
 {% load staticfiles %}
+
 <script src="{% static 'js/Calendar.js' %}"></script>
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
+
+<script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
+
 <script>
     function support_time_log(){
         document.forms[0].action = '/report/report_analysis/';
@@ -12,15 +16,38 @@
             .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
         });
      });
+     $(function() {
+  // call the tablesorter plugin
+	  $("table").tablesorter({
+	    theme : 'blue',
+
+	    dateFormat : "mmddyyyy", // set the default date format
+
+	    // or to change the format for specific columns, add the dateFormat to the headers option:
+	    headers: {
+	      0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+	      // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+	      // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+	    }
+
+	  });
+	});
 </script>
 <style>
     .parent{
-        background: lightgray;
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
     }
 </style>
 
-<div width=100%>
-    <br/><br/><br/>
+<div class="results" width=100%>
+    <br/>
     <strong><h2 style='text-align:center'>生产进度表 </h2></strong>
     {% if message %}
         {{message}}
@@ -38,20 +65,20 @@
         </fieldset>
     </div>
     <br/><br/>
-    <table border=1 align="center" style="overflow:scroll;text-align:center">
+    <table border=1 align="center" style="overflow:scroll;text-align:center;">
         <thead>
             <tr class = 'parent'>
-                <th>SFG</th>
+                <th width=100>SFG</th>
                 <th width=200>机型</th>
                 {% for i in op_list  %}
-                    <th colspan="2">{{i}}</th>
+                    <th colspan="2" >{{i}}</th>
 
                 {% endfor %}
                 
 
             </tr>
     
-            <tr>
+            <tr class = 'row2'>
                 <td></td>
                 <td></td>
                 {% for i in op_list  %}
@@ -64,7 +91,7 @@
         </thead>
         <tbody>
                     {% for  i in schedule_list  %}
-                    <tr>
+                    {% comment %} <tr class="{% cycle 'row1' 'row2' %}" > {% endcomment %}
                             
                             {% for key, value in i.items %}
                                 

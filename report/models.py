@@ -52,10 +52,10 @@ class Report(models.Model):
     sfg_id = models.CharField(max_length=15, verbose_name='SFG',default='')
     type_name = models.CharField(max_length=50,default='',verbose_name='机型')
     op_id = models.ForeignKey(Op, db_column='op_id',on_delete=models.CASCADE,verbose_name='工步')
-    prob = models.CharField(max_length=20,default='',verbose_name='测头')
+    prob = models.CharField(max_length=20,default='',verbose_name='测头',null=True, blank=True)
     qty = models.FloatField(max_length=4, default=1,verbose_name='数量')
     #user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    user = models.ForeignKey(User, related_name="user_full_name", on_delete=models.CASCADE, default='',verbose_name='用户名')
     standard_tiem = models.FloatField(max_length=4,verbose_name='标准工时')
     real_time = models.FloatField(verbose_name='实际工时',max_length=4,default='')
     date = models.DateField(auto_now=False,default=date.today())
@@ -87,7 +87,8 @@ class SupportiveTime(models.Model):
     group_management = models.FloatField(verbose_name='班组管理',max_length=10,null=True, default=0, blank=True)
     record = models.FloatField(verbose_name='记录',max_length=10,null=True, default=0, blank=True)
     borrow_time = models.FloatField(verbose_name='外借时间',max_length=10,null=True, default=0, blank=True)
-    borrow_name = models.CharField(max_length=15, verbose_name='外借分类',default='')
+    borrow_name = models.CharField(max_length=15, verbose_name='外借分类',default=' ',null=True, blank=True)
+    comments = models.CharField(max_length=250,verbose_name='备注',default=' ',null=True, blank=True)
     date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
     
     def __str__(self):

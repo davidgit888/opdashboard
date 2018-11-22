@@ -23,7 +23,28 @@ class UserAdmin(BaseUserAdmin):
     (('重要日期'), {'fields': ('last_login', 'date_joined')}),
     (('权限'), {'fields': ('is_active','is_staff','groups',)}),
         )
+    def get_queryset(self, request):
+        query = super(UserAdmin, self).get_queryset(request)
+        user_all_permissions = []
+        user = User.objects.get(id=request.user.id)
+        groups = user.groups
+        for i in groups.select_related():
+            if '数据' in i.name:
+                user_all_permissions.append(i.name)
+        all_user_ids = []
+        for i in range(len(user_all_permissions)):
+            users = User.objects.filter(groups__name=user_all_permissions[i])
+            for j in users:
+                all_user_ids.append(j.id)
+        all_user_ids=list(set(all_user_ids))
+        # filter admin
+        if request.user.is_superuser:
 
+            filtered_query = query.filter(id__in=all_user_ids)
+        else:
+            filtered_query = query.filter(id__in=all_user_ids).exclude(id=1)
+        return filtered_query  
+    
     def change_view(self, request, *args, **kwargs):
         # for non-superuser
         if not request.user.is_superuser:
@@ -36,6 +57,8 @@ class UserAdmin(BaseUserAdmin):
             return response
         else:
             return super(UserAdmin, self).change_view(request, *args, **kwargs)
+
+    
 
 
 

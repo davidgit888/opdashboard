@@ -163,7 +163,7 @@
 
 </script>
 <style type="text/css">
-    .div1{float:left;width:30%;height:100%;margin=10};
+    .div1{float:left;width:30%;height:1500px;margin=10};
     .div2{float:left;width:65%;height:100%;margin=10};
     .divsupport{float:left,width:30%,margin=10};
     .divsupportlog{float:left,width:65%,margin:10};
@@ -191,6 +191,18 @@
      color:#292A0A; 
     }
     .active {background-color:orange;display:block}
+   
+    .parent{
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+
 
 </style>
 </head>
@@ -202,7 +214,8 @@
         <div id='dproduce' style='display:block;'>
             {% comment %} 制造工时表 {% endcomment %}
             <div class='div1'>
-                <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/><br/>
+                <br/>
+                <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/>
 
 
                 <form onsubmit='valid_report()' action="/report/" method="post" >
@@ -211,76 +224,85 @@
                     {% if save_message %}
                     <p>{{save_message}}</p>
 
-                    <br/>
                     {% endif %}
                     {% if error_message %}<p style='color:red'>{{error_message}} </p>{% endif %}
-                    <label>SFG</lable>
-                    <input id='sfg_id' type='text' name='sfg_id' >
-                    <br/><br/>
-                    <label>机型</lable>
-                    <select id='prod_type'  name='prod_type'>
-                    </select>
-                    <br/><br/>
-                    {% if groups %}
-                            <label>测头</lable>
-                            <select id='prob_info' name='prob_info' >
-                            <option value='None'>---</option>
-                            {% for entry in prob_list %}
-                                
-                                <option value="{{ entry.prob_info  }}">{{ entry.prob_info }}</option>
-                            {% endfor %}
-                            </select>
-                            <br/><br/>
-                        {% else %}
-                            <select id = 'prob_info' name='prob_info' style='display:none'>
-                                <option value='None'>---</option>
-                            </select>
+                    <fieldset style='width:90%'>
+                        <br/>
+                        <legend>工时填报</legend>
+                        <label>SFG</lable>
+                        <input id='sfg_id' type='text' name='sfg_id' >
                         <br/><br/>
+                        <label>机型</lable>
+                        <select id='prod_type'  name='prod_type'>
+                        </select>
+                        <br/><br/>
+                        {% if groups %}
+                                <label>测头</lable>
+                                <select id='prob_info' name='prob_info' >
+                                <option value='None'>---</option>
+                                {% for entry in prob_list %}
+                                    
+                                    <option value="{{ entry.prob_info  }}">{{ entry.prob_info }}</option>
+                                {% endfor %}
+                                </select>
+                                <br/><br/>
+                            {% else %}
+                                <select id = 'prob_info' name='prob_info' style='display:none'>
+                                    <option value='None'>---</option>
+                                </select>
+                            <br/><br/>
                         {% endif %}
 
-                    <label>工步</lable>
-                        <select id='op_id' name="op_id">
-                            <option value=' '>---</option>
-                            {% for entry in op_list  %}
-                                <option value = "{{entry.op_id}}">{{entry.op_id}}</option>
-                            {% endfor %}
-                        </select>
-                    <br/><br/>
+                        <label>工步</lable>
+                            <select id='op_id' name="op_id">
+                                <option value=' '>---</option>
+                                {% for entry in op_list  %}
+                                    <option value = "{{entry.op_id}}">{{entry.op_id}} {{entry.op_name}}</option>
+                                {% endfor %}
+                            </select>
+                        <br/><br/>
 
-                    <label>数量</lable>
-                    <input id='qty' type='text' name='qty'>
-                    <br/><br/>
-                    <input id='qty_check' name='qty_check' type='text' style='display:none'>
+                        <label>数量</lable>
+                        <input id='qty' type='text' name='qty'>
+                        <br/><br/>
+                        <input id='qty_check' name='qty_check' type='text' style='display:none'>
 
-                    <input type='text' name='user_name' value='{{user.id}}' readonly style='display:none'>
-                
-                    <label>标准工时</lable>
-                    <input id='standard_time' type='text' name='standard_time' value='' readonly>
-                    <br/><br/>
-                    <label>制造工时</lable>
-                    <input id = 'real_time' type='text' name='real_time'>
-                    <br/><br/>
-                    <font>日期:</font>
-                    <input id='prodate' name='prodate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                        <input type='text' name='user_name' value='{{user.id}}' readonly style='display:none'>
                     
-                    <br/><br/>
-                    <input type="submit" value="提交">
-                    <br/><br/><br/><br/>
+                        <label>标准工时</lable>
+                        <input id='standard_time' type='text' name='standard_time' value='' readonly>
+                        <br/><br/>
+                        <label>制造工时</lable>
+                        <input id = 'real_time' type='text' name='real_time'>
+                        <br/><br/>
+                        <font>日期:</font>
+                        <input id='prodate' name='prodate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                        
+                        <br/><br/>
+                        <input type="submit" value="提交">
+                        <br/><br/><br/><br/>
+                    </fieldset>
                 </form>
                 {{c_standard_time_total}}{{c_real_time_total}}
             </div>
             {% comment %} 制造工时记录 {% endcomment %}
             <div class='div2'>
-                <h3>当天报工记录查询</h3>
-                <form onsubmit='prod_time_log()' action="/report/" method="post" >
-                    {% csrf_token %}
-                    <p>From: <input id='prod_from_date' name='prod_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
-                    <p>To: <input id='prod_to_date' name='prod_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
-                
-                    <input type='submit' value='Submit'>
-                </form>
+                <br/>
+                <h2>当天报工记录查询</h2>
+                <br/>
+                <fieldset style='width:20%'>
+
+                    <form onsubmit='prod_time_log()' action="/report/" method="post" >
+                        {% csrf_token %}
+                        <p>From: <input id='prod_from_date' name='prod_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>To: <input id='prod_to_date' name='prod_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    
+                        <input type='submit' value='Submit'>
+                    </form>
+                </fieldset>
+                <br/>
                 <table border="1" style="overflow:scroll;text-align:center">
-                    <tr>
+                    <tr class='parent'>
                         <th width=50>SFG</th>
                         <th width=300>机型</th>
                         <th width=50>工步</th>
@@ -291,7 +313,7 @@
                         <th width=80>日期</th>
                     </tr>
                         {% for i in logs %}
-                        <tr>
+                        <tr class="{% cycle 'row1' 'row2' %}">
                             <td>{{i.sfg}} </td>
                             <td>{{i.type}} </td>
                             <td>{{i.op}} </td>
@@ -316,9 +338,10 @@
                     <legend>本日</legend>
                     <p>标准工时：{{g_today_standard_time_total}}小时</p>
                     <p>制造工时：{{g_today_real_time_total}}小时</p>
-                    <p>工作时间（无系数）：{{g_today_real_time_total}} + {{g_today_supportive_total_without_coef}} = {{g_today_real_time_total|add:g_today_supportive_total_without_coef}}</p>
+                    <p>工作时间（无系数）：{{g_today_real_time_total}} + {{g_today_supportive_total_without_coef}} = {{g_today_natural_hours}}</p>
                     <p>辅助工时：{{g_today_supportive_total}}小时</p>
                     <p>工效比：{{kpi_today}} （标准工时/制造工时）</p>
+                    <p>业绩：{{performance_today}} </p>
                     <p>工时有效率：{{efficiency_today}} （制造工时/（制造工时+辅助工时））</p>
                 </fieldset>
                 <br/>
@@ -351,11 +374,11 @@
             <div style='width:28%;float:left'>
                 <form onsubmit='valid_support()' action='/report/' method='post' >
                     {% csrf_token %}
-                    
+                    <br/>
                     <h2>辅助工时</h2>
                     {% if supportive_save_message %}{{supportive_save_message}}{% endif %}
                     {% if supportive_error_message %}<p style='color:red'>{{supportive_error_message}}<p>{% endif %}
-                    <br/>
+                    
                     <fieldset>
                         <legend>日常</legend>
                             <label>休息</lable>
@@ -445,13 +468,20 @@
                     <br/>
                     <fieldset>
                         <legend>外借</legend>
+                            <label>外借种类</label>
                             <select id='borrow' name="borrow_type">
                                 <option value=' '>---</option>
                                 {% for borrows in borrow_time  %}
                                     <option value = "{{borrows.borrow}}">{{borrows.borrow}}</option>
                                 {% endfor %}
                             </select>
+                            <label>时数</label>
                             <input type="text" name='borrow_time' />
+                            <br/><br/>
+                            <label>备注<label>
+                            <br/><br/>
+                            <textarea style="width:250px;height:150px;" name="comments" value=' '>
+                            </textarea>
 
                     </fieldset>
                     <br/><br/>
@@ -464,16 +494,22 @@
             </div>
 
             <div style='width:68%;float:left;margin:10'>
-                <h3>当天报工记录查询</h3>
-                 <form onsubmit='support_time_log()' action="/report/" method="post" >
-                    {% csrf_token %}
-                    <p>From: <input id='support_from_date' name='support_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
-                    <p>To: <input id='support_to_date' name='support_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
-                
-                    <input type='submit' value='Submit'>
-                </form>
-                <table border="1" style="overflow:scroll;text-align:center">
-                    <tr>
+                <br/>
+                <h2>当天报工记录查询</h2>
+                <fieldset style='width:30%'>
+                    <form onsubmit='support_time_log()' action="/report/" method="post" >
+                        {% csrf_token %}
+                        <p>From: <input id='support_from_date' name='support_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>To: <input id='support_to_date' name='support_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    
+                        <input type='submit' value='Submit'>
+                    </form>
+                </fieldset>
+                <br/>
+                <p>本日辅助工时汇总: {{g_today_supportive_total}}</p>
+                <br/>
+                <table border="1" style="overflow:scroll;text-align:center;position:absolute;">
+                    <tr class='parent'>
                         <th width=50>日期</th>
                         <th width=50>休息</th>
                         <th width=50>卫生</th>
@@ -496,10 +532,11 @@
                         <th width=50>班组管理</th>
                         <th width=50>外借</th>
                         <th width=50>外借分类</th>
+                        <th width=50>备注</th>
                         
                     </tr>
                         {% for i in supportive_logs %}
-                        <tr>
+                        <tr class="{% cycle 'row1' 'row2' %}">
                             <td>{{i.date}} </td>
                             <td>{{i.rest}} </td>
                             <td>{{i.clean}} </td>
@@ -522,6 +559,7 @@
                             <td>{{i.conference}} </td>
                             <td>{{i.borrow_time}} </td>
                             <td>{{i.borrow_name}} </td>
+                            <td>{{i.comments}}</td>
 
                             
             
@@ -529,7 +567,7 @@
                         {% endfor %} 
                 </table>
                 <br/><br/>
-                <p>本日辅助工时汇总: {{g_today_supportive_total}}</p>
+                
             
             </div>
         </div>

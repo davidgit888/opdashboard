@@ -6,8 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 import json
-from django.conf import settings as original_settings
-from django.template import RequestContext
+# from django.conf import settings as original_settings
+# from django.template import RequestContext
 import pandas as pd
 
 # get standard and real time
@@ -71,10 +71,10 @@ def global_context(request):
     reuslt_month_supportive = SupportiveTime.objects.filter(user=username, date__range=(month_first,today))
     reuslt_year_supportive = SupportiveTime.objects.filter(user=username, date__range=(year_first,today))
 
-    supportive_logs,supportive_total, supportive_total_without_coef = get_supportive_history(request, reuslt_today_supportive)
-    supportive_logs1,supportive_total1,supportive_total_without_coef1 = get_supportive_history(request, reuslt_month_supportive)
-    supportive_logs2,supportive_total2, supportive_total_without_coef2 = get_supportive_history(request, reuslt_year_supportive)
-
+    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow = get_supportive_history(request, reuslt_today_supportive)
+    supportive_logs1,supportive_total1,supportive_total_without_coef1,sup_total_without_coefBorrow1 = get_supportive_history(request, reuslt_month_supportive)
+    supportive_logs2,supportive_total2, supportive_total_without_coef2,sup_total_without_coefBorrow2 = get_supportive_history(request, reuslt_year_supportive)
+    # 工效比
     if real_time_total:
         kpi_today = standard_time_total/real_time_total
     else:
@@ -88,18 +88,21 @@ def global_context(request):
     else:
         kpi_year=0
     
-    if real_time_total or supportive_total:
-        efficiency_today = real_time_total/(real_time_total+supportive_total)
+    # 工时有效率
+    if real_time_total or sup_total_without_coefBorrow:
+        efficiency_today = real_time_total/(real_time_total + sup_total_without_coefBorrow)
     else:
         efficiency_today=0
-    if real_time_total1 or supportive_total1:
-        efficiency_month = real_time_total1/(real_time_total1+supportive_total1)
+    if real_time_total1 or sup_total_without_coefBorrow1:
+        efficiency_month = real_time_total1/(real_time_total1 + sup_total_without_coefBorrow1)
     else:
         efficiency_month=0
-    if real_time_total2 or supportive_total2:
-        efficiency_year = real_time_total2/(real_time_total2+supportive_total2)
+    if real_time_total2 or sup_total_without_coefBorrow2:
+        efficiency_year = real_time_total2/(real_time_total2 + sup_total_without_coefBorrow2)
     else:
         efficiency_year=0
+    # 业绩
+    performance_today = real_time_total + supportive_total
 
     borrow = Borrow.objects.all()
     probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs,supportive_total = load_all_data(request)
@@ -134,8 +137,10 @@ def global_context(request):
         'efficiency_today':round(efficiency_today,2),
         'efficiency_month':round(efficiency_month,2),
         'efficiency_year':round(efficiency_year,2),
-        'borrow_time':borrow,
+        'performance_today': round(performance_today,2), #业绩
+        'borrow_time':borrow, # borrow time category
         'g_today_supportive_total_without_coef': round(supportive_total_without_coef, 2),
+        'g_today_natural_hours':round(real_time_total+supportive_total_without_coef,2),
         'op_list':ops,
         'prob_list':probs,
         'groups':group,
@@ -183,6 +188,7 @@ def get_supportive_history(request,result):
         a['date'] = result[i].date
         a['borrow_time'] = result[i].borrow_time
         a['borrow_name'] = result[i].borrow_name
+        a['comments'] = result[i].comments
         list_total[0] += a['rest'] * coef[0].rest
         list_total[1] += a['clean'] * coef[0].clean_time
         list_total[2] += a['inside_group'] * coef[0].inside_group
@@ -251,15 +257,22 @@ def get_supportive_history(request,result):
     a['borrow_time'] = list_total[19]
     a['borrow_name'] = '---'
     a['date'] = list_total[20]
+    a['comments'] = '---'
+    #supportive_total borrow time
     supportive_total = 0
     for i in range(len(list_total)-1):
         supportive_total += list_total[i]
+    # sup_total_without_borrow = 0
+    # for i in range(len(list_total)-2):
+    #     sup_total_without_borrow += list_total[i]
     supportive_logs.append(a)
     supportive_total_without_coef = 0
     for i in range(len(list_total_without_coef)):
         supportive_total_without_coef += list_total_without_coef[i]
-     
-    return supportive_logs, round(supportive_total,2), round(supportive_total_without_coef, 2)
+    sup_total_without_coefBorrow = 0
+    for i in range(len(list_total_without_coef)-1):
+        sup_total_without_coefBorrow += list_total_without_coef[i]
+    return supportive_logs, round(supportive_total,2), round(supportive_total_without_coef, 2), round(sup_total_without_coefBorrow,2)
 
 @login_required(login_url='/accounts/login/')  
 def get_kpi(request,result):
@@ -277,7 +290,21 @@ def get_kpi(request,result):
 @login_required(login_url='/accounts/login/')  
 def load_all_data(request):
     probs = Prob.objects.all()
-    ops = Op.objects.all()
+    #get ops
+    user_all_permissions = []
+    user = User.objects.get(id=request.user.id)
+    groups = user.groups
+    for i in groups.select_related():
+        if '数据' in i.name:
+            user_all_permissions.append(i.name)
+    ops = []
+    for i in user_all_permissions:
+        op = GroupOp.objects.filter(group_name=i)
+        for i in range(len(op)):
+            ops.append(op[i].op_id)
+    ops = list(set(ops))
+
+    # check if use is inspector
     groups = request.user.groups.all().values()
     group=None
     for i in groups:
@@ -315,85 +342,23 @@ def load_all_data(request):
         year_kpi=0
 
     reuslt_today_supportive = SupportiveTime.objects.filter(user=username, date=date.today())
-    supportive_logs,supportive_total, supportive_total_without_coef = get_supportive_history(request, reuslt_today_supportive)
+    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow = get_supportive_history(request, reuslt_today_supportive)
     
     return probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs, supportive_total
 
 # when load the page
 @login_required(login_url='/accounts/login/')  
 def index(request):
-    # probs = Prob.objects.all()
-    # ops = Op.objects.all()
-    # groups = request.user.groups.all().values()
-    # group=None
-    # #get current username and report history for today
-    # #today date
-    # today = date.today()
-    # month_first = today.replace(day=1) #first date of month
-    # year_first = today.replace(day=1,month=1) #first date of year
-    # username = request.user.id
-    # # get data for KPI
-    # result_today = Report.objects.filter(user=username, date=date.today())
-    # result_this_month = Report.objects.filter(user=username,date__range=(month_first,today))
-    # result_this_year = Report.objects.filter(user=username,date__range=(year_first,today))
-    # history_logs = get_current_date_data(request,result_today)
-
-    # # day kpi
-    # real_time_today, stand_time_today = get_kpi(request,result_today)
-    # if real_time_today and stand_time_today:
-    #     today_kpi = round(stand_time_today/real_time_today,2)
-    # else:
-    #     today_kpi=0
-
-    # real_time_month, stand_time_month = get_kpi(request, result_this_month)
-    # if real_time_month and stand_time_month:
-    #     month_kpi = round(stand_time_month/real_time_month,2)
-    # else:
-    #     month_kpi = 0
-
-    # real_time_year, stand_time_year = get_kpi(request, result_this_year)
-    # if real_time_year and stand_time_year:
-    #     year_kpi = round(stand_time_year/real_time_year,2)
-    # else:
-    #     year_kpi=0
-    # # check prob text box
-    # for i in groups:
-    #     if '检验组' in i['name']:
-    #         group = 1
-    # #save_message=request.POST('save_message')
-
-    #probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs,supportive_total = load_all_data(request)
+    
     all_show_digts = global_context(request)
 
-    # local_jason = {
-    #     'op_list':ops,
-    #     'prob_list':probs,
-    #     'groups':group,
-    #     'logs':history_logs,
-    #     'today_kpi':today_kpi,
-    #     'month_kpi':month_kpi,
-    #     'year_kpi':year_kpi,
-    #     'supportive_logs':supportive_logs,
-    #     'supportive_total':supportive_total,
-    #     #'save_message':,
-    # }
-    # all_dict = local_jason.copy()
-    # all_dict.update(all_show_digts)
+   
     return render(request, 'report/report_get.html', all_show_digts)
 
 # when click submit to save to database
 @login_required(login_url='/accounts/login/')  
 def get_data(request):
-    # probs = Prob.objects.all()
-    # ops = Op.objects.all()
-    # groups = request.user.groups.all().values()
-    # username = request.user.id
-    # result_today = Report.objects.filter(user=username, date=date.today())
-    # history_logs = get_current_date_data(request,result_today)
-    # group=None
-    # for i in groups:
-    #     if '检验组' in i['name']:
-    #         group = 1
+
     sfg = request.POST['sfg_id']
     type = request.POST['prod_type']
     op_id = request.POST['op_id']
@@ -508,6 +473,7 @@ def supportive_time(request):
     group_management = request.POST['group_management']
     borrow_time = request.POST['borrow_time']
     borrow_type = request.POST['borrow_type']
+    comments = request.POST['comments']
     date_time = request.POST.get('suportdate')
     
     if not rest:
@@ -550,6 +516,8 @@ def supportive_time(request):
         group_management = 0
     if not borrow_time:
         borrow_time = 0
+    if not comments:
+        comments = ''
 
     
     try:    
@@ -559,7 +527,8 @@ def supportive_time(request):
         complete_machine=complete_machine,granite=granite,prob=prob,shortage=shortage,plan_change=plan_change,
         human_quality_issue_rework=human_quality_issue_rework,item_quality_issue=item_quality_issue,human_quality_issue_repair=human_quality_issue_repair,
         equipment_mantainence=equipment_mantainence,inventory_check=inventory_check,quality_check=quality_check,
-        document=document,conference=conference,group_management=group_management,record=record,date=date_time,borrow_time=borrow_time,borrow_name=borrow_type)
+        document=document,conference=conference,group_management=group_management,record=record,date=date_time,borrow_time=borrow_time,borrow_name=borrow_type,
+        comments=comments)
 
         query.save()
         # probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi, supportive_logs,supportive_total = load_all_data(request)
@@ -821,7 +790,7 @@ def get_real_time_estimate(request):
         real_time = {'real_time_estimate': round(1 - total,2)}
         return HttpResponse(json.dumps(real_time), content_type='application/json')
 
-
+#get produce time filtered by time
 def get_produce_time_bytime(request):
     
     from_date = request.POST.get('prod_from_date')
@@ -834,13 +803,13 @@ def get_produce_time_bytime(request):
 
     return render(request,'report/report_get.html', all_show_digts )
 
-
+# get supportive time filtered by date
 def get_support_time_log(request):
     from_date = request.POST.get('support_from_date')
     to_date = request.POST.get('support_to_date')
     username = request.user.id
     result = SupportiveTime.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
-    supportive_logs, standard_time_total, real_time_total = get_supportive_history(request,result)
+    supportive_logs, standard_time_total, real_time_total,sup_total_without_coefBorrow = get_supportive_history(request,result)
     all_show_digts = global_context(request)
     all_show_digts['supportive_logs'] = supportive_logs
 
