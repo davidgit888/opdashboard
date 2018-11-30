@@ -156,7 +156,7 @@ def adminUtl(request):
 
 @login_required(login_url='/accounts/login/')
 def log(request):
-    logs = LogEntry.objects.all()[:100]
+    logs = LogEntry.objects.all()[:1000]
     list_logs = get_all_logs(logs)
     return render(request, 'op/log.html', {
         'messages':list_logs,

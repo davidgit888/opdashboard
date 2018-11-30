@@ -1,0 +1,72 @@
+<style>
+   
+    .parent{
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+    table thead th{
+        background: #79aec8;
+    }
+    table tboday tr:nth-child(even){
+        background:lightgray;
+    }
+</style>
+<script>
+    function back(){
+        window.history.back(-1)
+    }
+</script>
+<div>
+                <br/><br/>
+
+                <div>
+                <h2>{{title}}</h2>
+
+                 {% autoescape off %}
+                            <h2>{{anls_title}}</h2>
+                            <p>{{anls_result}}</p>
+                        
+                        
+                        {% endautoescape %}
+                </div>
+                 <div>
+                 <h2>工步总数统计</h2>
+                   <table border=1>
+                        <thead>
+                            <tr>
+                                {% for i in anls_opcounts %}
+                                    <th>{{i.op_name}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {% for j in anls_opcounts %}
+                                    <td>{{j.qty}}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+                <div>
+                    <h2>辅助工时统计</h2>
+                     {% autoescape off %}
+                    {{sup_not_bor_total}}
+                    <h2>外借工时统计</h2>
+                    {{sup_bor_total}}
+                    
+                    <h2>加班工时统计</h2>
+                    {{over_time_total}}
+                    {% endautoescape %}
+                    {{over_time_data}}
+                </div>
+                <br/>
+                <input type='button' value='返回' onclick='back()'>
+</div>

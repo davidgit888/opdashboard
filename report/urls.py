@@ -14,5 +14,13 @@ urlpatterns = [
     path('get_real_time_estimate/', views.get_real_time_estimate),
     path('get_prod_time_log/',views.get_produce_time_bytime),
     path('get_support_time_log/',views.get_support_time_log),
+    path('per_get_prod_log/',views.per_get_prod_log),
+    path('save_indiv_perform/', views.save_indiv_perform),
+    path('get_sfg_comments/',views.get_sfg_comments),
+    path('create_new_sfg_comments/',views.create_new_sfg_comments),
+    path('update_sfg_comments/',views.update_sfg_comments),
+    path('save_overtime_data/',views.save_overtime_data),
+    path('group_statistic/',views.group_statistic),
+    path('perform_pop/',views.perform_pop),
     #path('upload_excel/',)
 ]

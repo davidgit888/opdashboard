@@ -1,0 +1,16 @@
+
+<h2>更新SFG备注信息</h2>
+{% if save_message %}{{save_message}}{% endif %}
+<div>
+    <form action='/report/update_sfg_comments/' method='post'>
+        {% csrf_token %}
+        <label>SFG: </label>
+        <input type='text' id='sfg' name='sfg' readonly='readonly' value='{{sfg}}'>
+        <br/><br/>
+        <label>备注:</label>
+        <br/><br/>
+        <textarea id='comments' name='comments' style="width:250px;height:250px;" >{{comments}}</textarea>
+        <br/><br/>
+        <input type='submit' value='更新'>
+    </form>
+</div>

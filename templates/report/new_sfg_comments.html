@@ -1,0 +1,21 @@
+
+<h2>创建SFG备注信息</h2>
+<p style='color:red'>{{message}}</p>
+
+<br/>
+<div>
+    <form action='/report/create_new_sfg_comments/' method='post'>
+        {% csrf_token %}
+        <label>SFG: </label>
+        <input type='text' id='sfg' name='sfg' value='{{sfg}}' readonly="readonly">
+        <br/><br/>
+
+        <label>备注:</label>
+        <br/><br/>
+        <textarea style="width:250px;height:250px;" name="comments" value=''>
+                            
+        </textarea>
+        <br/>
+        <input type='submit' value='Submit'>
+    </form>
+</div>

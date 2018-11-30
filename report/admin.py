@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -14,15 +14,15 @@ class UploadExcel(forms.Form):
     file = forms.FileField()
 
 class ReportAdmin(admin.ModelAdmin):
-    fields = ['sfg_id','type_name','op_id','qty','prob','user','standard_tiem','real_time','date']
+    fields = ['sfg_id','type_name','op_id','qty','prob','user','standard_tiem','real_time', 'date']
     list_display = ('sfg_id','type_name','op_id','prob','qty','user','full_name','standard_tiem','real_time','date')
     search_fields = ['sfg_id','type_name','op_id__op_id','qty','user__username','standard_tiem','real_time','date','prob']
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    # def get_actions(self, request):
+    #     actions = super().get_actions(request)
+    #     if 'delete_selected' in actions:
+    #         del actions['delete_selected']
+    #     return actions
     def full_name(self, obj):
         return obj.user.last_name + obj.user.first_name
     full_name.short_description = "姓名" 
@@ -42,6 +42,7 @@ class ReportAdmin(admin.ModelAdmin):
             for j in users:
                 all_user_ids.append(j.id)
         all_user_ids=list(set(all_user_ids))
+        
         filtered_query = query.filter(user__in=all_user_ids)
         return filtered_query  
 
@@ -319,6 +320,40 @@ class GroupOpAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+class GroupPerformAdmin(admin.ModelAdmin):
+    fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
+    'date','username','group']
+    list_display=('user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
+    'date','username','group')
+    search_fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
+    'date','username','group']
+    actions = ["export_as_excel"]  
+
+    def export_as_excel(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        writer = csv.writer(response,dialect='excel',encoding='gb2312')
+
+        writer.writerow(field_names[1:])
+
+
+        for obj in queryset:
+            row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
+
+        return response
+
+class SfgCommentsAdmin(admin.ModelAdmin):
+    fields = ['sfg','comments']
+    list_display = ('sfg','comments')
+    search_fields = ['sfg','comments']
+
+class OverTimeAdmin(admin.ModelAdmin):
+    fields = ['user','over_time','over_time_type','is_paid','date']
+    list_display=('user','over_time','over_time_type','is_paid','date')
+    search_fields = ['user','over_time','over_time_type','is_paid','date']
 
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
@@ -329,3 +364,6 @@ admin.site.register(Op,OpAdmin)
 admin.site.register(CoefficientSupport,CoefficientSupportAdmin)
 admin.site.register(Borrow,BorrowAdmin)
 admin.site.register(GroupOp,GroupOpAdmin)
+admin.site.register(GroupPerform,GroupPerformAdmin)
+admin.site.register(SfgComments,SfgCommentsAdmin)
+admin.site.register(OverTime,OverTimeAdmin)

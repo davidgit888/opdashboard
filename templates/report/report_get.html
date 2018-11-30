@@ -50,7 +50,17 @@
 
     //filter supportive logs according to date
     function support_time_log(){
-        document.forms[3].action = '/report/get_support_time_log/';
+        var a = document.getElementById('support_to_date')
+        var b = document.getElementById('support_from_date')
+        if(a instanceof Date){
+            
+            
+            alert('日期不能为空！')
+        }
+        else{
+            document.forms[3].action = '/report/get_support_time_log/';
+        }
+        
     }
     //validate support time
     function valid_support(){
@@ -64,13 +74,47 @@
         }
 
     }
+
+    function save_overtime(){
+        
+        var over_time=document.getElementById('over_time').value;
+        var over_type = document.getElementById('over_time_type').value;
+        var is_paid = $("#is_paid").is(":checked");
+        var date = document.getElementById('over_time_date').value;
+        if(!isNaN(over_time) && over_time){
+
+            $.get("/report/save_overtime_data/",{'over_time':over_time,'over_type':over_type,'is_paid':is_paid,'date':date}, function(ret){
+                    //$('#prod_type').val(ret.result)
+                    //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                    
+                    if(ret=='Y'){
+                        
+                        var message = document.getElementById('over_save_message');
+                        message.style.color='black';
+                        message.innerHTML='保存成功';
+                        alert('保存成功');
+                        location.reload();
+                        
+                    }else{
+                        var message = document.getElementById('over_save_message');
+                        message.innerHTML='保存失败'+ret;
+                        message.style.color='red';
+                        alert('保存失败'+ret);
+                        location.reload();
+                    }
+
+            });
+        }else{
+            alert('加班工时必须是数字且不能为空!')
+        }
+    }
     // validate qty
-    function validateQty(ret){
+    {% comment %} function validateQty(ret){
         var qty = ret;
         alert(qty.real_time_estimate)
 
-    }
-
+    } {% endcomment %}
+    //List all product type accroding to SFG ID
     $(document).ready(function(){
         $("#sfg_id").change(function(){
         //$(" rel="nofollow"#sum").click(function(){
@@ -136,6 +180,7 @@
         submitTime = yyyy + '-' + MM +'-' + dd
         $("#prodate").attr('value',submitTime);
         $("#suportdate").attr('value',submitTime);
+        $("#over_time_date").attr('value',submitTime);
 
         var lPro = document.getElementById('liproduce');
         var lRep = document.getElementById('lireport');
@@ -202,6 +247,22 @@
     .row2{
         background:lightgray;
     }
+    table thead tr{
+        display:block;
+    }
+
+    table th,table td{
+        width:100px;//fixed width
+    }
+
+    table thead th{
+        background: #79aec8;
+    }
+    table  tbody{
+    display:block;
+    height:200px;
+    overflow:auto;//set tbody to auto
+    }
 
 
 </style>
@@ -216,7 +277,7 @@
             <div class='div1'>
                 <br/>
                 <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/>
-
+                <p style='color:green'>消息: 加班工时已可以提交，谢谢！</p>
 
                 <form onsubmit='valid_report()' action="/report/" method="post" >
                     {% csrf_token %}
@@ -275,15 +336,59 @@
                         <label>制造工时</lable>
                         <input id = 'real_time' type='text' name='real_time'>
                         <br/><br/>
+                        {% comment %} <label>加班工时</lable>
+                        <input id = 'over_time' type='text' name='over_time'>
+                        <br/><br/>
+                        <label>加班种类</lable>
+                        <select id='over_time_type' name="over_time_type">
+                            <option value=''>---</option>
+                            <option value='工作日'>工作日</option>
+                            <option value='周末'>周末</option>
+                        </select>
+                        <br/><br/>
+                        <label>是否申请加班费</lable>
+                        <input id = 'is_paid' name='is_paid' type='checkbox' value=0>
+                        <br/><br/> {% endcomment %}
                         <font>日期:</font>
                         <input id='prodate' name='prodate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
                         
-                        <br/><br/>
+                        <br/><br/><br/>
                         <input type="submit" value="提交">
                         <br/><br/><br/><br/>
                     </fieldset>
+                    <br/><br/>
+                    <p id='over_save_message'></p>
+                    <h2>加班填报</h2>
+                    <fieldset style='width:90%'>
+                        <legend>加班填报</legend>
+                            <br/><br/>
+                            <label>加班工时</lable>
+                            <input id = 'over_time' type='text' name='over_time'>
+                            <br/><br/>
+                            <label>加班种类</lable>
+                            <select id='over_time_type' name="over_time_type">
+                                <option value=''>---</option>
+                                <option value='工作日'>工作日</option>
+                                <option value='周末'>周末</option>
+                            </select>
+                            <br/><br/>
+                            <label>是否申请加班费</lable>
+                            <input id = 'is_paid' name='is_paid' type='checkbox'>
+                            <br/><br/>
+                            <font>日期:</font>
+                            <input id='over_time_date' name='over_time_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                            <input type="button" value="提交" onclick='save_overtime()'>
+                        
+                    </fieldset>
                 </form>
-                {{c_standard_time_total}}{{c_real_time_total}}
+                <div style='width:96%'>
+                    <br/><br/>
+                    <h2>加班工时查询</h2>
+                    {% autoescape off %}
+                        {{overtime_data}}
+                    {% endautoescape %}
+                    
+                </div>
             </div>
             {% comment %} 制造工时记录 {% endcomment %}
             <div class='div2'>
@@ -301,6 +406,8 @@
                     </form>
                 </fieldset>
                 <br/>
+                {% if error_prod_from_date %}<p style="color:red">{{error_prod_from_date}}</p>{% endif %}
+                {% if error_prod_to_date %}<p style="color:red">{{error_prod_to_date}}</p>{% endif %}
                 <table border="1" style="overflow:scroll;text-align:center">
                     <tr class='parent'>
                         <th width=50>SFG</th>
@@ -310,6 +417,9 @@
                         <th width=50>数量</th>
                         <th width=80>标准工时</th>
                         <th width=80>制造工时</th>
+                        {% comment %} <th width=80>加班</th>
+                        <th width=80>加班种类</th>
+                        <th width=80>有无加班费</th> {% endcomment %}
                         <th width=80>日期</th>
                     </tr>
                         {% for i in logs %}
@@ -321,6 +431,10 @@
                             <td>{{i.qty}} </td>
                             <td>{{i.standard }}</td>
                             <td>{{i.real}} </td>
+                            {% comment %} <td>{{i.over_time}} </td>
+                            <td>{{i.over_time_type}} </td>
+                            <td>{{i.is_paid}} </td> {% endcomment %}
+
                             <td>{{i.date}}</td>
                         </tr>
                         {% endfor %}
@@ -338,10 +452,11 @@
                     <legend>本日</legend>
                     <p>标准工时：{{g_today_standard_time_total}}小时</p>
                     <p>制造工时：{{g_today_real_time_total}}小时</p>
+                    <p>加班工时：{{overtime_total}}<p>
                     <p>工作时间（无系数）：{{g_today_real_time_total}} + {{g_today_supportive_total_without_coef}} = {{g_today_natural_hours}}</p>
                     <p>辅助工时：{{g_today_supportive_total}}小时</p>
                     <p>工效比：{{kpi_today}} （标准工时/制造工时）</p>
-                    <p>业绩：{{performance_today}} </p>
+                    <p>业绩：{{performance_today}} （标准工时+辅助工时*系数+外借工时*系数）</p>
                     <p>工时有效率：{{efficiency_today}} （制造工时/（制造工时+辅助工时））</p>
                 </fieldset>
                 <br/>
@@ -411,7 +526,7 @@
                             <label>花岗石</lable>
                             <input type="text" name='granite' />
                             <br/><br/>
-                            <label>测头</lable>
+                            <label>物流搬运</lable>
                             <input type="text" name='prob' />
                             
                     
@@ -499,13 +614,15 @@
                 <fieldset style='width:30%'>
                     <form onsubmit='support_time_log()' action="/report/" method="post" >
                         {% csrf_token %}
-                        <p>From: <input id='support_from_date' name='support_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
-                        <p>To: <input id='support_to_date' name='support_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>From: <input id='support_from_date' name='support_from_date' value='' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>To: <input id='support_to_date' name='support_to_date' value='' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
                     
                         <input type='submit' value='Submit'>
                     </form>
                 </fieldset>
                 <br/>
+                {% if error_sup_from_date %}<p style="color:red">{{error_sup_from_date}}</p>{% endif %}
+                {% if error_sup_to_date %}<p style="color:red">{{error_sup_to_date}}</p>{% endif %}
                 <p>本日辅助工时汇总: {{g_today_supportive_total}}</p>
                 <br/>
                 <table border="1" style="overflow:scroll;text-align:center;position:absolute;">
@@ -518,7 +635,7 @@
                         <th width=50>组外</th>
                         <th width=50>整机</th>
                         <th width=50>花岗石</th>
-                        <th width=50>测头</th>
+                        <th width=50>物流搬运</th>
                         <th width=50>补缺件</th>
                         <th width=50>计划调整</th>
                         <th width=50>人为质量问题</th>

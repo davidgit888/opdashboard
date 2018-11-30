@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp
+from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime
 from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 import json
+from calendar import monthrange
+import numpy as np
 # from django.conf import settings as original_settings
 # from django.template import RequestContext
 import pandas as pd
@@ -19,6 +21,7 @@ def get_current_date_data(request, result):
     standard_time_total = 0
     real_time_total = 0
     quantity_total = 0
+    overtime_total = 0
     count_total = 0
     for i in range(len(result)):
         a={}
@@ -29,10 +32,14 @@ def get_current_date_data(request, result):
         a['standard'] = result[i].standard_tiem
         a['real'] = result[i].real_time
         a['qty'] = result[i].qty
+        # a['over_time'] = result[i].over_time
+        # a['over_time_type'] = result[i].over_time_type
+        # a['is_paid'] = result[i].is_paid
         a['date'] = result[i].date
         standard_time_total +=a['standard']
         real_time_total += a['real']
         quantity_total += a['qty']
+        # overtime_total += a['over_time']
         count_total += 1
         list_logs.append(a)
     a={}
@@ -43,6 +50,9 @@ def get_current_date_data(request, result):
     a['standard'] = round(standard_time_total,2)
     a['real'] = round(real_time_total,2)
     a['qty'] = round(quantity_total,2)
+    # a['over_time'] = round(overtime_total,2)
+    # a['over_time_type'] = '---'
+    # a['is_paid'] = '---'
     a['date'] = '---'
     list_logs.append(a)
 
@@ -71,9 +81,9 @@ def global_context(request):
     reuslt_month_supportive = SupportiveTime.objects.filter(user=username, date__range=(month_first,today))
     reuslt_year_supportive = SupportiveTime.objects.filter(user=username, date__range=(year_first,today))
 
-    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow = get_supportive_history(request, reuslt_today_supportive)
-    supportive_logs1,supportive_total1,supportive_total_without_coef1,sup_total_without_coefBorrow1 = get_supportive_history(request, reuslt_month_supportive)
-    supportive_logs2,supportive_total2, supportive_total_without_coef2,sup_total_without_coefBorrow2 = get_supportive_history(request, reuslt_year_supportive)
+    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow,sup_total_without_borrow = get_supportive_history(request, reuslt_today_supportive)
+    supportive_logs1,supportive_total1,supportive_total_without_coef1,sup_total_without_coefBorrow1,sup_total_without_borrow = get_supportive_history(request, reuslt_month_supportive)
+    supportive_logs2,supportive_total2, supportive_total_without_coef2,sup_total_without_coefBorrow2,sup_total_without_borrow = get_supportive_history(request, reuslt_year_supportive)
     # 工效比
     if real_time_total:
         kpi_today = standard_time_total/real_time_total
@@ -102,24 +112,12 @@ def global_context(request):
     else:
         efficiency_year=0
     # 业绩
-    performance_today = real_time_total + supportive_total
+    performance_today = standard_time_total + supportive_total
 
     borrow = Borrow.objects.all()
     probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs,supportive_total = load_all_data(request)
     
-
-    # local_jason = {
-    #     'op_list':ops,
-    #     'prob_list':probs,
-    #     'groups':group,
-    #     'logs':history_logs,
-    #     'today_kpi':today_kpi,
-    #     'month_kpi':month_kpi,
-    #     'year_kpi':year_kpi,
-    #     'supportive_logs':supportive_logs,
-    #     'supportive_total':supportive_total,
-    #     #'save_message':,
-    # }
+    overtime_data,overtime_data_group,overtime_total = get_overtime(request, username, today,today)
 
     all_shown_digits = {
         'g_today_standard_time_total':round(standard_time_total,2),
@@ -149,7 +147,9 @@ def global_context(request):
         'month_kpi':month_kpi,
         'year_kpi':year_kpi,
         'supportive_logs':supportive_logs,
-        'supportive_total':supportive_total,
+        'supportive_total':round(supportive_total,2),
+        'overtime_total':overtime_total,
+        'overtime_data':overtime_data.to_html(),
         
         }
 
@@ -235,6 +235,8 @@ def get_supportive_history(request,result):
         supportive_logs.append(a)
     list_total[20] = '汇总'
     a={}
+    for i in range(20):
+        list_total[i] = round(list_total[i],2)
     a['rest']=list_total[0]
     a['clean'] =list_total[1]
     a['inside_group'] = list_total[2]
@@ -259,20 +261,20 @@ def get_supportive_history(request,result):
     a['date'] = list_total[20]
     a['comments'] = '---'
     #supportive_total borrow time
-    supportive_total = 0
+    supportive_total = 0 #all with coef
     for i in range(len(list_total)-1):
         supportive_total += list_total[i]
-    # sup_total_without_borrow = 0
-    # for i in range(len(list_total)-2):
-    #     sup_total_without_borrow += list_total[i]
+    sup_total_without_borrow = 0  # no borrow with coef
+    for i in range(len(list_total)-2):
+        sup_total_without_borrow += list_total[i]
     supportive_logs.append(a)
-    supportive_total_without_coef = 0
+    supportive_total_without_coef = 0  #all without coef
     for i in range(len(list_total_without_coef)):
         supportive_total_without_coef += list_total_without_coef[i]
-    sup_total_without_coefBorrow = 0
-    for i in range(len(list_total_without_coef)-1):
+    sup_total_without_coefBorrow = 0 #no borrow without coef
+    for i in range(len(list_total_without_coef)-2):
         sup_total_without_coefBorrow += list_total_without_coef[i]
-    return supportive_logs, round(supportive_total,2), round(supportive_total_without_coef, 2), round(sup_total_without_coefBorrow,2)
+    return supportive_logs, round(supportive_total,2), round(supportive_total_without_coef, 2), round(sup_total_without_coefBorrow,2), round(sup_total_without_borrow,2),
 
 @login_required(login_url='/accounts/login/')  
 def get_kpi(request,result):
@@ -342,9 +344,9 @@ def load_all_data(request):
         year_kpi=0
 
     reuslt_today_supportive = SupportiveTime.objects.filter(user=username, date=date.today())
-    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow = get_supportive_history(request, reuslt_today_supportive)
+    supportive_logs,supportive_total, supportive_total_without_coef,sup_total_without_coefBorrow, sup_total_without_borrow = get_supportive_history(request, reuslt_today_supportive)
     
-    return probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs, supportive_total
+    return probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs, round(supportive_total,2)
 
 # when load the page
 @login_required(login_url='/accounts/login/')  
@@ -356,6 +358,30 @@ def index(request):
     return render(request, 'report/report_get.html', all_show_digts)
 
 # when click submit to save to database
+def save_overtime_data(request):
+    user = request.user.id
+    over_time= request.GET.get('over_time')
+    over_time_type = request.GET.get('over_type')
+    is_paid = request.GET.get('is_paid')
+    date =  request.GET.get('date')
+    f_user = User.objects.get(id=user)
+    
+    if is_paid=='true':
+        is_paid='Y'
+    else:
+        is_paid='N'
+
+    try:
+        query=OverTime(user=f_user,over_time=over_time,over_time_type=over_time_type,is_paid=is_paid,date=date)
+        query.save()
+        check='Y'
+        return HttpResponse(json.dumps(check), content_type='application/json')
+    except Exception as ex:    
+        template = "保存失败"
+        message = template + json.dumps(ex.args)
+        
+        return HttpResponse(json.dumps(message), content_type='application/json')
+
 @login_required(login_url='/accounts/login/')  
 def get_data(request):
 
@@ -367,6 +393,9 @@ def get_data(request):
     standard_time = request.POST['standard_time']
     real_time = request.POST['real_time']
     qty = request.POST['qty']
+    # over_time= request.POST['over_time']
+    # over_time_type = request.POST['over_time_type']
+    # is_paid = request.POST.get('is_paid')
     date_time = request.POST.get('prodate')
     
     #load data
@@ -377,26 +406,26 @@ def get_data(request):
         prob_info=None
     if prob_info == '空':
         prob_info=None
-
+    # if not over_time:
+    #     over_time=0
+    # if not is_paid:
+    #     is_paid='N'
+    # else:
+    #     is_paid='Y'
     
 
     try:
         #f_sfg = SfmProd.objects.get(sfg_id=sfg)
         f_op = Op.objects.get(op_id=op_id)
         f_user = User.objects.get(id=user)
-        query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,date=date_time)
+        query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,
+        date=date_time)
         query.save()
         # probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi,supportive_logs,supportive_total = load_all_data(request)
         all_show_digits = global_context(request)
         save_message="保存成功"
         local_jason = {
-            # 'op_list':ops,
-            # 'prob_list':probs,
-            # 'groups':group,
-            # 'logs':history_logs,
-            # 'today_kpi':today_kpi,
-            # 'month_kpi':month_kpi,
-            # 'year_kpi':year_kpi,
+            
             'save_message':save_message,
             # 'supportive_logs':supportive_logs,
             # 'supportive_total':supportive_total,
@@ -415,13 +444,7 @@ def get_data(request):
         # probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi, supportive_logs,supportive_total = load_all_data(request)
         all_show_digits = global_context(request)
         local_jason1 = {
-            # 'op_list':ops,
-            # 'prob_list':probs,
-            # 'groups':group,
-            # 'logs':history_logs,
-            # 'today_kpi':today_kpi,
-            # 'month_kpi':month_kpi,
-            # 'year_kpi':year_kpi,
+            
             'error_message':message,
             # 'supportive_logs':supportive_logs,
             # 'supportive_total':supportive_total,
@@ -536,13 +559,7 @@ def supportive_time(request):
         # get global info
         all_show_digits = global_context(request)
         local_jason = {
-            # 'op_list':ops,
-            # 'prob_list':probs,
-            # 'groups':group,
-            # 'logs':history_logs,
-            # 'today_kpi':today_kpi,
-            # 'month_kpi':month_kpi,
-            # 'year_kpi':year_kpi,
+            
             'supportive_save_message':save_message,
             # 'supportive_logs':supportive_logs,
             # 'supportive_total':supportive_total,
@@ -556,13 +573,7 @@ def supportive_time(request):
         message = template + json.dumps(ex.args)
         # probs, ops, group, history_logs, today_kpi, month_kpi, year_kpi, supportive_logs,supportive_total = load_all_data(request)
         local_jason = {
-            # 'op_list':ops,
-            # 'prob_list':probs,
-            # 'groups':group,
-            # 'logs':history_logs,
-            # 'today_kpi':today_kpi,
-            # 'month_kpi':month_kpi,
-            # 'year_kpi':year_kpi,
+           
             'supportive_error_message':message,
             # 'supportive_logs':supportive_logs,
             # 'supportive_total':supportive_total,
@@ -637,21 +648,26 @@ def get_groups(request):
 
     return user_all_permissions
 
-# produce schedule table
-def report_analysis(request):
-    from_date = request.POST.get('schedule_from_date')
-    to_date = request.POST.get('schedule_to_date')
-    if not from_date:
-        from_date = date.today() - timedelta(days=30)
-    if not to_date:
-        to_date = date.today()
-
+#get all op_ids and all_user_ids in 统计表
+def analysis_op_user(request):
     username = request.user.id
     #result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
-    user_groups = get_groups(request)
+    user_groups = []
+    data_groups = get_groups(request)
+    for i in range(len(data_groups)):
+            if '数据' in data_groups[i]:
+                user_groups.append(data_groups[i])
     all_user_ids = []
     all_op_id = []
-    #get all user belong to current user's groups and get user's OP
+
+
+    
+    user_manager_group = []
+
+    user_manager_result = User.objects.filter(groups__name='报工平台-主管')
+    for i in range(len(user_manager_result)):
+        user_manager_group.append(user_manager_result[i].id)
+
     for j in range(len(user_groups)):
         if '数据-装配组A' in user_groups[j]:
             users = User.objects.filter(groups__name='数据-装配组A')
@@ -661,6 +677,8 @@ def report_analysis(request):
             ops = GroupOp.objects.filter(group_name='数据-装配组A')
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
+            # all_user_ids += user_group_a
+            # all_op_id +=ops_group_a
 
         if '数据-装配组B' in user_groups[j]:
             users = User.objects.filter(groups__name='数据-装配组B')
@@ -670,6 +688,8 @@ def report_analysis(request):
             ops = GroupOp.objects.filter(group_name='数据-装配组B')
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
+            # all_user_ids +=user_group_b
+            # all_op_id += ops_group_b
 
         if '数据-电气' in user_groups[j]:
             users = User.objects.filter(groups__name='数据-电气')
@@ -679,6 +699,8 @@ def report_analysis(request):
             ops = GroupOp.objects.filter(group_name='数据-电气')
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
+            # all_user_ids += user_group_elc
+            # all_op_id += ops_group_elc
 
         if '数据-包装' in user_groups[j]:
             users = User.objects.filter(groups__name='数据-包装')
@@ -689,6 +711,9 @@ def report_analysis(request):
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
 
+            # all_user_ids += user_group_p
+            # all_op_id += ops_group_p
+
         if '数据-装配组SM' in user_groups[j]:
             users = User.objects.filter(groups__name='数据-装配组SM')
             for i in range(len(users)):
@@ -697,13 +722,153 @@ def report_analysis(request):
             ops = GroupOp.objects.filter(group_name='数据-装配组SM')
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
+            # all_user_ids += user_group_sm
+            # all_op_id += ops_group_sm
+    user_manager_group = []
+
+    user_manager_result = User.objects.filter(groups__name='报工平台-主管')
+    for i in range(len(user_manager_result)):
+        user_manager_group.append(user_manager_result[i].id)    
+
+    # get Op name
+    if user_manager_group:
+        for i in range(len(user_manager_group)):
+            if user_manager_group[i] in all_user_ids:
+                all_user_ids.remove(user_manager_group[i])
+    if username in all_user_ids:
+        all_user_ids.remove(username)
+
+    if 1 in all_user_ids:
+        all_user_ids.remove(1)
+    
+    all_user_ids = list(set(all_user_ids))
+    all_op_id = list(set(all_op_id))
+    return all_user_ids, all_op_id,user_groups
+
+
+# produce schedule, performance and analyze table
+def report_analysis(request):
+    from_date = request.POST.get('schedule_from_date')
+    to_date = request.POST.get('schedule_to_date')
+    p_today = request.POST.get('p_perform_today')
+    tab = request.GET.get('tab')
+    today = date.today()
+    a_month = request.POST.get('a_month')
+    
+    if not from_date:
+        from_date = date.today() - timedelta(days=30)
+    if not to_date:
+        to_date = date.today()
+    if not a_month:
+        a_month=today.month
+    else:
+        a_month = int(a_month)
+
+    # username = request.user.id
+    # #result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
+    # user_groups = []
+    # data_groups = get_groups(request)
+    # for i in range(len(data_groups)):
+    #         if '数据' in data_groups[i]:
+    #             user_groups.append(data_groups[i])
+    # all_user_ids = []
+    # all_op_id = []
+    #数据-装配组A
+    # user_group_a = User.objects.filter(groups__name='数据-装配组A').id
+    # ops_group_a = GroupOp.objects.filter(group_name='数据-装配组A').id
+
+    # user_group_b = User.objects.filter(groups__name='数据-装配组B').id
+    # ops_group_b = GroupOp.objects.filter(group_name='数据-装配组B').id
+
+    # user_group_elc = User.objects.filter(groups__name='数据-电气').id
+    # ops_group_elc = GroupOp.objects.filter(group_name='数据-电气').id
+
+    # user_group_p = User.objects.filter(groups__name='数据-包装').id
+    # ops_group_p = GroupOp.objects.filter(group_name='数据-包装').id
+
+    # user_group_sm = User.objects.filter(groups__name='数据-装配组SM').id
+    # ops_group_sm = GroupOp.objects.filter(group_name='数据-装配组SM').id
+    #get all user belong to current user's groups and get user's OP
+    # user_manager_group = []
+
+    # user_manager_result = User.objects.filter(groups__name='报工平台-主管')
+    # for i in range(len(user_manager_result)):
+    #     user_manager_group.append(user_manager_result[i].id)
+
+    # for j in range(len(user_groups)):
+    #     if '数据-装配组A' in user_groups[j]:
+    #         users = User.objects.filter(groups__name='数据-装配组A')
+    #         for i in range(len(users)):
+    #             all_user_ids.append(users[i].id)
+
+    #         ops = GroupOp.objects.filter(group_name='数据-装配组A')
+    #         for i in range(len(ops)):
+    #             all_op_id.append(ops[i].op_id)
+    #         # all_user_ids += user_group_a
+    #         # all_op_id +=ops_group_a
+
+    #     if '数据-装配组B' in user_groups[j]:
+    #         users = User.objects.filter(groups__name='数据-装配组B')
+    #         for i in range(len(users)):
+    #             all_user_ids.append(users[i].id)
+
+    #         ops = GroupOp.objects.filter(group_name='数据-装配组B')
+    #         for i in range(len(ops)):
+    #             all_op_id.append(ops[i].op_id)
+    #         # all_user_ids +=user_group_b
+    #         # all_op_id += ops_group_b
+
+    #     if '数据-电气' in user_groups[j]:
+    #         users = User.objects.filter(groups__name='数据-电气')
+    #         for i in range(len(users)):
+    #             all_user_ids.append(users[i].id)
+
+    #         ops = GroupOp.objects.filter(group_name='数据-电气')
+    #         for i in range(len(ops)):
+    #             all_op_id.append(ops[i].op_id)
+    #         # all_user_ids += user_group_elc
+    #         # all_op_id += ops_group_elc
+
+    #     if '数据-包装' in user_groups[j]:
+    #         users = User.objects.filter(groups__name='数据-包装')
+    #         for i in range(len(users)):
+    #             all_user_ids.append(users[i].id)
+            
+    #         ops = GroupOp.objects.filter(group_name='数据-包装')
+    #         for i in range(len(ops)):
+    #             all_op_id.append(ops[i].op_id)
+
+    #         # all_user_ids += user_group_p
+    #         # all_op_id += ops_group_p
+
+    #     if '数据-装配组SM' in user_groups[j]:
+    #         users = User.objects.filter(groups__name='数据-装配组SM')
+    #         for i in range(len(users)):
+    #             all_user_ids.append(users[i].id)
+            
+    #         ops = GroupOp.objects.filter(group_name='数据-装配组SM')
+    #         for i in range(len(ops)):
+    #             all_op_id.append(ops[i].op_id)
+    #         # all_user_ids += user_group_sm
+    #         # all_op_id += ops_group_sm
         
 
     # get Op name
     
-    op_list = []
-    all_user_ids = list(set(all_user_ids))
-    all_op_id = list(set(all_op_id))
+    # op_list = []
+    # all_user_ids = list(set(all_user_ids))
+    # all_op_id = list(set(all_op_id))
+    all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+    
+    # if user_manager_group:
+    #     for i in range(len(user_manager_group)):
+    #         if user_manager_group[i] in all_user_ids:
+    #             all_user_ids.remove(user_manager_group[i])
+    # if username in all_user_ids:
+    #     all_user_ids.remove(username)
+
+    # if 1 in all_user_ids:
+    #     all_user_ids.remove(1)
     
     if len(all_user_ids) != 0 and len(all_op_id) != 0:
         items = Report.objects.filter(user_id__in=all_user_ids).filter(op_id__in=all_op_id).filter(date__range=(from_date,to_date)).order_by('date')
@@ -741,6 +906,12 @@ def report_analysis(request):
                 a['sfg']= sfg_list[i]
                 type = data[data['sfg']==sfg_list[i]]['type']
                 a['type'] = type[type.index[0]]
+                try:
+                    sfg_comments = SfgComments.objects.get(sfg=a['sfg']).comments
+                
+                    a['sfg_comments'] = sfg_comments
+                except:
+                    a['sfg_comments'] = 'N'
 
                 ####  test ########
                 for j in range(len(all_op_id)):
@@ -754,11 +925,37 @@ def report_analysis(request):
                         a[all_op_id[j].op_name] = '---'
           
                 schedule_list.append(a)
-
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+            #数据组
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id)
+            if data_group:
+                anls_group = data_group[0]
+            else:
+                anls_group = ''
+            
             return render(request, 'report/schedule.html', {
                 
                 'schedule_list':schedule_list,
                 'op_list':all_op_id,
+                
+                'p_perform_list':p_perform_list,
+                'p_date':p_get_date,
+                'tab':tab,
+                'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
+                'data_group':data_group,
+                'test_a_month':a_month,
+                'from_date':from_date,
+                'to_date':to_date,
+                'anls_result':anls_result,
+                'p_save_status':p_save_status,
+                # 'user_manager_group':user_manager_group,
+                'anls_opcounts':anls_opcounts,
+                'sup_not_bor_total':sup_not_bor_total,
+                'sup_bor_total':sup_bor_total,
+                'over_time_total':over_time_total,
+                'user_groups':user_groups,
+
+                
                 
                 
             })
@@ -768,6 +965,229 @@ def report_analysis(request):
             })
     else:
         return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+
+
+# 业绩表
+def get_performance(request,all_users_id, today):
+    p_get_date = today
+    if not today:
+        today = date.today()
+        p_get_date = today.strftime('%Y-%m-%d')
+    user = User.objects.get(id=request.user.id)
+    groups = user.groups
+    forman_group=''
+    for i in groups.select_related():
+        if '数据' in i.name:
+            forman_group=i.name
+            break
+    p_perform_list = []
+    p_save_status='No'
+    p_save_status_flag = GroupPerform.objects.filter(date=p_get_date,username__in=all_users_id)
+    if(len(p_save_status_flag)!=0):
+        p_save_status='Yes'
+    for i in range(len(all_users_id)):
+        r_result = Report.objects.filter(user=all_users_id[i],date=today)
+        produce_logs, standard_time_total, real_time_total = get_current_date_data(request, r_result)
+        s_result = SupportiveTime.objects.filter(user=all_users_id[i],date=today)
+        supportive_logs, supportive_total, supportive_total_without_coef, sup_total_without_coefBorrow,sup_total_without_borrow = get_supportive_history(request,s_result)
+        a={}
+        # performance module
+        a['p_user'] = User.objects.get(id=all_users_id[i]).last_name + User.objects.get(id=all_users_id[i]).first_name
+        a['p_standard'] =  round(standard_time_total,2)
+        a['p_sup_without_borrow'] = sup_total_without_borrow
+        a['p_sup_borrow'] = round(supportive_total-sup_total_without_borrow,2)
+        a['p_total'] = round(standard_time_total + supportive_total,2)
+        a['p_real'] = round(real_time_total, 2)
+        checkFlag = GroupPerform.objects.filter(date=p_get_date,username=all_users_id[i])
+        if checkFlag:
+            a['validate']='已保存'
+           
+        else:
+            a['validate']='未保存'
+        if real_time_total:
+            a['p_kpi'] = round(standard_time_total/real_time_total,2) # 工效比
+        else:
+            a['p_kpi'] = 0
+        if real_time_total or sup_total_without_coefBorrow:
+            a['p_efficiency'] = round(real_time_total/(real_time_total+sup_total_without_coefBorrow),2) # 公式有效率
+        else:
+            a['p_efficiency'] = 0
+        a['p_natural'] = round(real_time_total+supportive_total_without_coef, 2)
+        # a['p_produce_log'] = produce_logs,
+        # a['p_sup_log'] = supportive_logs,
+        a['username'] = User.objects.get(id=all_users_id[i]).id
+        a['group'] = forman_group
+        
+        p_perform_list.append(a)
+    
+    return p_perform_list, p_get_date, p_save_status
+
+# 业绩表 popup
+def perform_pop(request):
+    date = request.GET.get('date')
+    #return HttpResponse(date)
+    all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+    p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, date)
+
+    return render(request, 'report/perform_pop.html', {
+        'p_perform_list':p_perform_list,
+        'p_date':p_get_date,
+        'p_save_status':p_save_status,
+    })
+
+#统计表 op_total
+def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id):
+    data_groups = []
+    for i in range(len(user_groups)):
+        if '数据' in user_groups[i]:
+            data_groups.append(user_groups[i])
+    today = date.today()
+    year = today.year
+    if a_month != 0:
+        m_range=monthrange(year,a_month)
+        from_date = today.replace(month=a_month,day=1)
+        to_date = today.replace(month=a_month, day=m_range[1])
+    else:
+        #return HttpResponse('a_month is 0')
+        from_date = today.replace(year=today.year, month=1)
+        to_date = today.replace(month=12,day=31)
+        a_month='全年'
+    
+    # Get performance of person accroding to group
+    results = GroupPerform.objects.filter(date__range=(from_date,to_date),username__in=all_user_ids,group__in=data_groups).values()
+    df = pd.DataFrame(list(results), columns=['user','natural_time','performance','standard_time','real_time',
+    'supportive_time','borrow_time','kpi','efficiency','date','username','group'])
+    data = df.groupby(['user']).sum() # Group all users performance per
+    total = data.sum()
+    total.name = '总和'
+    data = data.append(total)
+    # data total for each person performance
+    data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
+     "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
+    # data=data.append(data.sum(numeric_only=True), ignore_index=True)
+    # data_total = data.sum(numeric_only=True)
+    # get all total qty based on ops
+    results = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids,op_id__in=all_op_id).values()
+    df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
+    table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
+    data_opcounts = table[table==1]
+
+
+
+    op_count_total = []
+    for i in range(len(data_opcounts.columns)):
+        a={}
+        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+        qty = data_opcounts['qty'][data_opcounts.columns[i][1]].sum()
+        a['op_name'] = op_name
+        a['qty'] = qty
+        op_count_total.append(a)
+
+    # supportive time analyze
+    sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
+    sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
+    'granite','prob','shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair','equipment_mantainence',
+    'inventory_check','quality_check','document','conference','group_management','record','borrow_time','borrow_name','comments','date'])
+    sup_not_bor_total = sup_pd_data.sum()[1:20]
+    sup_not_bor_total= sup_not_bor_total.to_frame()
+    sup_not_bor_total = sup_not_bor_total.T.rename(columns={'rest':'休息','clean_time':'卫生','inside_group':'组内','outside_group':'组外','complete_machine':'整机',
+    'granite':'花岗石','prob':'物流搬运','shortage':'补缺件','plan_change':'计划调整','human_quality_issue_rework':'人为质量问题',
+    'item_quality_issue':'零件质量问题','human_quality_issue_repair':'人为质量问题返修','equipment_mantainence':'设备维护','inventory_check':'库存核查',
+    'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录'})
+    sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
+    sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()
+
+    # over_time_data = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values_list('over_time','over_time_type')
+    over_time_data = OverTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
+    over_time_data = pd.DataFrame(list(over_time_data), columns=['user_id','over_time','over_time_type'])
+    over_time_total = over_time_data.groupby(['user_id']).sum()
+    over_user=[]
+    for i in range(len(over_time_total)):
+        user=User.objects.get(id=over_time_total.index[i]).get_full_name()
+        over_user.append(user)
+    over_time_total.index=over_user
+    return data_groups, data.to_html(), op_count_total, sup_not_bor_total.to_html(),sup_bor_total.to_html(),over_time_total.to_html()
+
+# get popup window in 统计表
+def group_statistic(request):
+    month = request.GET.get('date')
+    groups = request.GET.get('group')
+    user_group=[groups]
+    today = date.today()
+    if not month:
+        month=today.month
+  
+    else:        
+        month = int(month)
+    all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+    data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id)
+    if month ==0:
+        month = '全年'
+    else:
+        month = str(month)+'月'
+    return render(request,'report/pop_analysis.html',{
+        'anls_result':anls_result,
+        'title':month+groups+'工时汇总',
+        'op':all_op_id,
+        'all_user_ids':all_user_ids,
+        'anls_opcounts':anls_opcounts,
+        'sup_not_bor_total':sup_not_bor_total,
+        'over_time_total':over_time_total,
+        'sup_bor_total':sup_bor_total,
+    })
+
+# get user's produce log pop windows in performance section 
+def per_get_prod_log(request):
+    username = request.GET.get('username')
+    date = request.GET.get('date')
+    user = request.GET.get('user')
+    
+    results = Report.objects.filter(user__id=username,date=date)
+    sup_results = SupportiveTime.objects.filter(user__id=username,date=date)
+    
+    list_logs, standard_time_total, real_time_total = get_current_date_data(request, results)
+    # return HttpResponse(json.dumps(prod_log), content_type='application/json')
+
+    supportive_logs, supportive_total, supportive_total_without_coef, sup_total_without_coefBorrow,sup_total_without_borrow = get_supportive_history(request,sup_results)
+    
+    overtime_data,overtime_data_group,overtime_total = get_overtime(request, username, date,date)
+    return render(request,'report/individual_report.html', {
+        'individual_log':list_logs,
+        'individual_sup_log':supportive_logs,
+        'supportive_total_without_coef':round(supportive_total_without_coef,2),
+        'user':user,
+        'real_time_total':round(real_time_total,2),
+        'overtime_data':overtime_data.to_html(index=False),
+        'overtime_data_group':overtime_data_group,
+        'overtime_total':overtime_total,
+        
+    } )
+
+# get overtime table list in 报工平台
+def get_overtime(request,usernames,from_date,to_date):
+    if(isinstance(usernames,list)):
+        results = OverTime.objects.filter(user_id__in=usernames,date__range=(from_date,to_date)).values()
+
+    else:
+        results = OverTime.objects.filter(user_id=usernames,date__range=(from_date,to_date)).values()
+    overtime_data = pd.DataFrame(list(results),columns=['user_id','over_time','over_time_type','is_paid','date'])
+    overtime_data_group = overtime_data.groupby(['user_id']).sum()
+    overtime_total = overtime_data['over_time'].sum()
+    if overtime_total:
+        overtime_total = round(overtime_total,2)
+    else:
+        overtime_total = 0
+    del overtime_data['user_id']
+    total1=pd.Series([overtime_total,'---','---','汇总'],index=['over_time','over_time_type','is_paid','date'])
+    total1.name='汇总'
+    overtime_data = overtime_data.append(total1)
+    overtime_data = overtime_data.rename(columns={'over_time':'加班','over_time_type':'加班种类','is_paid':'加班费','date':'日期'})
+    
+    
+    
+    
+
+    return overtime_data,overtime_data_group,overtime_total
 
 # get total left quantity of certain SFG
 def get_real_time_estimate(request):
@@ -795,11 +1215,25 @@ def get_produce_time_bytime(request):
     
     from_date = request.POST.get('prod_from_date')
     to_date = request.POST.get('prod_to_date')
+    today = date.today()
+    message_from = None
+    message_to = None
+    if not from_date:
+        from_date = today
+        message_from = '没有开始日期'
+    if not to_date:
+        to_date=today
+        message_to = '没有截止日期'
     username = request.user.id
+    overtime_data,overtime_data_group,overtime_total = get_overtime(request,username,from_date,to_date)
     result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
     logs,standard_time_total, real_time_total = get_current_date_data(request,result)
     all_show_digts = global_context(request)
     all_show_digts['logs'] = logs
+    all_show_digts['error_prod_from_date'] = message_from
+    all_show_digts['error_prod_to_date'] = message_to
+    all_show_digts['overtime_total']= overtime_total,
+    all_show_digts['overtime_data']= overtime_data.to_html(),
 
     return render(request,'report/report_get.html', all_show_digts )
 
@@ -807,14 +1241,119 @@ def get_produce_time_bytime(request):
 def get_support_time_log(request):
     from_date = request.POST.get('support_from_date')
     to_date = request.POST.get('support_to_date')
+    today = date.today()
+    message_from = None
+    message_to = None
+    if not from_date:
+        from_date = today
+        message_from = '没有开始日期'
+    if not to_date:
+        to_date=today
+        message_to = '没有截止日期'
     username = request.user.id
     result = SupportiveTime.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
-    supportive_logs, standard_time_total, real_time_total,sup_total_without_coefBorrow = get_supportive_history(request,result)
+    supportive_logs, standard_time_total, real_time_total,sup_total_without_coefBorrow,sup_total_without_borrow = get_supportive_history(request,result)
     all_show_digts = global_context(request)
     all_show_digts['supportive_logs'] = supportive_logs
+    all_show_digts['error_sup_from_date'] = message_from
+    all_show_digts['error_sup_to_date'] = message_to
 
     return render(request,'report/report_get.html', all_show_digts )
 
+# foreman save user performance day by day
+def save_indiv_perform(request):
+    user = request.GET.get('user')
+    natural_time = request.GET.get('natural_time')
+    perfom = request.GET.get('perfom')
+    standard = request.GET.get('standard')
+    real = request.GET.get('real')
+    support = request.GET.get('support')
+    borrow = request.GET.get('borrow')
+    kpi = request.GET.get('kpi')
+    efficiency = request.GET.get('efficiency')
+    date = request.GET.get('date')
+    username = request.GET.get('username')
+    group = request.GET.get('group')
+    
+    query = GroupPerform(user=user,natural_time=natural_time,performance=perfom,standard_time=standard,real_time=real,supportive_time=support,
+    borrow_time=borrow,kpi=kpi,efficiency=efficiency,date=date,username=username,group=group)
+    try:
+        query.save()
+        message = user+'保存成功'
+    except:
+        message = user+'保存失败'
+
+    return HttpResponse(json.dumps(message), content_type='application/json')
+
+# Get comments of sfg for wang
+def get_sfg_comments(request):
+    sfg = request.GET.get('sfg')
+    if not sfg:
+        message = "没有找到SFG,请选中"
 
 
+        return render(request, 'report/new_sfg_comments.html',{'message':message})
+    
+    else:
+        try:
+            results = SfgComments.objects.get(sfg=sfg)
+        except:
+            message = "无SFG备注信息，请创建"
+            return render(request, 'report/new_sfg_comments.html',{'message':message,'sfg':sfg})
+        if results:
+            message = 'SFG备注信息'
+            return render(request, 'report/update_sfg_comments.html',{
+                'message':message,
+                'sfg':sfg,
+                'comments':results.comments
+                })
+        else:
+            message = "无SFG备注信息，请创建"
+            return render(request, 'report/new_sfg_comments.html',{'message':message,'sfg':sfg})
+
+# create comments of sfg for wang
+def create_new_sfg_comments(request):
+    sfg = request.POST['sfg']
+    comments = request.POST['comments']
+
+    if sfg or comments:
+        query = SfgComments(sfg=sfg,comments=comments)
+        query.save()
+        message='保存成功'
+
+        return render(request, 'report/update_sfg_comments.html',{
+                'save_message':message,
+                'sfg':sfg,
+                'comments':comments
+                })
+    else:
+        return render(request, 'report/update_sfg_comments.html',{
+                'save_message':'没有填写备注信息',
+                
+                })
+
+# update comments of sfg for wang
+def update_sfg_comments(request):
+    sfg = request.POST['sfg']
+    comments = request.POST['comments']
+
+    if sfg or comments:
+        query = SfgComments.objects.get(sfg=sfg)
+        query.comments=comments
+        query.save()
+        message='保存成功'
+
+        return render(request, 'report/update_sfg_comments.html',{
+                'save_message':message,
+                'sfg':sfg,
+                'comments':comments
+                })
+    else:
+        return render(request, 'report/update_sfg_comments.html',{
+                'save_message':'没有填写备注信息',
+                
+                })
+
+
+    
 

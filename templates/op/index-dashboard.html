@@ -74,7 +74,7 @@
                 var hh = today.getHours();//通过日期对象的getHours方法返回小时     
                 var mm = today.getMinutes();//通过日期对象的getMinutes方法返回分钟     
                 var ss = today.getSeconds();//通过日期对象的getSeconds方法返回秒  
-                //document.getElementById("user").innerHTML =  '你好 '+'{{user.last_name}}{{user.first_name}}';//yyyy + "年" + MM + "月" + dd + "日" + hh + "时" + mm + "分" ; 
+                document.getElementById("user").innerHTML =  '你好 '+'{{user.last_name}}{{user.first_name}}';//yyyy + "年" + MM + "月" + dd + "日" + hh + "时" + mm + "分" ; 
                 document.getElementById('date').innerHTML = yyyy + "年" + MM + "月" + dd + "日" ; 
                 document.getElementById('time').innerHTML = hh + "时" + mm + "分" + ss +'秒';
                 t = setTimeout(time, 1000); //设定定时器，循环执行            

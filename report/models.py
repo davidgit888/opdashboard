@@ -58,6 +58,9 @@ class Report(models.Model):
     user = models.ForeignKey(User, related_name="user_full_name", on_delete=models.CASCADE, default='',verbose_name='用户名')
     standard_tiem = models.FloatField(max_length=4,verbose_name='标准工时')
     real_time = models.FloatField(verbose_name='实际工时',max_length=4,default='')
+    # over_time = models.FloatField(verbose_name='加班', null=True, default=0, blank=True)
+    # over_time_type = models.CharField(max_length=3,verbose_name='加班种类', null=True, default=0, blank=True)
+    # is_paid = models.CharField(max_length=1,verbose_name='是否申请加班费', default='N')
     date = models.DateField(auto_now=False,default=date.today())
     def __str__(self):
         return '%s %s %s %s  %s  %s  %s  %s  %s ' % (self.sfg_id, self.type_name, self.op_id, self.prob,self.qty,self.user,self.standard_tiem,self.real_time,self.date)
@@ -73,7 +76,7 @@ class SupportiveTime(models.Model):
     outside_group = models.FloatField(verbose_name='组外',max_length=10,null=True, default=0, blank=True)
     complete_machine = models.FloatField(verbose_name='整机',max_length=10,null=True, default=0, blank=True)
     granite = models.FloatField(verbose_name='花岗石',max_length=10,null=True, default=0, blank=True)
-    prob = models.FloatField(verbose_name='测头',max_length=10,null=True, default=0, blank=True)
+    prob = models.FloatField(verbose_name='物流搬运',max_length=10,null=True, default=0, blank=True)
     shortage = models.FloatField(verbose_name='补缺件',max_length=10,null=True, default=0, blank=True)
     plan_change = models.FloatField(verbose_name='计划调整',max_length=10,null=True, default=0, blank=True)
     human_quality_issue_rework = models.FloatField(verbose_name='人为质量问题返工',max_length=10,null=True, default=0, blank=True)
@@ -137,38 +140,44 @@ class GroupOp(models.Model):
         verbose_name = '班组长-工步与组对应关系'
         verbose_name_plural = '班组长-工步与组对应关系'
 
-# class SupportTime(models.Model):
+class GroupPerform(models.Model):
     
-#     rest = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     clean = models.CharField(max_length=4,verbose_name='标准工时',null=True)
-#     inside_group = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     outside_group = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     complete_machine = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     granite = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     prob = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     shortage = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     plan_change = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     human_quality_issue_rework = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     item_quality_issue = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     human_quality_issue_repair = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     equipment_mantainence = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     inventory_check = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     quality_check = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     document = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     conference = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     group_management = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     record = models.FloatField(max_length=4,verbose_name='标准工时',null=True)
-#     date = models.DateField(auto_now=True)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
-
+    user = models.CharField(max_length=4, verbose_name='员工')
+    natural_time = models.FloatField(max_length=4,verbose_name='工作时间',default=0)
+    performance = models.FloatField(max_length=4,verbose_name='个人绩效',default=0)
+    standard_time = models.FloatField(max_length=4,verbose_name='标准工时',default=0)
+    real_time = models.FloatField(max_length=4,verbose_name='制造工时',default=0)
+    supportive_time = models.FloatField(max_length=4,verbose_name='辅助工时',default=0)
+    borrow_time = models.FloatField(max_length=4,verbose_name='外借工时',default=0)
+    kpi = models.FloatField(max_length=4,verbose_name='工效比',default=0)
+    efficiency = models.FloatField(max_length=4,verbose_name='工时有效率',default=0)
+    date = models.DateField(auto_now=False)
+    username = models.CharField(max_length=18,verbose_name='用户名',default=0)
+    group = models.CharField(max_length=8,verbose_name='组',default='None')
+    def __str__(self):
+        return '%s %s %s %s %s %s %s %s %s %s %s %s' % (self.user, self.natural_time, self.performance, self.standard_time,self.real_time,
+        self.supportive_time,self.borrow_time,self.kpi,self.efficiency,self.date,self.username,self.group)
     
-#     date = models.DateField(auto_now=True)
-#     class Meta:
-#         verbose_name = '辅助工时1'
-#         verbose_name_plural = '辅助工时1'
+    class Meta:
+        verbose_name = '班组业绩统计'
+        verbose_name_plural = '班组业绩统计'
 
+class SfgComments(models.Model):
+    sfg = models.CharField(max_length=5, verbose_name='SFG')
+    comments = models.CharField(max_length=50, verbose_name='备注',null=True, default='', blank=True)
+    class Meta:
+        verbose_name = 'SFG备注信息'
+        verbose_name_plural = 'SFG备注信息'
 
-
+class OverTime(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    over_time = models.FloatField(verbose_name='加班', null=True, default=0, blank=True)
+    over_time_type = models.CharField(max_length=3,verbose_name='加班种类', null=True, default=0, blank=True)
+    is_paid = models.CharField(max_length=1,verbose_name='是否申请加班费', default='N')
+    date = models.DateField(auto_now=False,default=date.today())
+    class Meta:
+        verbose_name = '加班信息'
+        verbose_name_plural = '加班信息'
 
 
 

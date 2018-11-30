@@ -28,9 +28,13 @@ class UserAdmin(BaseUserAdmin):
         user_all_permissions = []
         user = User.objects.get(id=request.user.id)
         groups = user.groups
+        permission_check=0
         for i in groups.select_related():
             if '数据' in i.name:
                 user_all_permissions.append(i.name)
+            if '主管' in i.name:
+                permission_check = 1
+            
         all_user_ids = []
         for i in range(len(user_all_permissions)):
             users = User.objects.filter(groups__name=user_all_permissions[i])
@@ -39,8 +43,10 @@ class UserAdmin(BaseUserAdmin):
         all_user_ids=list(set(all_user_ids))
         # filter admin
         if request.user.is_superuser:
-
-            filtered_query = query.filter(id__in=all_user_ids)
+            # filtered_query = query.filter(id__in=all_user_ids)
+            return query
+        elif permission_check==1:
+            return query.exclude(id=1)
         else:
             filtered_query = query.filter(id__in=all_user_ids).exclude(id=1)
         return filtered_query  
