@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -342,8 +342,9 @@ class GroupPerformAdmin(admin.ModelAdmin):
 
         for obj in queryset:
             row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
-
+    
         return response
+    export_as_excel.short_description = "下载"
 
 class SfgCommentsAdmin(admin.ModelAdmin):
     fields = ['sfg','comments']
@@ -354,6 +355,12 @@ class OverTimeAdmin(admin.ModelAdmin):
     fields = ['user','over_time','over_time_type','is_paid','date']
     list_display=('user','over_time','over_time_type','is_paid','date')
     search_fields = ['user','over_time','over_time_type','is_paid','date']
+
+
+class TraceLogAdmin(admin.ModelAdmin):
+    fields = ['user','username','action_log','detail_message','comments']
+    list_display = ('user','username','action_log','detail_message','comments','date')
+    search_fields = ['user','username','action_log','detail_message','comments','date']
 
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
@@ -367,3 +374,4 @@ admin.site.register(GroupOp,GroupOpAdmin)
 admin.site.register(GroupPerform,GroupPerformAdmin)
 admin.site.register(SfgComments,SfgCommentsAdmin)
 admin.site.register(OverTime,OverTimeAdmin)
+admin.site.register(TraceLog,TraceLogAdmin)

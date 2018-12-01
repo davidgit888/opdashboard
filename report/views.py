@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime
+from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog
 from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -662,11 +662,11 @@ def analysis_op_user(request):
 
 
     
-    user_manager_group = []
+    # user_manager_group = []
 
-    user_manager_result = User.objects.filter(groups__name='报工平台-主管')
-    for i in range(len(user_manager_result)):
-        user_manager_group.append(user_manager_result[i].id)
+    # user_manager_result = User.objects.filter(groups__name='报工平台-主管')
+    # for i in range(len(user_manager_result)):
+    #     user_manager_group.append(user_manager_result[i].id)
 
     for j in range(len(user_groups)):
         if '数据-装配组A' in user_groups[j]:
@@ -740,11 +740,22 @@ def analysis_op_user(request):
 
     if 1 in all_user_ids:
         all_user_ids.remove(1)
-    
+    if len(user_groups) >2:
+        user_groups.append('ALL')
     all_user_ids = list(set(all_user_ids))
     all_op_id = list(set(all_op_id))
     return all_user_ids, all_op_id,user_groups
 
+# check if use is report module manager
+def is_report_manager(request):
+    check = False
+    data_groups = get_groups(request)
+    for i in range(len(data_groups)):
+            if '报工平台-主管' in data_groups[i]:
+                check = True
+                break
+    return check
+    
 
 # produce schedule, performance and analyze table
 def report_analysis(request):
@@ -964,6 +975,13 @@ def report_analysis(request):
                 'message':'It looks like no data between the select date'
             })
     else:
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '访问'
+        detail_message = '试图访问生产进度表'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
         return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
 
 
@@ -1112,29 +1130,64 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id):
 def group_statistic(request):
     month = request.GET.get('date')
     groups = request.GET.get('group')
-    user_group=[groups]
-    today = date.today()
-    if not month:
-        month=today.month
-  
-    else:        
-        month = int(month)
-    all_user_ids, all_op_id, user_groups = analysis_op_user(request)
-    data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id)
-    if month ==0:
-        month = '全年'
+    user = User.objects.get(id=request.user.id)
+    require_user_groups = user.groups
+    
+    pemsion_check = False
+    for i in require_user_groups.select_related():
+        if groups in i.name:
+            pemsion_check = True
+            break
+    
+    check = is_report_manager(request)
+    if pemsion_check or check:
+        user_group=[groups]
+        today = date.today()
+        if not month:
+            month=today.month
+    
+        else:        
+            month = int(month)
+
+        if groups != 'ALL':
+            ops = GroupOp.objects.filter(group_name=groups)
+
+            all_users = User.objects.filter(groups__name=groups)
+            all_user_ids = []
+            all_op_id = []
+            for i in range(len(all_users)):
+                all_user_ids.append(all_users[i].id)
+            for i in range(len(ops)):
+                all_op_id.append(ops[i].op_id)
+            
+        else:
+            all_user_ids, all_op_id, user_group = analysis_op_user(request)
+            # return HttpResponse(all_user_ids)
+        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id)
+        if month ==0:
+            month = '全年'
+        else:
+            month = str(month)+'月'
+        return render(request,'report/pop_analysis.html',{
+            'anls_result':anls_result,
+            'title':month+groups+'工时汇总',
+            'op':all_op_id,
+            # 'all_user_ids':all_user_ids,
+            'anls_opcounts':anls_opcounts,
+            'sup_not_bor_total':sup_not_bor_total,
+            'over_time_total':over_time_total,
+            'sup_bor_total':sup_bor_total,
+            
+        })
     else:
-        month = str(month)+'月'
-    return render(request,'report/pop_analysis.html',{
-        'anls_result':anls_result,
-        'title':month+groups+'工时汇总',
-        'op':all_op_id,
-        'all_user_ids':all_user_ids,
-        'anls_opcounts':anls_opcounts,
-        'sup_not_bor_total':sup_not_bor_total,
-        'over_time_total':over_time_total,
-        'sup_bor_total':sup_bor_total,
-    })
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '查看'
+        detail_message = '试图查看' + groups +'数据'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
+        return HttpResponse("Sorry, 您无权查看 '" + groups+"'的数据。 Suspicious attempt will be reported to Administrator!")
 
 # get user's produce log pop windows in performance section 
 def per_get_prod_log(request):

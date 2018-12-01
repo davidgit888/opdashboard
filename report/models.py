@@ -179,7 +179,16 @@ class OverTime(models.Model):
         verbose_name = '加班信息'
         verbose_name_plural = '加班信息'
 
-
+class TraceLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    username = models.CharField(max_length=4,verbose_name='用户', null=True, default='', blank=True)
+    action_log =  models.CharField(max_length=30,verbose_name='动作', null=True, default='', blank=True)
+    detail_message =  models.CharField(max_length=50,verbose_name='详情', null=True, default='', blank=True)
+    comments = models.CharField(max_length=50,verbose_name='备注', null=True, default='', blank=True)    
+    date = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'Log'
+        verbose_name_plural = 'Logs'
 
 
 
