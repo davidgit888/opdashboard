@@ -8,10 +8,12 @@ from .permissions import get_user_permissions, get_update_list, get_all_logs
 from .productionUpdate import updateProduction
 from django.contrib.admin.models import LogEntry
 from .shortageUpdate import update_shortage
-
-
-
+from report.models import TraceLog
+from django.template import loader
+from pyecharts import Line3D
+import math
 # check login details and redirect
+REMOTE_HOST = "https://pyecharts.github.io/assets/js"
 
 def loginIndex(request):
    
@@ -110,7 +112,32 @@ def dash(request):
 
 @login_required(login_url='/accounts/login/')
 def plan(request):
-    return render(request, 'op/配置缺件.html')
+    template = loader.get_template('echarts/echarts.html')
+    l3d = line3d()
+    context = dict(
+        myechart = l3d.render_embed(),
+        host = REMOTE_HOST,
+        scrip_list=l3d.get_js_dependencies()
+    )
+
+    return HttpResponse(template.render(context,request))
+
+def line3d():
+    _data=[]
+    for t in range(0, 25000):
+        _t = t / 1000
+        x = (1 + 0.25 * math.cos(75 * _t)) * math.cos(_t)
+        y = (1 + 0.25 * math.cos(75 * _t)) * math.sin(_t)
+        z = _t + 2.0 * math.sin(75 * _t)
+        _data.append([x, y, z])
+    range_color = [
+        '#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf',
+        '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+    line3d = Line3D("3D line plot demo", width=1200, height=600)
+    line3d.add("", _data, is_visualmap=True,
+               visual_range_color=range_color, visual_range=[0, 30],
+               is_grid3D_rotate=True, grid3D_rotate_speed=180)
+    return line3d
 
 # @login_required(login_url='')
 # def dashboard(request):
@@ -157,9 +184,27 @@ def adminUtl(request):
 @login_required(login_url='/accounts/login/')
 def log(request):
     logs = LogEntry.objects.all()[:1000]
-    list_logs = get_all_logs(logs)
+    log_list = []
+    for i in range(len(logs)):
+        a = {}
+        a['time'] = logs[i].action_time.strftime("%Y-%m-%d %H:%M:%S")
+        if logs[i].get_change_message():
+            a['action'] = logs[i].get_change_message()
+        else:
+            a['action'] = logs[i].get_action_flag_display()
+        a['url'] = logs[i].get_admin_url()
+        try:
+            a['chgd_user'] = logs[i].get_edited_object().get_full_name()
+        except:
+            a['chgd_user'] =logs[i].object_repr
+        a['user'] = logs[i].user.get_full_name()
+        a['details'] = logs[i].change_message
+        log_list.append(a)
+    # list_logs = get_all_logs(logs)
+    trace_log = TraceLog.objects.all()[:1000]
     return render(request, 'op/log.html', {
-        'messages':list_logs,
+        'messages':log_list,
+        'trace_log':trace_log,
     })
 
 @login_required(login_url='/accounts/login/')

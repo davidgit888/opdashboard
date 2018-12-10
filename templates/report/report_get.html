@@ -247,22 +247,12 @@
     .row2{
         background:lightgray;
     }
-    table thead tr{
-        display:block;
-    }
-
-    table th,table td{
-        width:100px;//fixed width
-    }
+ 
 
     table thead th{
         background: #79aec8;
     }
-    table  tbody{
-    display:block;
-    height:200px;
-    overflow:auto;//set tbody to auto
-    }
+
 
 
 </style>
@@ -277,7 +267,7 @@
             <div class='div1'>
                 <br/>
                 <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/>
-                <p style='color:green'>消息: 加班工时已可以提交，谢谢！</p>
+                {% comment %} <p style='color:green'>消息: 加班工时已可以提交，谢谢！</p> {% endcomment %}
 
                 <form onsubmit='valid_report()' action="/report/" method="post" >
                     {% csrf_token %}
@@ -376,7 +366,7 @@
                             <input id = 'is_paid' name='is_paid' type='checkbox'>
                             <br/><br/>
                             <font>日期:</font>
-                            <input id='over_time_date' name='over_time_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                            <p><input id='over_time_date' name='over_time_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" ><p>
                             <input type="button" value="提交" onclick='save_overtime()'>
                         
                     </fieldset>

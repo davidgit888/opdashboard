@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% load staticfiles %}
+    <meta charset="utf-8">
+    <title>Proudly presented by PycCharts</title>
+    <script type="text/javascript" src="{% static 'js/echarts.js' %}"></script>
+    {% for jsfile_name in script_list %}
+        <script src="{{ host }}/{{ jsfile_name }}.js"></script>
+    {% endfor %} 
+</head>
+
+<body>
+    <h1>Charts</h1>
+    {{ myechart}}
+    <h1>End Charts</h1>
+</body>
+
+</html>

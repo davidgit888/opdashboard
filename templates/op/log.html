@@ -1,5 +1,93 @@
+{% load staticfiles %}
 
-{% for i in messages %}
-<p>{{i.date}} <font size="5"><b>{{i.id}}</b></font> changed <span style="color:red">{{i.object}}</span>. Action is <span style="color:blue">{{i.message}}</span></p>
+<script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
 
-{% endfor %}
+<script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
+<script>
+    window.onload = function(){
+        //Sort table
+        $(function() {
+                // call the tablesorter plugin
+            $("table").tablesorter({
+                theme : 'blue',
+
+                dateFormat : "mmddyyyy", // set the default date format
+
+                // or to change the format for specific columns, add the dateFormat to the headers option:
+                headers: {
+                0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                }
+
+            });
+            });
+    }
+    // Filter data
+    $(function () {
+        $("#filterName").keyup(function () {
+        $("table tbody tr").stop().hide() //将tbody中的tr都隐藏
+            .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
+        });
+     });
+</script>
+<div>
+    <h2>追溯记录</h2>
+    <h3>Access record</h3>
+    <div>
+        <table border=1>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in trace_log %}
+                    <tr>
+                        <td>{{i.username}}</td>
+                        <td>{{i.action_log}}</td>
+                        <td>{{i.detail_message}}</td>
+                        <td>{{i.comments}}</td>
+                        <td>{{i.date}}</td>
+                    </tr>
+                
+                {% endfor %}
+            <tbody>
+        </table>
+    </div>
+    <div>
+        <h3>System record</h3>
+    
+        <span>筛选：</span><input type="text" id="filterName">
+        <br/>
+        <table border=1>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Action</th>
+                        <th>Changed</th>
+                        <th>URL</th>
+                        <th>Details</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in messages %}
+                        <tr>
+                            <td>{{i.user}}</td>
+                            <td>{{i.action}}</td>
+                            <td>{{i.chgd_user}}</td>
+                            <td>{{i.url}}</td>
+                            <td>{{i.details}}</td>
+                            <td>{{i.time}}</td>
+                        </tr>
+                    {% endfor %}
+                <tbody>
+            </table>
+    </div>
+
+</div>

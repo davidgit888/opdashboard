@@ -17,7 +17,7 @@
     
     $(function () {
         $("#filterName").keyup(function () {
-        $("#tblNeedsScrolling tbody tr").stop().hide() //将tbody中的tr都隐藏
+        $("#tblNeedsScrolling tbody tr").hide() //将tbody中的tr都隐藏
             .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
         });
      });
@@ -123,7 +123,7 @@
 	  $("table").tablesorter({
 	    theme : 'blue',
 
-	    dateFormat : "mmddyyyy", // set the default date format
+	    dateFormat : "yyyymmdd", // set the default date format
 
 	    // or to change the format for specific columns, add the dateFormat to the headers option:
 	    headers: {
@@ -152,11 +152,11 @@
         if (window.focus) {newwindow.focus()}
     });   
 
-    $("#performance_table tbody tr").click(function(){
+    $("#performance_table tbody tr td:nth-child(2)").click(function(){
                 
-                var date = $(this).find('td').eq(9).html();
-                var username = $(this).find('td').eq(10).html();
-                var user = $(this).find('td').eq(0).html();
+                var date = $(this).parent('tr').find('td').eq(9).html();
+                var username = $(this).parent('tr').find('td').eq(10).html();
+                var user = $(this).parent('tr').find('td').eq(0).html();
                 {% comment %} //alert($(this).html());
                 
                 //$(this).attr('class', 'submit');
@@ -189,9 +189,9 @@
             }) {% endcomment %}
 
         });
-        $("#tblNeedsScrolling tbody tr").click(function(){
+        $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
                 
-                var sfg = $(this).find('td').eq(0).html();
+                var sfg = $(this).parent('tr').find('td').eq(0).html();
                 
             url = '/report/get_sfg_comments/?sfg='+sfg
             newwindow=window.open(url,'windowName','height=500,width=500,top=100, left=200');
@@ -338,15 +338,14 @@
     }  {% endcomment %}
     
 </style>
-
+{% comment %} ###########Schedule ################################## {% endcomment %}
     <div id='main_content'>
         <li class='notselected' id='liSchedule' style='background:orange'>生产进度</li>
         <li class='notselected' id='liKpi' >业绩表</li>
         <li class='notselected' id='litotal' >统计表</li>
 
         <div id = 'dSchedule'  width=100%>
-            {% comment %} <br/>
-            <strong><h2 style='text-align:center'>生产进度表 </h2></strong> {% endcomment %}
+
             {% if message %}
                 {{message}}
             {% endif %}
@@ -397,8 +396,8 @@
                     
                     
                                 {% for  i in schedule_list  %}
-                                {% comment %} <tr class="{% cycle 'row1' 'row2' %}" > {% endcomment %}
-                                <tr>        
+                                <tr class="{% cycle 'row1' 'row2' %}" > 
+                                       
                                         {% for key, value in i.items %}
                                             
                                             <td >{{value}}</td>
@@ -603,6 +602,7 @@
                     {% endautoescape %}
                     {{over_time_data}}
                 </div>
+                
                 
         </div>
     </div>

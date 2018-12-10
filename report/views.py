@@ -882,23 +882,26 @@ def report_analysis(request):
     #     all_user_ids.remove(1)
     
     if len(all_user_ids) != 0 and len(all_op_id) != 0:
-        items = Report.objects.filter(user_id__in=all_user_ids).filter(op_id__in=all_op_id).filter(date__range=(from_date,to_date)).order_by('date')
+        items = Report.objects.filter(user_id__in=all_user_ids,op_id__in=all_op_id,date__range=(from_date,to_date)).order_by('date').values()#.filter(op_id__in=all_op_id).filter(date__range=(from_date,to_date)).order_by('date')
         #data = pd.DataFrame(list(items), columns=['sfg_id','type_name','op_id_id','user_id','date'])
         data = pd.DataFrame()
-        for i in range(len(items)):
-            data = data.append({'sfg':items[i].sfg_id, 'type':items[i].type_name,'op':items[i].op_id,'user':items[i].user,'date':items[i].date}, ignore_index=True)
-            # data['op'][0].op_id
+        # for i in range(len(items)):
+        #     data = data.append({'sfg':items[i].sfg_id, 'type':items[i].type_name,'op':items[i].op_id,'user':items[i].user,'date':items[i].date}, ignore_index=True)
+        #     # data['op'][0].op_id
             # data['user'][0].last_name
             # data['user'][0].first_name
+        
+        data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
         if len(data) != 0:
             data = data.drop_duplicates()
             data.index = range(len(data))
             schedule_list = []
-            data['op_id'] = 0
+            # data['op_id'] = 0
+            
             #change op from object to number (op_id)
-            for i in range(len(data)):
-                data['op_id'][i] = data['op'][i].op_id
-            sfg_list = data['sfg'].unique()
+            # for i in range(len(data)):
+            #     data['op_id'][i] = data['op'][i].op_id
+            sfg_list = data['sfg_id'].unique()
 
             for i in range(len(sfg_list)):
                 # a = []
@@ -914,11 +917,11 @@ def report_analysis(request):
                 #         a.append('---')
                 #         a.append('---')
                 a={}
-                a['sfg']= sfg_list[i]
-                type = data[data['sfg']==sfg_list[i]]['type']
-                a['type'] = type[type.index[0]]
+                a['sfg_id']= sfg_list[i]
+                type = data[data['sfg_id']==sfg_list[i]]['type_name']
+                a['type_name'] = type[type.index[0]]
                 try:
-                    sfg_comments = SfgComments.objects.get(sfg=a['sfg']).comments
+                    sfg_comments = SfgComments.objects.get(sfg=a['sfg_id']).comments
                 
                     a['sfg_comments'] = sfg_comments
                 except:
@@ -926,10 +929,11 @@ def report_analysis(request):
 
                 ####  test ########
                 for j in range(len(all_op_id)):
-                    user=  data[(data['sfg']==sfg_list[i]) & (data['op_id']==all_op_id[j].op_id)]
+                    user=  data[(data['sfg_id']==sfg_list[i]) & (data['op_id_id']==all_op_id[j].id)]
 
                     if not user.empty:
-                        a[all_op_id[j].op_id] = user['user'][user.index[0]].last_name + user['user'][user.index[0]].first_name
+                        username = User.objects.get(id=user['user_id'][user.index[0]]).get_full_name()
+                        a[all_op_id[j].op_id] = username#user['user_id'][user.index[0]] + user['user_id'][user.index[0]]
                         a[all_op_id[j].op_name] = user['date'][user.index[0]].strftime('%Y-%m-%d')
                     else:
                         a[all_op_id[j].op_id] = '---'
@@ -1075,10 +1079,26 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id):
     results = GroupPerform.objects.filter(date__range=(from_date,to_date),username__in=all_user_ids,group__in=data_groups).values()
     df = pd.DataFrame(list(results), columns=['user','natural_time','performance','standard_time','real_time',
     'supportive_time','borrow_time','kpi','efficiency','date','username','group'])
-    data = df.groupby(['user']).sum() # Group all users performance per
-    total = data.sum()
-    total.name = '总和'
-    data = data.append(total)
+    # data = df.groupby(['user']).sum() # Group all users performance per
+    if len(df) != 0:
+        data = pd.pivot_table(df, index=['user'],values=['natural_time','performance','standard_time','real_time',
+        'supportive_time','borrow_time','kpi','efficiency'], aggfunc={'natural_time':np.sum,'performance':np.sum,'standard_time':np.sum,'real_time':np.sum,
+        'supportive_time':np.sum,'borrow_time':np.sum,'kpi':np.mean,'efficiency':np.mean})
+        cols = ['natural_time','performance','standard_time','real_time',
+        'supportive_time','borrow_time','kpi','efficiency']
+        data = data[cols]
+        data['kpi']=round(data['kpi'],2)
+        data['efficiency']=round(data['efficiency'],2)
+        total = data.sum()
+        total.name = '总和'
+        means = data.mean()
+        total['kpi'] = round(means['kpi'],2)
+        total['efficiency'] = round(means['efficiency'],2)
+        data = data.append(total)
+    else:
+        a = {'natural_time':[0,0],'performance':[0,0],'standard_time':[0,0],'real_time':[0,0],
+        'supportive_time':[0,0],'borrow_time':[0,0],'kpi':[0,0],'efficiency':[0,0]}
+        data = pd.DataFrame(data=a,index=['数据','汇总'])
     # data total for each person performance
     data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
      "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})

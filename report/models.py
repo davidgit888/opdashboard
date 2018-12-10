@@ -48,19 +48,17 @@ class Op(models.Model):
 
 
 class Report(models.Model):
-    # sfg_id = models.ForeignKey(SfmProd, db_column='sfg_id', related_name='sfmprod_sfgid',on_delete=models.CASCADE)
+    
     sfg_id = models.CharField(max_length=15, verbose_name='SFG',default='')
     type_name = models.CharField(max_length=50,default='',verbose_name='机型')
     op_id = models.ForeignKey(Op, db_column='op_id',on_delete=models.CASCADE,verbose_name='工步')
     prob = models.CharField(max_length=20,default='',verbose_name='测头',null=True, blank=True)
     qty = models.FloatField(max_length=4, default=1,verbose_name='数量')
-    #user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    
     user = models.ForeignKey(User, related_name="user_full_name", on_delete=models.CASCADE, default='',verbose_name='用户名')
     standard_tiem = models.FloatField(max_length=4,verbose_name='标准工时')
     real_time = models.FloatField(verbose_name='实际工时',max_length=4,default='')
-    # over_time = models.FloatField(verbose_name='加班', null=True, default=0, blank=True)
-    # over_time_type = models.CharField(max_length=3,verbose_name='加班种类', null=True, default=0, blank=True)
-    # is_paid = models.CharField(max_length=1,verbose_name='是否申请加班费', default='N')
+
     date = models.DateField(auto_now=False,default=date.today())
     def __str__(self):
         return '%s %s %s %s  %s  %s  %s  %s  %s ' % (self.sfg_id, self.type_name, self.op_id, self.prob,self.qty,self.user,self.standard_tiem,self.real_time,self.date)
@@ -186,6 +184,8 @@ class TraceLog(models.Model):
     detail_message =  models.CharField(max_length=50,verbose_name='详情', null=True, default='', blank=True)
     comments = models.CharField(max_length=50,verbose_name='备注', null=True, default='', blank=True)    
     date = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return '%s %s %s %s %s' % (self.username,self.action_log,self.detail_message,self.comments,self.date)
     class Meta:
         verbose_name = 'Log'
         verbose_name_plural = 'Logs'

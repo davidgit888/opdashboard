@@ -38,7 +38,7 @@ urlpatterns = [
     path('dashboard/produced/', sites.produced),
     url(r'dashboard/生产制造/', sites.produced),
     path('dashboard/配置缺件/', sites.plan),
-    path('dashboard/plans/', sites.plan),
+    path('dashboard/plans/', views.plan),
     path('dashboard/report/', views.report),
     path('dashboard/reporAnalysis',views.report_analysis),
     path('dashboard/logout.html', views.logoutUser),
