@@ -6,6 +6,8 @@
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
 
 <script>
+    var today = new Date();
+    var today_year = today.getFullYear();
     function support_time_log(){
         document.forms[0].action = '/report/report_analysis/';
         
@@ -30,6 +32,7 @@
      });
 
     function save_all_perform(){
+        var cd_time=6;
         if(p_save_status=='No'){
             var rows = document.getElementById("performance_table").rows;
             //alert(rows.length);
@@ -54,18 +57,39 @@
                     var date = row.cells[9].innerText;
                     var username = row.cells[10].innerText;
                     var group = row.cells[11].innerText;
+                    var validate = row.cells[12].innerHTML;
                     $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
                     'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
-                    'group':group}, function(ret){
+                    'group':group,'validate':validate}, function(ret){
                         if(ret.includes('失败')){
-                            alert(ret);
+                            //alert(ret);
+                            $('#p_save_message').append('<span style="color:red">'+ret+', </span>')
+                        }else{
+                            $('#p_save_message').append('<span>'+ret+', </span>')
                         }
                         
                         
                     //var result = ret;
                     //validateQty(ret);
                 })
-                document.getElementById("p_save_message").innerHTML="保存成功";
+                if(j==rows.length -1){
+                       var timer = setInterval( function() {
+
+                            cd_time--;
+
+                            
+                            $('#cd_time').html(cd_time+'秒后刷新页面！');
+                            if (cd_time == 0) {
+
+                                location.reload();
+                                clearInterval(timer);
+                            } 
+
+
+                        }, 1000 );
+                            
+                }    
+                //document.getElementById("p_save_message").innerHTML="保存成功";
                 
             }
         }else{
@@ -119,40 +143,41 @@
 
     // sort date
       $(function() {
-        // call the tablesorter plugin
-	  $("table").tablesorter({
-	    theme : 'blue',
+            // call the tablesorter plugin
+        $("table").tablesorter({
+            theme : 'blue',
 
-	    dateFormat : "yyyymmdd", // set the default date format
+            dateFormat : "yyyymmdd", // set the default date format
 
-	    // or to change the format for specific columns, add the dateFormat to the headers option:
-	    headers: {
-	      0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
-	      // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
-	      // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
-	    }
+            // or to change the format for specific columns, add the dateFormat to the headers option:
+            headers: {
+            0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+            // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+            // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+            }
 
-	  });
-	});
-    $("#a_submit").click(function(){
-        
-        var date = $('#a_month option:selected').val();
-        var group =$('#a_group option:selected').val();
-        url = '/report/group_statistic/?date='+date+'&group='+group
-        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
-        if (window.focus) {newwindow.focus()}
-    });   
+        });
+        });
+        $("#a_submit").click(function(){
+            
+            var date = $('#a_month option:selected').val();
+            var group =$('#a_group option:selected').val();
+            var year = $('#a_year option:selected').val();
+            url = '/report/group_statistic/?date='+date+'&group='+group+'&year='+year
+            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            if (window.focus) {newwindow.focus()}
+        });   
 
-    $("#p_submit").click(function(){
-        
-        var date = $('#p_perform_today').val();
-        //alert(date);
-        url = '/report/perform_pop/?date='+date
-        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
-        if (window.focus) {newwindow.focus()}
-    });   
+        $("#p_submit").click(function(){
+            
+            var date = $('#p_perform_today').val();
+            //alert(date);
+            url = '/report/perform_pop/?date='+date
+            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            if (window.focus) {newwindow.focus()}
+        });   
 
-    $("#performance_table tbody tr td:nth-child(2)").click(function(){
+        $("#performance_table tbody tr td:nth-child(2)").click(function(){
                 
                 var date = $(this).parent('tr').find('td').eq(9).html();
                 var username = $(this).parent('tr').find('td').eq(10).html();
@@ -201,6 +226,10 @@
             //var b = $("#b").val();
             
         });
+
+        for(i=0;i<10;i++){
+            $("#a_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
+        }
 
     }
     {% comment %} function syncscroll(obj)
@@ -255,6 +284,8 @@
         oTbl.find('tbody tr:eq(0) td').each(function() {
             $(this).width($(this).attr("data-item-original-width"));
         });
+
+        
     }
 {% comment %} 
         $(document).ready(function() {
@@ -451,6 +482,7 @@
             </div>
             <div>   
                     <p id='p_save_message'></p>
+                    <p id='cd_time'></p>
                     
                     <input type='button' value='提交数据' onclick='save_all_perform()'>
                 
@@ -535,6 +567,10 @@
                 <div>
                     {% comment %} <form onsubmit='data_analysis()' action="/report/" method="post" >
                                     {% csrf_token %} {% endcomment %}
+                                    <label>年度：</label>
+                                    <select id='a_year' name='a_year'>
+
+                                    </select>
                                     <label>月份: <label>
                                     <select id='a_month' name="a_month">
                                         <option value=1>---</option>

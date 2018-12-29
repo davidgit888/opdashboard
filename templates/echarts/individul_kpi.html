@@ -1,0 +1,20 @@
+<!-- myfirstvis/templates/pyecharts.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>员工工效比</title>
+    {% load staticfiles %}
+
+    <script src="{% static 'js/echarts.js' %}"></script>
+</head>
+
+<body>
+    <h2>工效比月度统计</h2>
+    {{ kpi_dash_data|safe }}
+    
+ 
+</body>
+
+</html>

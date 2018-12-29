@@ -22,5 +22,6 @@ urlpatterns = [
     path('save_overtime_data/',views.save_overtime_data),
     path('group_statistic/',views.group_statistic),
     path('perform_pop/',views.perform_pop),
+    path('kpi/',views.kpi_dash),
     #path('upload_excel/',)
 ]

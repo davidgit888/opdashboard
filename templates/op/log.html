@@ -3,6 +3,9 @@
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
 
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
+
+<link rel="stylesheet" href="{% static 'css/nav.css' %}">
+
 <script>
     window.onload = function(){
         //Sort table
@@ -22,6 +25,23 @@
 
             });
             });
+        var navLi = $('#logNav li');
+        var navDiv = $('#content > div');
+
+        
+        for(i=0;i<navLi.length;i++){
+            navLi[i].index=i;
+            navLi[i].onclick=function(){
+                for(j=0;j<navLi.length;j++){
+                    navLi[j].style.background='#6AC1F7';
+                    navDiv[j].style.display='none';
+                }
+                this.style.background='orange';
+                navDiv[this.index].style.display='block';
+                
+            }
+        }
+        
     }
     // Filter data
     $(function () {
@@ -31,63 +51,70 @@
         });
      });
 </script>
-<div>
-    <h2>追溯记录</h2>
-    <h3>Access record</h3>
-    <div>
-        <table border=1>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Action</th>
-                    <th>Details</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for i in trace_log %}
-                    <tr>
-                        <td>{{i.username}}</td>
-                        <td>{{i.action_log}}</td>
-                        <td>{{i.detail_message}}</td>
-                        <td>{{i.comments}}</td>
-                        <td>{{i.date}}</td>
-                    </tr>
-                
-                {% endfor %}
-            <tbody>
-        </table>
+<div id='main_content'>
+    <br/>
+    <div id='logNav'>
+        <li class='notselected' style='background:orange'>提交记录</li>
+        <li class='notselected'>系统日志</li>
     </div>
-    <div>
-        <h3>System record</h3>
     
-        <span>筛选：</span><input type="text" id="filterName">
-        <br/>
-        <table border=1>
+    <div id='content'>
+        <div style='display:block'>
+            <h2>提交记录</h2>
+            <span>筛选：</span><input type="text" id="filterName">
+            <table border=1>
                 <thead>
                     <tr>
                         <th>Username</th>
                         <th>Action</th>
-                        <th>Changed</th>
-                        <th>URL</th>
                         <th>Details</th>
+                        <th>Comments</th>
                         <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for i in messages %}
+                    {% for i in trace_log %}
                         <tr>
-                            <td>{{i.user}}</td>
-                            <td>{{i.action}}</td>
-                            <td>{{i.chgd_user}}</td>
-                            <td>{{i.url}}</td>
-                            <td>{{i.details}}</td>
-                            <td>{{i.time}}</td>
+                            <td>{{i.username}}</td>
+                            <td>{{i.action_log}}</td>
+                            <td>{{i.detail_message}}</td>
+                            <td>{{i.comments}}</td>
+                            <td>{{i.date}}</td>
                         </tr>
+                    
                     {% endfor %}
                 <tbody>
             </table>
+        </div>
+        <div style='display:none'>
+            <h3>日志记录</h3>
+        
+            
+            <br/>
+            <table border=1>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Action</th>
+                            <th>Changed</th>
+                            <th>URL</th>
+                            <th>Details</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in messages %}
+                            <tr>
+                                <td>{{i.user}}</td>
+                                <td>{{i.action}}</td>
+                                <td>{{i.chgd_user}}</td>
+                                <td>{{i.url}}</td>
+                                <td>{{i.details}}</td>
+                                <td>{{i.time}}</td>
+                            </tr>
+                        {% endfor %}
+                    <tbody>
+                </table>
+        </div>
     </div>
-
 </div>

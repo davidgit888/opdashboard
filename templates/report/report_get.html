@@ -41,6 +41,42 @@
         }
         
     }
+    function save_overtime(){
+        
+        var over_time=document.getElementById('over_time').value;
+        var over_type = document.getElementById('over_time_type').value;
+        var is_paid = $("#is_paid").is(":checked");
+        var date = document.getElementById('over_time_date').value;
+        if(!isNaN(over_time) && over_time){
+
+            $.get("/report/save_overtime_data/",{'over_time':over_time,'over_type':over_type,'is_paid':is_paid,'date':date}, function(ret){
+                    //$('#prod_type').val(ret.result)
+                    //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                    
+                    if(ret=='Y'){
+                        
+                        var message = document.getElementById('over_save_message');
+                        message.style.color='black';
+                        message.innerHTML='保存成功';
+                        alert('保存成功');
+                        //location.reload();
+                        parent.location.reload();
+                        
+                    }else{
+                        var message = document.getElementById('over_save_message');
+                        message.innerHTML='保存失败'+ret;
+                        message.style.color='red';
+                        alert('保存失败'+ret);
+                        //location.reload();
+                    }
+
+            });
+        }else{
+            alert('加班工时必须是数字且不能为空!')
+        }
+        //window.location.reload();
+    }
+
 
     // filter produce time log
     function prod_time_log(){
@@ -62,6 +98,7 @@
         }
         
     }
+
     //validate support time
     function valid_support(){
         var rest = document.getElementById('rest').value;
@@ -75,39 +112,8 @@
 
     }
 
-    function save_overtime(){
-        
-        var over_time=document.getElementById('over_time').value;
-        var over_type = document.getElementById('over_time_type').value;
-        var is_paid = $("#is_paid").is(":checked");
-        var date = document.getElementById('over_time_date').value;
-        if(!isNaN(over_time) && over_time){
-
-            $.get("/report/save_overtime_data/",{'over_time':over_time,'over_type':over_type,'is_paid':is_paid,'date':date}, function(ret){
-                    //$('#prod_type').val(ret.result)
-                    //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
-                    
-                    if(ret=='Y'){
-                        
-                        var message = document.getElementById('over_save_message');
-                        message.style.color='black';
-                        message.innerHTML='保存成功';
-                        alert('保存成功');
-                        location.reload();
-                        
-                    }else{
-                        var message = document.getElementById('over_save_message');
-                        message.innerHTML='保存失败'+ret;
-                        message.style.color='red';
-                        alert('保存失败'+ret);
-                        location.reload();
-                    }
-
-            });
-        }else{
-            alert('加班工时必须是数字且不能为空!')
-        }
-    }
+    
+  
     // validate qty
     {% comment %} function validateQty(ret){
         var qty = ret;
@@ -182,7 +188,32 @@
         $("#suportdate").attr('value',submitTime);
         $("#over_time_date").attr('value',submitTime);
 
-        var lPro = document.getElementById('liproduce');
+        var allLi = document.getElementsByTagName('li');
+        
+        var allDiv = $('#main_content').children("div")
+        for(i=0;i<allLi.length;i++){
+            allLi[i].index = i;
+            allLi[i].onclick = function (){
+                //allLi[i].style.background='#6AC1F7';
+                
+                for(i=0;i<allLi.length;i++){
+                    allLi[i].style.background='#6AC1F7';
+                    allDiv[i].style.display='none';
+                }
+                
+                this.style.background='orange';
+                allDiv[this.index].style.display='block';
+                
+                
+            //alert(allLi.length);
+            //alert(allDiv.length);
+                
+            //li.style.background='orange';
+            //li.style.display='block';
+            
+            }
+        }
+        {% comment %} var lPro = document.getElementById('liproduce');
         var lRep = document.getElementById('lireport');
         var dPro = document.getElementById('dproduce');
         var dRep = document.getElementById('dreport');
@@ -199,11 +230,19 @@
             lPro.style.background='';
             dRep.style.display='block';
             lRep.style.background='orange';
-        }
+        } {% endcomment %}
+
+        $("body").on("submit", "form", function() {
+            $(this).submit(function() {
+                return false;
+            });
+            return true;
+        });
+        
 
     }
 
-    
+
 
 
 </script>
@@ -261,6 +300,7 @@
     <div id='main_content'>
         <li class='notselected' id='liproduce' style='background:orange'>制造工时</li>
         <li class='notselected' id='lireport'>辅助工时</li>
+        <li class='notselected' id='lidash'>月度统计图</li>
         
         <div id='dproduce' style='display:block;'>
             {% comment %} 制造工时表 {% endcomment %}
@@ -662,8 +702,9 @@
                             <td>{{i.inventory_check }}</td>
                             <td>{{i.quality_check}} </td>
                             <td>{{i.document}}</td>
-                            <td>{{i.group_management}} </td>
                             <td>{{i.conference}} </td>
+                            <td>{{i.group_management}} </td>
+                            
                             <td>{{i.borrow_time}} </td>
                             <td>{{i.borrow_name}} </td>
                             <td>{{i.comments}}</td>
@@ -677,6 +718,11 @@
                 
             
             </div>
+        </div>
+
+        <div id='ddash' style='display:none'>
+            {% include 'echarts/individul_kpi.html' %}
+            <p>{{user_groups}}</p>
         </div>
     </div>
 </body>

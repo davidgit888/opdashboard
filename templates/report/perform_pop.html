@@ -8,6 +8,7 @@
 <script>
     var p_save_status = '{{p_save_status}}'
     function save_all_perform(){
+        var cd_time=6;
         if(p_save_status=='No'){
             var rows = document.getElementById("performance_table").rows;
             //alert(rows.length);
@@ -32,19 +33,55 @@
                     var date = row.cells[9].innerText;
                     var username = row.cells[10].innerText;
                     var group = row.cells[11].innerText;
+                    var validate = row.cells[12].innerHTML;
                     $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
                     'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
-                    'group':group}, function(ret){
+                    'group':group,'validate':validate}, function(ret){
                         if(ret.includes('失败')){
-                            alert(ret);
+                            //alert(ret);
+                            $('#p_save_message').append('<span style="color:red">'+ret+', </span>')
+                        }else{
+                            $('#p_save_message').append('<span>'+ret+', </span>')
                         }
+
                         
-                        
+                   
                     //var result = ret;
                     //validateQty(ret);
                 })
-                document.getElementById("p_save_message").innerHTML="保存成功";
-                
+                if(j==rows.length -1){
+                       var timer = setInterval( function() {
+
+                            cd_time--;
+
+                            
+                            $('#cd_time').html(cd_time+'秒后刷新页面！');
+                            if (cd_time == 0) {
+
+                                location.reload();
+                                clearInterval(timer);
+                            } 
+
+
+                            }, 1000 );
+                            
+                        }    
+                //document.getElementById("p_save_message").innerHTML='保存成功';
+                {% comment %} var time = 5;
+                setInterval( function() {
+
+                    time--;
+
+                    $('#cd_time').html(time+'秒后刷新页面！');``
+
+                    if (time == 0) {
+
+                        location.reload();
+                    }    
+
+
+                    }, 1000 ); {% endcomment %}
+            //location.reload();    
             }
         }else{
             alert('当天记录已经保存，请勿重复保存！')
@@ -95,18 +132,45 @@
             }) {% endcomment %}
 
         });
-
-         $("#p_submit").click(function(){
+        // call the tablesorter plugin
+            $(function() {
         
-        var date = $('#p_perform_today').val();
-        //alert(date);
-        url = '/report/perform_pop/?date='+date
-        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
-        if (window.focus) {newwindow.focus()}
-    });   
+            $("table").tablesorter({
+                    theme : 'blue',
+
+                    dateFormat : "yyyymmdd", // set the default date format
+
+                    // or to change the format for specific columns, add the dateFormat to the headers option:
+                    headers: {
+                    0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                    // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                    // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                    }
+
+                });
+                });
+
+        //open new window show date of performance
+            $("#p_submit").click(function(){
+            
+            var date = $('#p_perform_today').val();
+            //alert(date);
+            url = '/report/perform_pop/?date='+date
+            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            if (window.focus) {newwindow.focus()}
+        });   
 
     }
 </script>
+<style>
+    table thead th{
+        background: #79aec8;
+    }
+    table tboday tr:nth-child(even){
+        background:lightgray;
+    }
+
+</style>
 <div>
     <div style='position:relative;left:30%;'>
         <fieldset style = 'width:500px' style='position:relative;left:30%;'>
@@ -121,6 +185,7 @@
     </div>
     <div>   
         <p id='p_save_message'></p>
+        <p id='cd_time'></p>
         
         <input type='button' value='提交数据' onclick='save_all_perform()'>
                 

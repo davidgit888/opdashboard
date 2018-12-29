@@ -115,15 +115,17 @@ def plan(request):
     template = loader.get_template('echarts/echarts.html')
     l3d = line3d()
     context = dict(
-        myechart = l3d.render_embed(),
-        host = REMOTE_HOST,
-        scrip_list=l3d.get_js_dependencies()
+        myechart=l3d.render_embed(),
+        host=REMOTE_HOST,
+        script_list=l3d.get_js_dependencies()
     )
+    return HttpResponse(template.render(context, request))
 
-    return HttpResponse(template.render(context,request))
+
+
 
 def line3d():
-    _data=[]
+    _data = []
     for t in range(0, 25000):
         _t = t / 1000
         x = (1 + 0.25 * math.cos(75 * _t)) * math.cos(_t)
@@ -183,7 +185,7 @@ def adminUtl(request):
 
 @login_required(login_url='/accounts/login/')
 def log(request):
-    logs = LogEntry.objects.all()[:1000]
+    logs = LogEntry.objects.all()[:500]
     log_list = []
     for i in range(len(logs)):
         a = {}
@@ -201,10 +203,19 @@ def log(request):
         a['details'] = logs[i].change_message
         log_list.append(a)
     # list_logs = get_all_logs(logs)
-    trace_log = TraceLog.objects.all()[:1000]
+    trace_log_l = []
+    trace_log = TraceLog.objects.all().values().order_by('-date')[:1000]
+    for i in range(len(trace_log)):
+        a = {}
+        a['username']=trace_log[i]['username']
+        a['action_log']=trace_log[i]['action_log']
+        a['detail_message']=trace_log[i]['detail_message']
+        a['comments'] = trace_log[i]['comments']
+        a['date']=trace_log[i]['date'].strftime("%Y-%m-%d %H:%M:%S.%f")
+        trace_log_l.append(a)
     return render(request, 'op/log.html', {
         'messages':log_list,
-        'trace_log':trace_log,
+        'trace_log':trace_log_l,
     })
 
 @login_required(login_url='/accounts/login/')
