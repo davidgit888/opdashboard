@@ -40,7 +40,7 @@
                         var validate = row.cells[14].innerHTML;
                         $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
                         'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
-                        'group':group,'validate':validate}, function(ret){
+                        'group':group,'work_group':work_group,'validate':validate}, function(ret){
                             if(ret.includes('失败')){
                                 //alert(ret);
                                 $('#p_save_message').append('<span style="color:red">'+ret+', </span>')

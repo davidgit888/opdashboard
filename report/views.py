@@ -465,6 +465,7 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+# get user's work groups in UserGroup table
 def user_work_group(request):
     user = UserGroups.objects.filter(user=request.user.id)
     if user:
@@ -1497,11 +1498,12 @@ def save_indiv_perform(request):
     date = request.GET.get('date')
     username = request.GET.get('username')
     group = request.GET.get('group')
+    work_group = request.GET.get('work_group')
     validate = request.GET.get('validate')
     checkFlag = GroupPerform.objects.filter(date=date,username=username)
     if validate =='未保存' and not checkFlag:
         query = GroupPerform(user=user,natural_time=natural_time,performance=perfom,standard_time=standard,real_time=real,supportive_time=support,
-        borrow_time=borrow,kpi=kpi,efficiency=efficiency,date=date,username=username,group=group)
+        borrow_time=borrow,kpi=kpi,efficiency=efficiency,date=date,username=username,group=group,work_group=work_group)
         try:
             query.save()
             message = user+'保存成功'
