@@ -1168,7 +1168,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
  
     
     # Get performance of person accroding to group
-    results = GroupPerform.objects.filter(date__range=(from_date,to_date),username__in=all_user_ids,group__in=data_groups).values()
+    results = GroupPerform.objects.filter(date__range=(from_date,to_date),username__in=all_user_ids).values()
     df = pd.DataFrame(list(results), columns=['user','natural_time','performance','standard_time','real_time',
     'supportive_time','borrow_time','date','username','group'])
     # data = df.groupby(['user']).sum() # Group all users performance per
