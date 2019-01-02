@@ -299,11 +299,11 @@ class GroupOpAdmin(admin.ModelAdmin):
 
 class GroupPerformAdmin(admin.ModelAdmin):
     fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
-    'date','username','group']
+    'date','username','group','work_group']
     list_display=('user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
-    'date','username','group')
+    'date','username','group','work_group')
     search_fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
-    'date','username','group']
+    'date','username','group','work_group']
     actions = ["export_as_excel"]  
     date_hierarchy = 'date'
     def export_as_excel(self, request, queryset):

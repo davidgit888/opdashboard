@@ -62,7 +62,7 @@ class Report(models.Model):
 
     date = models.DateField(auto_now=False,default=date.today())
     date_time = models.DateTimeField(auto_created=True,verbose_name='提交时间',default=now())
-    groups = models.CharField(max_length=20,default='',verbose_name='班组')
+    groups = models.CharField(max_length=20,default='',verbose_name='工作组组')
     def __str__(self):
         return '%s %s %s %s  %s  %s  %s  %s  %s %s' % (self.sfg_id, self.type_name, self.op_id, self.prob,self.qty,self.user,self.standard_tiem,self.real_time,self.date,self.groups)
     class Meta:
@@ -157,10 +157,11 @@ class GroupPerform(models.Model):
     efficiency = models.FloatField(max_length=4,verbose_name='工时有效率',default=0)
     date = models.DateField(auto_now=False)
     username = models.CharField(max_length=18,verbose_name='用户名',default=0)
-    group = models.CharField(max_length=8,verbose_name='组',default='None')
+    group = models.CharField(max_length=10,verbose_name='原班组',default='None')
+    work_group = models.CharField(max_length=10,verbose_name='工作组',default='')
     def __str__(self):
-        return '%s %s %s %s %s %s %s %s %s %s %s %s' % (self.user, self.natural_time, self.performance, self.standard_time,self.real_time,
-        self.supportive_time,self.borrow_time,self.kpi,self.efficiency,self.date,self.username,self.group)
+        return '%s %s %s %s %s %s %s %s %s %s %s %s %s' % (self.user, self.natural_time, self.performance, self.standard_time,self.real_time,
+        self.supportive_time,self.borrow_time,self.kpi,self.efficiency,self.date,self.username,self.group,self.work_group)
     
     class Meta:
         verbose_name = '班组业绩统计'

@@ -473,13 +473,17 @@ def user_work_group(request):
     else:
         return "没有分组"
 
+# get user's work groups according to Report and Supportive
 def user_work_group_ids(group,date):
     all_user_ids = []
     if group:
 
         users = Report.objects.filter(groups=group,date=date)
+        users2= SupportiveTime.objects.filter(groups=group,date=date)
         for i in range(len(users)):
             all_user_ids.append(users[i].user.id)
+        for i in range(len(users2)):
+            all_user_ids.append(users2[i].user.id)
         all_user_ids=list(set(all_user_ids))
         return all_user_ids
     else:
@@ -1120,6 +1124,8 @@ def get_performance(request,all_users_id, today):
             if '数据' in j.name:
                 a['group'] = j.name
                 break
+        user_group = UserGroups.objects.get(user=all_users_id[i])
+        a['work_group'] = user_group.work_group.group_name
         # else:
         #     a['group'] = forman_group
         
