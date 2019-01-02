@@ -92,13 +92,15 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
-
+f = open("../database.txt")
+a = f.read()
+f.close()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test_dashboard',
+        'NAME': a,
         'USER': 'sfm',
-        'PASSWORD': 'Sfmpass135',
+        'PASSWORD': 'k2NuJpE7CyJDnBuf',
         'HOST': 'localhost',
         'PORT': '3306',
     }

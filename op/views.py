@@ -79,11 +79,14 @@ def dashboard(request):
         update = 'update'
     else:
         log = ''
+    f = open("../system.txt")
+    sys_env = f.read()
     return render(request,'op/index-dashboard.html',{
             'List':json.dumps(navList),
             'admin':admin,
             'update':update,
             'log':log,
+            'sys_env':sys_env,
         })
 
         # Redirect to a success page.
