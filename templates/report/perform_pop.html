@@ -100,11 +100,11 @@
         window.history.back(-1);
     }
     window.onload = function (){
-        $("#performance_table tbody tr td:nth-child(2)").click(function(){
+        $("#performance_table tbody tr td:nth-child(3)").click(function(){
                 
-                var date = $(this).parent('tr').find('td').eq(9).html();
-                var username = $(this).parent('tr').find('td').eq(10).html();
-                var user = $(this).parent('tr').find('td').eq(0).html();
+                var date = $(this).parent('tr').find('td').eq(10).html();
+                var username = $(this).parent('tr').find('td').eq(11).html();
+                var user = $(this).parent('tr').find('td').eq(1).html();
                 {% comment %} //alert($(this).html());
                 
                 //$(this).attr('class', 'submit');

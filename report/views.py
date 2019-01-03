@@ -1349,6 +1349,7 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
+            'all_user_ids':all_user_ids,
             
         })
     else:
