@@ -109,7 +109,7 @@ class CoefficientSupport(models.Model):
     outside_group = models.FloatField(verbose_name='组外',max_length=10,null=True, default=0, blank=True)
     complete_machine = models.FloatField(verbose_name='整机',max_length=10,null=True, default=0, blank=True)
     granite = models.FloatField(verbose_name='花岗石',max_length=10,null=True, default=0, blank=True)
-    prob = models.FloatField(verbose_name='测头',max_length=10,null=True, default=0, blank=True)
+    prob = models.FloatField(verbose_name='物流搬运',max_length=10,null=True, default=0, blank=True)
     shortage = models.FloatField(verbose_name='补缺件',max_length=10,null=True, default=0, blank=True)
     plan_change = models.FloatField(verbose_name='计划调整',max_length=10,null=True, default=0, blank=True)
     human_quality_issue_rework = models.FloatField(verbose_name='人为质量问题返工',max_length=10,null=True, default=0, blank=True)

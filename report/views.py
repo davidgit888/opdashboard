@@ -1321,17 +1321,19 @@ def group_statistic(request):
         else:
             all_user_ids, all_op_id, user_group = analysis_op_user(request)
             # return HttpResponse(all_user_ids)
-        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
+        
         support_list = []
         for i in range(1,13):
             data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,i,all_user_ids,all_op_id,year)
             support_list.append(sup_not_bor_total)
+        
+        
+        supp_bar = support_bar(support_list,month)
+        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
         oper_bar = op_bar(anls_opcounts)
-        supp_bar = support_bar(support_list,month)
-
         if month ==0:
             month = '全年'
         else:
@@ -1349,7 +1351,7 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
-            'all_user_ids':all_user_ids,
+            
             
         })
     else:
