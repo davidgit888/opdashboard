@@ -1207,6 +1207,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         'supportive_time':[0,0],'borrow_time':[0,0],'kpi':[0,0],'efficiency':[0,0]}
         data = pd.DataFrame(data=a,index=['数据','汇总'])
     # data total for each person performance
+    data.index.name='用户'
     data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
      "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
     data['年休假'] = 0
