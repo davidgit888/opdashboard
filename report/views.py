@@ -1147,6 +1147,7 @@ def perform_pop(request):
         'p_perform_list':p_perform_list,
         'p_date':p_get_date,
         'p_save_status':p_save_status,
+        'all_user_ids':all_user_ids,
     })
 
 #统计表 op_total

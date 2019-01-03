@@ -40,38 +40,44 @@
             //alert(row);
             //var length = row.cells.length;
             //alert(length);
+            var cell_check=$(".is_checked")
             for(j=1;j<rows.length;j++){
 
             
                     row = rows[j]
-                
-                    var user = row.cells[0].innerText;
-                    var natural_time = row.cells[1].innerText;
-                    var perfom = row.cells[2].innerText;
-                    var standard = row.cells[3].innerText;
-                    var real = row.cells[4].innerText;
-                    var support = row.cells[5].innerText;
-                    var borrow = row.cells[6].innerText;
-                    var kpi = row.cells[7].innerText;
-                    var efficiency = row.cells[8].innerText;
-                    var date = row.cells[9].innerText;
-                    var username = row.cells[10].innerText;
-                    var group = row.cells[11].innerText;
-                    var validate = row.cells[12].innerHTML;
-                    $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
-                    'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
-                    'group':group,'validate':validate}, function(ret){
-                        if(ret.includes('失败')){
-                            //alert(ret);
-                            $('#p_save_message').append('<span style="color:red">'+ret+', </span>')
-                        }else{
-                            $('#p_save_message').append('<span>'+ret+', </span>')
-                        }
+                    if (cell_check[j-1].checked){
                         
                         
+                        var user = row.cells[1].innerText;
+                        var natural_time = row.cells[2].innerText;
+                        var perfom = row.cells[3].innerText;
+                        var standard = row.cells[4].innerText;
+                        var real = row.cells[5].innerText;
+                        var support = row.cells[6].innerText;
+                        var borrow = row.cells[7].innerText;
+                        var kpi = row.cells[8].innerText;
+                        var efficiency = row.cells[9].innerText;
+                        var date = row.cells[10].innerText;
+                        var username = row.cells[11].innerText;
+                        var group = row.cells[12].innerText;
+                        var work_group = row.cells[13].innerText;
+                        var validate = row.cells[14].innerText;
+                        $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
+                        'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
+                        'group':group,'work_group':work_group,'validate':validate}, function(ret){
+                            if(ret.includes('失败')){
+                                //alert(ret);
+                                $('#p_save_message').append('<span style="color:red">'+ret+', </span>')
+                            }else{
+                                $('#p_save_message').append('<span>'+ret+', </span>')
+                            }
+                    
+                        
+                   
                     //var result = ret;
                     //validateQty(ret);
-                })
+                        })
+                }
                 if(j==rows.length -1){
                        var timer = setInterval( function() {
 
@@ -86,15 +92,30 @@
                             } 
 
 
-                        }, 1000 );
+                            }, 1000 );
                             
-                }    
-                //document.getElementById("p_save_message").innerHTML="保存成功";
-                
+                        }    
+                //document.getElementById("p_save_message").innerHTML='保存成功';
+                {% comment %} var time = 5;
+                setInterval( function() {
+
+                    time--;
+
+                    $('#cd_time').html(time+'秒后刷新页面！');``
+
+                    if (time == 0) {
+
+                        location.reload();
+                    }    
+
+
+                    }, 1000 ); {% endcomment %}
+            //location.reload();    
             }
         }else{
             alert('当天记录已经保存，请勿重复保存！')
         }
+        
         
         
         
@@ -177,11 +198,11 @@
             if (window.focus) {newwindow.focus()}
         });   
 
-        $("#performance_table tbody tr td:nth-child(2)").click(function(){
+        $("#performance_table tbody tr td:nth-child(3)").click(function(){
                 
-                var date = $(this).parent('tr').find('td').eq(9).html();
-                var username = $(this).parent('tr').find('td').eq(10).html();
-                var user = $(this).parent('tr').find('td').eq(0).html();
+                var date = $(this).parent('tr').find('td').eq(10).html();
+                var username = $(this).parent('tr').find('td').eq(11).html();
+                var user = $(this).parent('tr').find('td').eq(1).html();
                 {% comment %} //alert($(this).html());
                 
                 //$(this).attr('class', 'submit');
@@ -230,6 +251,11 @@
         for(i=0;i<10;i++){
             $("#a_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
         }
+
+        $('#action-toggle').change(function() {
+            var checkboxes = $(this).closest('table').find(':checkbox');
+            checkboxes.prop('checked', $(this).is(':checked'));
+        });
 
     }
     {% comment %} function syncscroll(obj)
@@ -495,6 +521,7 @@
                     <table id='performance_table' border=1  style="overflow:scroll;text-align:center; ">
                         <thead>
                             <tr class = 'parent'>
+                                <th><input type='checkbox' id = 'action-toggle'></th>
                                 <th class= 'tableHead' width=200>员工</th>
                                 <th class= 'tableHead' width=100>工作时间</th>
                                 <th class= 'tableHead' width=100>个人绩效</th>
@@ -507,7 +534,8 @@
                                 
                                 <th class= 'tableHead' width=100 >Date</th>
                                 <th width=100>username</th>
-                                <th width=100>组</th>
+                                <th width=100>原班组</th>
+                                <th width=100>工作组</th>
                                 <th width=100>Validate</th>
                                 {% comment %} <th style="visibility:hidden" >Validate</th>
                                 <th style="visibility:hidden" >Validate</th> {% endcomment %}
@@ -520,6 +548,7 @@
                         
                                 {% for  i in p_perform_list  %}
                                     <tr  class="{% cycle 'row1' 'row2' %}">
+                                        <td><input type='checkbox' class='is_checked'></td>
                                         <td width=200>{{i.p_user}}</td>
                                         {% if i.p_natural > 8 %}
                                             <td style='background:#3498DB' width=100>{{i.p_natural}}</td>
@@ -539,6 +568,7 @@
                                         <td width=100>{{i.p_efficiency}}</td>
                                         <td width=100>{{p_date}}</td>
                                         <td width=100>{{i.username}}</td>
+                                        <td width=100>{{i.work_group}}</td>
                                         <td width=100>{{i.group}}</td>
                                         {% if i.validate == '未保存' %}
                                             <td width=100 style='background:red'>{{i.validate}}</td>
