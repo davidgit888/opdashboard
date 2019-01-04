@@ -217,8 +217,8 @@ def get_supportive_history(request,result):
     supportive_logs=[]
     coef = CoefficientSupport.objects.all()
 
-    list_total = [ [] for i in range(21)]
-    list_total_without_coef = [ [] for i in range(21)]
+    list_total = [ [] for i in range(22)]
+    list_total_without_coef = [ [] for i in range(22)]
     for i in range(len(list_total)):
         list_total[i] = 0
         list_total_without_coef[i] = 0
@@ -243,6 +243,7 @@ def get_supportive_history(request,result):
         a['group_management'] = result[i].group_management
         a['conference']=result[i].conference
         a['record'] = result[i].record
+        a['vertical'] = result[i].vertical
         a['date'] = result[i].date
         a['borrow_time'] = result[i].borrow_time
         a['borrow_name'] = result[i].borrow_name
@@ -267,6 +268,7 @@ def get_supportive_history(request,result):
         list_total[17] += a['conference'] * coef[0].group_management
         list_total[18] += a['record'] * coef[0].record
         list_total[19] += a['borrow_time'] * coef[0].borrow_time
+        list_total[20] += a['vertical'] * coef[0].vertical
         # get total hours without coefficient
         list_total_without_coef[0] += a['rest'] 
         list_total_without_coef[1] += a['clean'] 
@@ -288,12 +290,13 @@ def get_supportive_history(request,result):
         list_total_without_coef[17] += a['conference'] 
         list_total_without_coef[18] += a['record'] 
         list_total_without_coef[19] += a['borrow_time']
+        list_total_without_coef[20] += a['vertical']
         
         
         supportive_logs.append(a)
-    list_total[20] = '汇总'
+    list_total[21] = '汇总'
     a={}
-    for i in range(20):
+    for i in range(21):
         list_total[i] = round(list_total[i],2)
     a['rest']=list_total[0]
     a['clean'] =list_total[1]
@@ -314,9 +317,10 @@ def get_supportive_history(request,result):
     a['group_management'] = list_total[16]
     a['conference'] = list_total[17]
     a['record'] = list_total[18]
+    a['vertical'] = list_total[20]
     a['borrow_time'] = list_total[19]
     a['borrow_name'] = '---'
-    a['date'] = list_total[20]
+    a['date'] = list_total[21]
     a['comments'] = '---'
     #supportive_total borrow time
     supportive_total = 0 #all with coef
@@ -645,6 +649,7 @@ def supportive_time(request):
     group_management = request.POST['group_management']
     borrow_time = request.POST['borrow_time']
     borrow_type = request.POST['borrow_type']
+    vertical = request.POST['vertical']
     comments = request.POST['comments']
     date_time = request.POST.get('suportdate')
     user_group = user_work_group(request)
@@ -692,6 +697,8 @@ def supportive_time(request):
         comments = ''
     if borrow_type == ' ':
         borrow_type='无外借种类'
+    if not vertical:
+        vertical=0
 
 
     
@@ -703,7 +710,7 @@ def supportive_time(request):
         human_quality_issue_rework=human_quality_issue_rework,item_quality_issue=item_quality_issue,human_quality_issue_repair=human_quality_issue_repair,
         equipment_mantainence=equipment_mantainence,inventory_check=inventory_check,quality_check=quality_check,
         document=document,conference=conference,group_management=group_management,record=record,date=date_time,borrow_time=borrow_time,borrow_name=borrow_type,
-        comments=comments,groups=user_group)
+        comments=comments,groups=user_group,vertical=vertical)
 
         query.save()
         ip = get_client_ip(request)
@@ -951,7 +958,7 @@ def report_analysis(request):
     #     all_user_ids.remove(1)
 
     work_group = user_work_group(request)
-
+    
     if len(all_user_ids) != 0 and len(all_op_id) != 0:
         # if request.user.id==9:
             # sm_op_ids = GroupOp.objects.filter(group_name='数据-装配组SM')
@@ -965,9 +972,9 @@ def report_analysis(request):
         
         ##++++++++According to Work Group to filter the schedule results++++++
         if is_manager:
-            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
-        else:
             items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
         #data = pd.DataFrame(list(items), columns=['sfg_id','type_name','op_id_id','user_id','date'])
         data = pd.DataFrame()
         # for i in range(len(items)):
@@ -1147,8 +1154,15 @@ def perform_pop(request):
     date = request.GET.get('date')
     #return HttpResponse(date)
     # all_user_ids, all_op_id, user_groups = analysis_op_user(request)
-    group = user_work_group(request)
-    all_user_ids = user_work_group_ids(group,date)
+    is_manager = is_report_manager(request)
+    if is_manager:
+        # manager can see all members
+        all_user_ids, all_op_id,user_groups = analysis_op_user(request)
+    else:
+        # forman can see only work group
+        group = user_work_group(request)
+        all_user_ids = user_work_group_ids(group,date)
+    
     p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, date)
 
     return render(request, 'report/perform_pop.html', {
@@ -1267,13 +1281,13 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
     sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
     'granite','prob','shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair','equipment_mantainence',
-    'inventory_check','quality_check','document','conference','group_management','record','borrow_time','borrow_name','comments','date'])
-    sup_not_bor_total = sup_pd_data.sum()[1:20]
+    'inventory_check','quality_check','document','conference','group_management','record','vertical','borrow_time','borrow_name','comments','date'])
+    sup_not_bor_total = sup_pd_data.sum()[1:21]
     sup_not_bor_total= sup_not_bor_total.to_frame()
     sup_not_bor_total = sup_not_bor_total.T.rename(columns={'rest':'休息','clean_time':'卫生','inside_group':'组内','outside_group':'组外','complete_machine':'整机',
     'granite':'花岗石','prob':'物流搬运','shortage':'补缺件','plan_change':'计划调整','human_quality_issue_rework':'人为质量问题',
     'item_quality_issue':'零件质量问题','human_quality_issue_repair':'人为质量问题返修','equipment_mantainence':'设备维护','inventory_check':'库存核查',
-    'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录'})
+    'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录','vertical':'线性/垂直度修正'})
     
     sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
     sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()

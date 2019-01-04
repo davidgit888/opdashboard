@@ -81,10 +81,12 @@ class ReportAdmin(admin.ModelAdmin):
 class SupportiveTimeAdmin(admin.ModelAdmin):
     fields = ['user','rest','clean_time','inside_group','outside_group','complete_machine','granite','prob',
     'shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair',
-    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','comments','date','borrow_time','borrow_name','groups']
+    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','comments','date','borrow_time','borrow_name',
+    'groups','vertical']
     list_display = ('full_name','rest','clean_time','inside_group','outside_group','complete_machine','granite','prob',
     'shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair',
-    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time','borrow_name','comments','date','groups')
+    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time','borrow_name','comments',
+    'date','groups','vertical')
     search_fields = ['user__username','date','groups']
     date_hierarchy = 'date'
     # def get_actions(self, request):
@@ -272,10 +274,10 @@ class OpAdmin(admin.ModelAdmin):
 class CoefficientSupportAdmin(admin.ModelAdmin):
     fields = ['rest','clean_time','inside_group','outside_group','complete_machine','granite','prob',
     'shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair',
-    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time']
+    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time','vertical']
     list_display = ('rest','clean_time','inside_group','outside_group','complete_machine','granite','prob',
     'shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair',
-    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time')
+    'equipment_mantainence','inventory_check','quality_check','document','conference','group_management','record','borrow_time','vertical')
     search_fields = ['rest']
 
     def get_actions(self, request):

@@ -95,6 +95,7 @@ class SupportiveTime(models.Model):
     comments = models.CharField(max_length=250,verbose_name='备注',default=' ',null=True, blank=True)
     date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
     groups = models.CharField(max_length=20,default='',verbose_name='班组')
+    vertical = models.FloatField(verbose_name='线性/垂直度修正',max_length=10,null=True, default=0, blank=True)
     
     def __str__(self):
         return '%s %s ' % (self.user, self.date)
@@ -123,6 +124,7 @@ class CoefficientSupport(models.Model):
     group_management = models.FloatField(verbose_name='班组管理',max_length=10,null=True, default=0, blank=True)
     record = models.FloatField(verbose_name='记录',max_length=10,null=True, default=0, blank=True)
     borrow_time = models.FloatField(verbose_name='外借',max_length=10,null=True, default=0, blank=True)
+    vertical = models.FloatField(verbose_name='线性/垂直度修正',max_length=10,null=True, default=0, blank=True)
     class Meta:
         verbose_name = '辅助工时系数'
         verbose_name_plural = '辅助工时系数'
