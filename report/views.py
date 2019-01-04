@@ -894,8 +894,11 @@ def analysis_op_user(request):
         for i in range(len(user_manager_group)):
             if user_manager_group[i] in all_user_ids:
                 all_user_ids.remove(user_manager_group[i])
-    if username in all_user_ids:
-        all_user_ids.remove(username)
+                
+    ##### hide user itself id######
+
+    # if username in all_user_ids:
+    #     all_user_ids.remove(username)
 
     if 1 in all_user_ids:
         all_user_ids.remove(1)
@@ -936,7 +939,7 @@ def report_analysis(request):
 
  
     all_user_ids, all_op_id, user_groups = analysis_op_user(request)
-    
+    is_manager = is_report_manager(request)
     # if user_manager_group:
     #     for i in range(len(user_manager_group)):
     #         if user_manager_group[i] in all_user_ids:
@@ -946,7 +949,9 @@ def report_analysis(request):
 
     # if 1 in all_user_ids:
     #     all_user_ids.remove(1)
+
     work_group = user_work_group(request)
+
     if len(all_user_ids) != 0 and len(all_op_id) != 0:
         # if request.user.id==9:
             # sm_op_ids = GroupOp.objects.filter(group_name='数据-装配组SM')
@@ -959,7 +964,10 @@ def report_analysis(request):
         ####+++++++++++++++
         
         ##++++++++According to Work Group to filter the schedule results++++++
-        items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+        if is_manager:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
         #data = pd.DataFrame(list(items), columns=['sfg_id','type_name','op_id_id','user_id','date'])
         data = pd.DataFrame()
         # for i in range(len(items)):
@@ -1017,8 +1025,8 @@ def report_analysis(request):
                         a[all_op_id[j].op_name] = '---'
           
                 schedule_list.append(a)
-            group = user_work_group(request)
-            all_user_ids = user_work_group_ids(group,date.today())
+            # group = user_work_group(request)
+            # all_user_ids = user_work_group_ids(group,date.today())
             p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
             #数据组
             data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
