@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 import json
 from calendar import monthrange
+import calendar
 import numpy as np
 from django.template import loader
 from pyecharts import Bar
@@ -16,6 +17,7 @@ import pandas as pd
 import calendar
 from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar
 from django.db.models import Q
+from op.models import InstalledCmm, DeliveredCmm
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -563,12 +565,41 @@ def get_data(request):
             query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,
             date=date_time,groups=user_group)
             query.save()
-            
+
+            today = date.today()
+            year = today.year
+            month = calendar.month_abbr[today.month]
+            ## save to InstalledCmm, DeliveredCmm
+            if op_id=='51':
+                # return HttpResponse('Yes 51')
+               
+                
+                result = InstalledCmm.objects.filter(Year=year).values()
+                
+                if len(result) == 0:
+                    query = InstalledCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query.save()
+                else:
+                    total = result[0][month]
+                    total = float(total)+ float(qty)
+                    # return HttpResponse(total)
+                    InstalledCmm.objects.filter(Year=year).update(**{month:total})
+            if op_id=='142':
+                result_deli = DeliveredCmm.objects.filter(Year=year).values()
+                if len(result_deli) == 0:
+                    query = DeliveredCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query.save()
+                else:
+                    total = result_deli[0][month]
+                    total = float(total)+ float(qty)
+                    # return HttpResponse(total)
+                    DeliveredCmm.objects.filter(Year=year).update(**{month:total})
             all_show_digits = global_context(request)
             save_message="保存成功"
             local_jason = {
                 
                 'save_message':save_message,
+                
                 # 'supportive_logs':supportive_logs,
                 # 'supportive_total':supportive_total,
 
@@ -606,6 +637,7 @@ def get_data(request):
         detail_message = ''
         comments = 'Failed'
         query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
         return render(request, 'report/report_get.html')
         
     #制造工时
@@ -1191,7 +1223,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         to_date = today.replace(year=year,month=a_month, day=m_range[1])
     else:
         #return HttpResponse('a_month is 0')
-        from_date = today.replace(year=year, month=1)
+        from_date = today.replace(year=year, month=1,day=1)
         to_date = today.replace(year=year,month=12,day=31)
         a_month='全年'
     

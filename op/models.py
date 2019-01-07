@@ -3,18 +3,18 @@ from django.db import models
 
 class InstalledCmm(models.Model):
     Year = models.CharField(max_length=5)
-    Jan = models.IntegerField(null=True, blank=True)
-    Feb = models.IntegerField(null=True, blank=True)
-    Mar = models.IntegerField(null=True, blank=True)
-    Apr = models.IntegerField(null=True, blank=True)
-    May = models.IntegerField(null=True, blank=True)
-    Jun = models.IntegerField(null=True, blank=True)
-    Jul = models.IntegerField(null=True, blank=True)
-    Aug = models.IntegerField(null=True, blank=True)
-    Sep = models.IntegerField(null=True, blank=True)
-    Oct = models.IntegerField(null=True, blank=True)
-    Nov = models.IntegerField(null=True, blank=True)
-    Dec = models.IntegerField(null=True, blank=True)
+    Jan = models.FloatField(null=True, blank=True)
+    Feb = models.FloatField(null=True, blank=True)
+    Mar = models.FloatField(null=True, blank=True)
+    Apr = models.FloatField(null=True, blank=True)
+    May = models.FloatField(null=True, blank=True)
+    Jun = models.FloatField(null=True, blank=True)
+    Jul = models.FloatField(null=True, blank=True)
+    Aug = models.FloatField(null=True, blank=True)
+    Sep = models.FloatField(null=True, blank=True)
+    Oct = models.FloatField(null=True, blank=True)
+    Nov = models.FloatField(null=True, blank=True)
+    Dec = models.FloatField(null=True, blank=True)
     class Meta:
         verbose_name = '生产装机数量统计'
         verbose_name_plural = '生产装机数量统计'
@@ -28,18 +28,18 @@ class InstalledCmm(models.Model):
     # update_data.short_description='Applying'
 class DeliveredCmm(models.Model):
     Year = models.CharField(max_length=5, null=True, blank=True)
-    Jan = models.IntegerField(null=True, blank=True)
-    Feb = models.IntegerField(null=True, blank=True)
-    Mar = models.IntegerField(null=True, blank=True)
-    Apr = models.IntegerField(null=True, blank=True)
-    May = models.IntegerField(null=True, blank=True)
-    Jun = models.IntegerField(null=True, blank=True)
-    Jul = models.IntegerField(null=True, blank=True)
-    Aug = models.IntegerField(null=True, blank=True)
-    Sep = models.IntegerField(null=True, blank=True)
-    Oct = models.IntegerField(null=True, blank=True)
-    Nov = models.IntegerField(null=True, blank=True)
-    Dec = models.IntegerField(null=True, blank=True)
+    Jan = models.FloatField(null=True, blank=True)
+    Feb = models.FloatField(null=True, blank=True)
+    Mar = models.FloatField(null=True, blank=True)
+    Apr = models.FloatField(null=True, blank=True)
+    May = models.FloatField(null=True, blank=True)
+    Jun = models.FloatField(null=True, blank=True)
+    Jul = models.FloatField(null=True, blank=True)
+    Aug = models.FloatField(null=True, blank=True)
+    Sep = models.FloatField(null=True, blank=True)
+    Oct = models.FloatField(null=True, blank=True)
+    Nov = models.FloatField(null=True, blank=True)
+    Dec = models.FloatField(null=True, blank=True)
     class Meta:
         verbose_name = '生产发货量统计'
         verbose_name_plural = '生产发货量统计'
