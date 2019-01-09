@@ -1,0 +1,17 @@
+body {    background-image: url("background.jpg");;    
+    background-size: 100%;    background-repeat: repeat; 
+    background-attachment: fixed;
+} 
+
+table thead {
+    background-color: #6AC1F7;
+}
+
+.link{
+    cursor: pointer; 
+    background-color: azure;
+}
+
+table tboday tr:nth-child(even){
+    background:lightgray;
+}

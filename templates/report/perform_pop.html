@@ -4,7 +4,7 @@
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
 
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script>
-
+<link href="{% static 'css/table.css' %}" rel="stylesheet">
 <script>
     var p_save_status = '{{p_save_status}}'
     function save_all_perform(){
@@ -183,6 +183,7 @@
 </style>
 <div>
     <div style='position:relative;left:30%;'>
+        <br/><br/>
         <fieldset style = 'width:500px' style='position:relative;left:30%;'>
             <legend>查询</legend>
             

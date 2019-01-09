@@ -1,6 +1,6 @@
 {% load staticfiles %}
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
-
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
 <script>
     //window.onload=function(){
         var docs_types = [];
@@ -19,16 +19,23 @@
             doc_data[docs_types[i]] = $("#"+docs_types[i]).val();
         }
         //alert(doc_data['sn']);
-        $.get("/report/save_doc_info/",doc_data, function(ret){
+        if(sfg){
+            $.get("/report/save_doc_info/",doc_data, function(ret){
             alert(ret);
-        }); 
+            }); 
+        }else{
+            alert('请输入SFG');
+        }
+        
     }
 
 </script>
    
-<div>
+<div left='10px'>
+    <br/><br/>
     <fieldset>
         <p></p>
+        
         <legend>创建归档记录</legend>
         <h1>创建归档记录</h1>
         <label>SFG</label>

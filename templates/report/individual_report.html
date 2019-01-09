@@ -1,4 +1,7 @@
 
+{% load staticfiles %}
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+
 <style>
    
     .parent{
@@ -26,6 +29,7 @@
 
 <div align='center'> 
     <div>
+        <br/><br/>
         <h2>{{user}}工作时间汇总</h2>
         <br/>
         <p>总制造工时：{{real_time_total}}</p>

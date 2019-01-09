@@ -1,5 +1,6 @@
 {% load staticfiles %}
 <script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
 <script>
 
     var all_results = '{{result|safe}}';
@@ -55,8 +56,9 @@
 </script>
 
 <div>
+    <br/><br/>
     <h1>归档记录</h1><br/>
-    <h4>{{from_date}} 到 {{to_date}}</h4>
+    <h4>归档记录查询</h4>
     
     
     

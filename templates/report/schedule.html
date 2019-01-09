@@ -4,7 +4,7 @@
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
 
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
-
+<link href="{% static 'css/table.css' %}" rel="stylesheet">
 <script>
     var today = new Date();
     var today_year = today.getFullYear();
@@ -17,15 +17,16 @@
     }
     // search doc info by date
     function search_docinfo(){
-        var from_date = $("#docinfo_from_date").val()
-        var to_date = $("#docinfo_to_date").val()
-        if(from_date && to_date){
-            url = '/report/search_docinfo/?from_date='+from_date+'&to_date='+to_date
+        //var from_date = $("#docinfo_from_date").val()
+        //var to_date = $("#docinfo_to_date").val()
+        var sfg = $("#d_sfg").val()
+        if(sfg){
+            url = '/report/search_docinfo/?sfg='+sfg //from_date='+from_date+'&to_date='+to_date
         newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
         if (window.focus) {newwindow.focus()}
         }
         else{
-            alert('请选择日期');
+            alert('请输入SFG');
         }
         
     }
@@ -696,8 +697,9 @@
             <h1>Testing</h1>
             <input type='button' value='新建' onclick='classify_doc()'>
             <br/><br/>
-            <p>From: <input id='docinfo_from_date' name='docinfo_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" ></p>
-            <p>To: <input id='docinfo_to_date' name='docinfo_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
+            {% comment %} <p>From: <input id='docinfo_from_date' name='docinfo_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" ></p>
+            <p>To: <input id='docinfo_to_date' name='docinfo_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p> {% endcomment %}
+            <p>SFG: <input id='d_sfg' name='d_sfg' type='text' value=''></p>
             <p><input type='button' onclick='search_docinfo()' value='查询'></p>
         </div>
     </div>

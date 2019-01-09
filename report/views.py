@@ -1670,7 +1670,7 @@ def save_doc_info(request):
         type = DocType.objects.get(type=doc_type[i]['type'])
         old_data = DocInfo.objects.filter(sfg=sfg,type=type)
         if not data:
-            data=0
+            data='N'
         if len(old_data) ==0:
             try:
                 query = DocInfo(sfg=sfg,type=type,info=data)
@@ -1697,10 +1697,10 @@ def save_doc_info(request):
 
 ######### Search doc Info by date #####
 def search_docinfo(request):
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    result = DocInfo.objects.filter(date__range=(from_date,to_date)).values()
+    # from_date = request.GET.get('from_date')
+    # to_date = request.GET.get('to_date')
+    sfg = request.GET.get('sfg')
+    result = DocInfo.objects.filter(sfg__contains=sfg).values()
     #### Doc info df ####
     df_docinfo = pd.DataFrame(list(result),columns=['sfg','type_id','info'])
     doc_type_result = DocType.objects.all().values()
@@ -1711,8 +1711,8 @@ def search_docinfo(request):
     doc_id = doc_id.tolist()
     
     return render(request, 'report/search_docinfo.html',{
-        'from_date':from_date,
-        'to_date':to_date,
+        # 'from_date':from_date,
+        # 'to_date':to_date,
         'result':df_docinfo.to_json(),
         'doc_type_result':df_type.to_json(),
         'doc_id':json.dumps(doc_id),
