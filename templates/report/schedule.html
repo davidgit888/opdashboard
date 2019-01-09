@@ -15,8 +15,27 @@
     function performance_total(){
         document.forms[1].action = '/report/report_analysis/?tab=dKpi';
     }
-    
-    
+    // search doc info by date
+    function search_docinfo(){
+        var from_date = $("#docinfo_from_date").val()
+        var to_date = $("#docinfo_to_date").val()
+        if(from_date && to_date){
+            url = '/report/search_docinfo/?from_date='+from_date+'&to_date='+to_date
+        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+        if (window.focus) {newwindow.focus()}
+        }
+        else{
+            alert('请选择日期');
+        }
+        
+    }
+    //save classified document 
+    function classify_doc(){
+        url = '/report/create_docinfo/'
+        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+        if (window.focus) {newwindow.focus()}
+           
+    }
     $(function () {
         $("#filterName").keyup(function () {
         $("#tblNeedsScrolling tbody tr").hide() //将tbody中的tr都隐藏
@@ -400,12 +419,14 @@
         <li class='notselected' id='liSchedule' style='background:orange'>生产进度</li>
         <li class='notselected' id='liKpi' >业绩表</li>
         <li class='notselected' id='litotal' >统计表</li>
+        <li class='notselected' id='ldoc'>归档信息</li>
 
         <div id = 'dSchedule'  width=100%>
 
             {% if message %}
                 {{message}}
             {% endif %}
+            <br/>
             <div style='position:relative;left:18%;'>
                 <fieldset style = 'width:600px'>
                     <legend>查询</legend>
@@ -670,5 +691,13 @@
                 </div>
              
                 
+        </div>
+        <div style='display:none'>
+            <h1>Testing</h1>
+            <input type='button' value='新建' onclick='classify_doc()'>
+            <br/><br/>
+            <p>From: <input id='docinfo_from_date' name='docinfo_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" ></p>
+            <p>To: <input id='docinfo_to_date' name='docinfo_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
+            <p><input type='button' onclick='search_docinfo()' value='查询'></p>
         </div>
     </div>

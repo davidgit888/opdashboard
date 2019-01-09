@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups
+from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo
 from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
+# from django.core.serializers import serialize
 import json
 from calendar import monthrange
 import calendar
@@ -18,6 +19,7 @@ import calendar
 from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar
 from django.db.models import Q
 from op.models import InstalledCmm, DeliveredCmm
+
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -269,8 +271,8 @@ def get_supportive_history(request,result):
         list_total[16] += a['group_management'] * coef[0].conference
         list_total[17] += a['conference'] * coef[0].group_management
         list_total[18] += a['record'] * coef[0].record
-        list_total[19] += a['borrow_time'] * coef[0].borrow_time
-        list_total[20] += a['vertical'] * coef[0].vertical
+        list_total[20] += a['borrow_time'] * coef[0].borrow_time
+        list_total[19] += a['vertical'] * coef[0].vertical
         # get total hours without coefficient
         list_total_without_coef[0] += a['rest'] 
         list_total_without_coef[1] += a['clean'] 
@@ -291,8 +293,8 @@ def get_supportive_history(request,result):
         list_total_without_coef[16] += a['group_management'] 
         list_total_without_coef[17] += a['conference'] 
         list_total_without_coef[18] += a['record'] 
-        list_total_without_coef[19] += a['borrow_time']
-        list_total_without_coef[20] += a['vertical']
+        list_total_without_coef[20] += a['borrow_time']
+        list_total_without_coef[19] += a['vertical']
         
         
         supportive_logs.append(a)
@@ -319,8 +321,8 @@ def get_supportive_history(request,result):
     a['group_management'] = list_total[16]
     a['conference'] = list_total[17]
     a['record'] = list_total[18]
-    a['vertical'] = list_total[20]
-    a['borrow_time'] = list_total[19]
+    a['vertical'] = list_total[19]
+    a['borrow_time'] = list_total[20]
     a['borrow_name'] = '---'
     a['date'] = list_total[21]
     a['comments'] = '---'
@@ -632,10 +634,11 @@ def get_data(request):
             return HttpResponseRedirect("#")
     else:
         f_user = User.objects.get(id=request.user.id)
+        ip = get_client_ip(request)
         username = request.user.get_full_name()
-        action_log = 'Qty多次提交'
-        detail_message = ''
-        comments = 'Failed'
+        action_log = 'Qty多次提交' + str(sfg) + ', 工步： ' + op_id + ', 数量为: '+str(qty)
+        detail_message = request.META['HTTP_USER_AGENT']
+        comments = 'Failed' + ip
         query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
         query.save()
         return render(request, 'report/report_get.html')
@@ -1643,6 +1646,100 @@ def update_sfg_comments(request):
                 
                 })
 
-
+### create docinfo record#####
+def create_docinfo(request):
+    doc_type=DocType.objects.all().values()
+    js_doc_types = []
+    for i in range(len(doc_type)):
+        js_doc_types.append(doc_type[i]['type_id'])
+    return render(request, 'report/create_docinfo.html',
+    {
+        'doc_type':doc_type,
+        'js_doc_types':js_doc_types,
+    })
     
+######### Save doc Info #####
+def save_doc_info(request):
+    doc_type = DocType.objects.all().values()
+    result=True
+    sfg = request.GET.get('sfg')
+    if not sfg:
+        return HttpResponse('SFG 没有输入！请刷新网页，重新输入！')
+    for i in range(len(doc_type)):
+        data = request.GET.get(doc_type[i]['type_id'])
+        type = DocType.objects.get(type=doc_type[i]['type'])
+        old_data = DocInfo.objects.filter(sfg=sfg,type=type)
+        if not data:
+            data=0
+        if len(old_data) ==0:
+            try:
+                query = DocInfo(sfg=sfg,type=type,info=data)
+                query.save()
+            except Exception as ex:
+                message = "保存失败： " + json.dumps(ex.args)
+                result = False
+                break
+        else:
+            # return HttpResponse(data)
+            try:
+                pre_data = DocInfo.objects.get(sfg=sfg,type=type)
+                pre_data.info=data
+                pre_data.save()
+            except Exception as ex:
+                message = "保存失败1 ： " + json.dumps(ex.args)
+                result = False
+                break
+    
+    if result:
+        message = '保存成功！'
 
+    return HttpResponse(json.dumps(message), content_type='application/json')
+
+######### Search doc Info by date #####
+def search_docinfo(request):
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    result = DocInfo.objects.filter(date__range=(from_date,to_date)).values()
+    #### Doc info df ####
+    df_docinfo = pd.DataFrame(list(result),columns=['sfg','type_id','info'])
+    doc_type_result = DocType.objects.all().values()
+    ####### Doc Type df #####
+    df_type = pd.DataFrame(list(doc_type_result),columns=['id','type'])
+    
+    doc_id = df_docinfo['sfg'].unique()
+    doc_id = doc_id.tolist()
+    
+    return render(request, 'report/search_docinfo.html',{
+        'from_date':from_date,
+        'to_date':to_date,
+        'result':df_docinfo.to_json(),
+        'doc_type_result':df_type.to_json(),
+        'doc_id':json.dumps(doc_id),
+    })
+
+###### Update Doc Info######
+def update_docinfo(request):
+    sfg = request.GET.get('sfg')
+
+    doc_type=DocType.objects.all().values()
+    doc_types = []
+    doc_info = []
+    for i in range(len(doc_type)):
+        info_result = DocInfo.objects.filter(sfg=sfg,type=doc_type[i]['id']).values()
+        a = {}
+        a['type']= doc_type[i]['type']
+        a['id'] = doc_type[i]['type_id']
+        if len(info_result) != 0:
+         
+            a['info'] = info_result[0]['info']
+
+        else:
+            a['info']=0
+        doc_info.append(a)
+
+    return render(request,'report/update_docinfo.html',{
+        'doc_info':doc_info,
+        'doc_type':doc_type,
+        'sfg':sfg,
+    })

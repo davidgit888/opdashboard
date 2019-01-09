@@ -231,3 +231,25 @@ class UserGroups(models.Model):
     class Meta:
         verbose_name = '用户工作组'
         verbose_name_plural = '用户工作组'
+
+class DocType(models.Model):
+    type = models.CharField(max_length=20,verbose_name='归档种类')
+    type_id = models.CharField(max_length=20,verbose_name='ID',default='')
+    def __str__(self):
+        return '%s' %(self.type)
+
+    class Meta:
+        verbose_name = '归档种类'
+        verbose_name_plural = '归档种类'
+    
+class DocInfo(models.Model):
+    sfg = models.CharField(max_length=20,verbose_name='SFG')
+    type = models.ForeignKey(DocType, db_column='type', on_delete=models.CASCADE, default='',verbose_name='归档种类')
+    info = models.CharField(max_length=50, verbose_name='信息',default=0)
+    date = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return '%s %s %s %s' %(self.sfg, self.type, self.info,self.date)
+    class Meta:
+        verbose_name = '归档信息'
+        verbose_name_plural = '归档信息'
+    

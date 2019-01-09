@@ -23,5 +23,9 @@ urlpatterns = [
     path('group_statistic/',views.group_statistic),
     path('perform_pop/',views.perform_pop),
     path('kpi/',views.kpi_dash),
+    path('create_docinfo/',views.create_docinfo),
+    path('save_doc_info/',views.save_doc_info),
+    path('search_docinfo/',views.search_docinfo),
+    path('update_docinfo/',views.update_docinfo),
     #path('upload_excel/',)
 ]

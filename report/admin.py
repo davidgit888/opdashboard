@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -458,6 +458,16 @@ class WorkGroupsAdmin(admin.ModelAdmin):
     list_display = ('group_name',)
     search_fields = ['group_name']
 
+class DocTypeAdmin(admin.ModelAdmin):
+    fields = ['type','type_id']
+    list_display = ('type','type_id')
+    search_fields = ['type','type_id']
+
+class DocInfoAdmin(admin.ModelAdmin):
+    fields = ['sfg','type','info']
+    list_display = ('sfg','type','info','date')
+    search_fields = ['sfg','type','info']
+
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
 admin.site.register(TypeStandard, TypeStandarAdmin)
@@ -474,3 +484,5 @@ admin.site.register(TraceLog,TraceLogAdmin)
 admin.site.register(AnnualLeave,AnnualLeaveAdmin)
 admin.site.register(UserGroups,UserGroupsAdmin)
 admin.site.register(WorkGroups,WorkGroupsAdmin)
+admin.site.register(DocType, DocTypeAdmin)
+admin.site.register(DocInfo,DocInfoAdmin)
