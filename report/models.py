@@ -233,8 +233,8 @@ class UserGroups(models.Model):
         verbose_name_plural = '用户工作组'
 
 class DocType(models.Model):
-    type = models.CharField(max_length=20,verbose_name='归档种类')
-    type_id = models.CharField(max_length=20,verbose_name='ID',default='')
+    type = models.CharField(max_length=20,verbose_name='归档种类',unique=True)
+    type_id = models.CharField(max_length=20,verbose_name='ID',default='',unique=True)
     def __str__(self):
         return '%s' %(self.type)
 

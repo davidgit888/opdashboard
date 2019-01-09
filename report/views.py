@@ -1147,7 +1147,7 @@ def get_performance(request,all_users_id, today):
         a['p_user'] = User.objects.get(id=all_users_id[i]).last_name + User.objects.get(id=all_users_id[i]).first_name
         a['p_standard'] =  round(standard_time_total,2)
         a['p_sup_without_borrow'] = sup_total_without_coefBorrow
-        a['p_sup_borrow'] = round(supportive_total-sup_total_without_borrow,2)
+        a['p_sup_borrow'] = round(supportive_total_without_coef-sup_total_without_coefBorrow,2)
         a['p_total'] = round(standard_time_total + supportive_total,2)
         a['p_real'] = round(real_time_total, 2)
         checkFlag = GroupPerform.objects.filter(date=p_get_date,username=all_users_id[i])
