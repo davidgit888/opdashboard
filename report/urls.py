@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf.urls import url
 from . import views
 
+
 urlpatterns = [
     path('',views.index),
     #url(r'test/(?P<backend>\w+?)/',views.index),
@@ -27,5 +28,6 @@ urlpatterns = [
     path('save_doc_info/',views.save_doc_info),
     path('search_docinfo/',views.search_docinfo),
     path('update_docinfo/',views.update_docinfo),
+
     #path('upload_excel/',)
 ]

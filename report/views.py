@@ -68,9 +68,10 @@ def get_current_date_data(request, result):
     
 
     return list_logs, standard_time_total, real_time_total
-@login_required(login_url='/accounts/login/')  
+
 
 # get employee's kpi bar chart
+@login_required(login_url='/accounts/login/')  
 def kpi_dash(request):
     template = loader.get_template('echarts/individul_kpi.html')
     
@@ -119,6 +120,7 @@ def kpi_dash(request):
     # )
     return bar.render_embed()
 
+@login_required(login_url='/accounts/login/')  
 def global_context(request):
     username = request.user.id
     today = date.today()
@@ -216,7 +218,7 @@ def global_context(request):
         }
 
     return all_shown_digits
-
+@login_required(login_url='/accounts/login/') 
 def get_supportive_history(request,result):
     supportive_logs=[]
     coef = CoefficientSupport.objects.all()
@@ -427,6 +429,7 @@ def index(request):
     return render(request, 'report/report_get.html', all_show_digts)
 
 # when click submit to save to database
+@login_required(login_url='/accounts/login/')  
 def save_overtime_data(request):
     user = request.user.id
     over_time= request.GET.get('over_time')
@@ -497,10 +500,18 @@ def user_work_group_ids(group,date):
         return all_user_ids
     else:
         return None
+
+
 # save produce worktime
 @login_required(login_url='/accounts/login/')  
 def get_data(request):
+    try:
+        ie = request.META['HTTP_USER_AGENT']
+        if "Chrome" not in ie:
+            return render(request, 'report/down_chrome.html')
+    except:
 
+        pass
     sfg = request.POST['sfg_id']
     type = request.POST['prod_type']
     op_id = request.POST['op_id']
@@ -1670,7 +1681,7 @@ def save_doc_info(request):
         type = DocType.objects.get(type=doc_type[i]['type'])
         old_data = DocInfo.objects.filter(sfg=sfg,type=type)
         if not data:
-            data='N'
+            data=' '
         if len(old_data) ==0:
             try:
                 query = DocInfo(sfg=sfg,type=type,info=data)

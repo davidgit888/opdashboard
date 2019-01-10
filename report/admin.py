@@ -466,7 +466,7 @@ class DocTypeAdmin(admin.ModelAdmin):
 class DocInfoAdmin(admin.ModelAdmin):
     fields = ['sfg','type','info']
     list_display = ('sfg','type','info','date')
-    search_fields = ['sfg','type','info']
+    search_fields = ['sfg','type__type','info']
 
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
