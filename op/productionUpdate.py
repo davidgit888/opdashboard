@@ -79,6 +79,7 @@ def getIdpData():
     installed = pd.DataFrame(list(installedObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
     del installed['id']
     installed = installed.set_index('Year')
+    installed = round(installed,0)
     installed = installed.T
     # print(installed)
     inLen2=DeliveredCmm.objects.all().count()
@@ -86,6 +87,7 @@ def getIdpData():
     delivered = pd.DataFrame(list(deliveredObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
     del delivered['id']
     delivered = delivered.set_index('Year')
+    delivered = round(delivered,0)
     delivered = delivered.T
 
     inLen3=NewOrder.objects.all().count()
@@ -93,6 +95,7 @@ def getIdpData():
     produced = pd.DataFrame(list(producedObj),columns=['id','Year','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
     del produced['id']
     produced = produced.set_index('Year')
+    produced = round(produced,0)
     produced = produced.T
 
     
@@ -101,6 +104,7 @@ def getIdpData():
     waiting.sort_values('id')
     del waiting['id']
     waiting = waiting.set_index('YearAndMonth')
+    waiting = round(waiting,0)
     waiting = waiting.T
     
 
@@ -109,6 +113,7 @@ def getIdpData():
     eachYear.sort_values('id')
     del eachYear['id']
     eachYear = eachYear.set_index('Year')
+    eachYear = round(eachYear,0)
     eachYear = eachYear.T
     eachYear = eachYear.fillna('-')
     return installed,delivered,produced,waiting,eachYear
