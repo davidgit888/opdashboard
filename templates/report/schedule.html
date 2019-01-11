@@ -5,6 +5,7 @@
 
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
 <link href="{% static 'css/table.css' %}" rel="stylesheet">
+<script src="{% static 'js/jquery.floatThead.js' %}"></script>
 <script>
     var today = new Date();
     var today_year = today.getFullYear();
@@ -179,7 +180,7 @@
             
             }
         }
-        scrolify($('#tblNeedsScrolling'), 650);
+        //scrolify($('#performance_table'), 650);
         
 
     // sort date
@@ -337,7 +338,16 @@
         $(document).ready(function() {
         scrolify($('#tblNeedsScrolling'), 640); // 160 is height
         }); {% endcomment %}
-
+    
+    $(document).ready(function() {
+            var $table = $('#tblNeedsScrolling');
+            $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+            });
+        
+    });
 
 </script>
 <style>
@@ -363,7 +373,7 @@
      cursor:pointer;
     }
     .parent{
-        background: #79aec8;
+        background: #6AC1F7;
     }
 
     .row1{
@@ -442,10 +452,10 @@
             </div>
             <br/>
             <div style="overflow:scroll " >
-                <table id='tblNeedsScrolling' border=1 style='text-align:center;font-size:14px'>
+                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'>
                 
                     <thead>
-                        <tr class = 'parent'>
+                        <tr class = 'parent' style='text-align:center;font-size:14px'>
                             <th class = 'tableHead'  >SFG</th>
                             <th class = 'tableHead'  >机型</th>
                             <th class = 'tableHead'  >备注</th>
@@ -457,7 +467,7 @@
                     
                         </tr>
                     
-                        <tr class = 'row2'>
+                        <tr class = 'parent'>
                             <td >SFG</td>
                             <td>机型</td>
                             <td>备注</td>

@@ -647,11 +647,12 @@ def get_data(request):
         f_user = User.objects.get(id=request.user.id)
         ip = get_client_ip(request)
         username = request.user.get_full_name()
-        action_log = 'Qty多次提交' + str(sfg) + ', 工步： ' + op_id + ', 数量为: '+str(qty)
+        action_log = '制造工时Qty多次提交' 
         detail_message = request.META['HTTP_USER_AGENT']
-        comments = 'Failed' + ip
-        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
-        query.save()
+        comments = str(sfg) +':工步'+str(op_id)+" Failed, " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty)
+        test_log_duplication(request.user.id,request.user.get_full_name(),action_log,request.META['HTTP_USER_AGENT'],comments)
+        # query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        # query.save()
         return render(request, 'report/report_get.html')
         
     #制造工时
@@ -1746,7 +1747,7 @@ def update_docinfo(request):
             a['info'] = info_result[0]['info']
 
         else:
-            a['info']=0
+            a['info']=' '
         doc_info.append(a)
 
     return render(request,'report/update_docinfo.html',{
