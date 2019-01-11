@@ -20,50 +20,29 @@
     }
     
     window.onload = function(){
-        // append data
         for(i=0;i<t_len;i++){
             $('#search_table thead tr').append( '<th>'  + type_info["type"][i] + '</th>' );
         }
-        // create table
+        
         for(i=0;i<jdoc_list.length;i++){
-                var str_td=''
-                str_td += '<td class="link"><u><strong><span style="color:blue">'  + jdoc_list[i] + '</span></strong></u></td>'
+            
                 for(k=0;k<r_len;k++){
-                    {% comment %}                     
                     if(k==0){
-                            $('#search_table tbody:last-child ').append( '<tr />').children('tr:last');
-                            $('#search_table tbody:last-child ').append( '<td class="link"><u><strong><span style="color:blue">'  + jdoc_list[i] + '</span></strong></u></td>' );
+                            $('#search_table tbody ').append( '<tr>');
+                            $('#search_table tbody ').append( '<td class="link"><u><strong><span style="color:blue">'  + jdoc_list[i] + '</span></strong></u></td>' );
                         }
                     
                   
                     for(j=0;j<t_len;j++){
                         
                         if(results['sfg'][k]==jdoc_list[i] && results['type_id'][k]==type_info['id'][j]){
-                            $('#search_table tbody:last-child ').append( '<td>'  + results["info"][k] + '</td>' );   
+                            $('#search_table tbody ').append( '<td>'  + results["info"][k] + '</td>' );   
                         }    
                     }
-                    {% endcomment %}
-                    
-                    for(j=0;j<t_len;j++){
-                        
-                        if(results['sfg'][k]==jdoc_list[i] && results['type_id'][k]==type_info['id'][j]){
-                            if(results["info"][k] == 'Y'){
-                                str_td += '<td style="background:green">'  + results["info"][k] + '</td>';
-                            }
-                            else{
-                                str_td += '<td>'  + results["info"][k] + '</td>';
-                            }
-                               
-                        }
-                    
-                    }
-                    //$('#search_table tbody:last-child').append( '<tr>'+str_td+'</tr>');
                     
                 }
-                $('#search_table tbody:last-child').append( '<tr>'+str_td+'</tr>');
         } 
 
-        // create link
         $(".link").click(function(){
             var sfg_id=$(this)[0].textContent;
             
@@ -83,12 +62,12 @@
     function redi_url(){
         window.location.replace('/report/search_docinfo/?sfg=');
     }
-    $(function () {
-        $("#filterName").keyup(function () {
-        $("#search_table tbody tr").hide() //将tbody中的tr都隐藏
-            .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
-        });
-     });
+
+    function search(){
+        var sfg_id = $('#sfg_id').val()
+        window.location.replace('/report/search_docinfo/?sfg='+sfg_id);
+    }
+    
 </script>
 
 <div>
@@ -101,7 +80,12 @@
     <div>
         <input type='button' value='刷新' onclick='refresh()'>
         <input type='button' value='显示所有数据' onclick='redi_url()'>
-        <span>筛选：</span><input type="text" id="filterName">
+        <br/><br/>
+        <label>查询</label>
+        <input type='text' id='sfg_id'>
+        
+        <input type='button'  value='查询' onclick='search()'>
+        
         <br/><br/>
         <table id='search_table' style='text-align:center;' border=1  >
             <thead>
