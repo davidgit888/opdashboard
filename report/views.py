@@ -1354,11 +1354,13 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     
     sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
     sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()
-
+    sup_bor_total = sup_bor_total.rename(columns={'borrow_time':'外借工时'})
+    sup_bor_total.index.name='外借种类'
     # over_time_data = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values_list('over_time','over_time_type')
     over_time_data = OverTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
     over_time_data = pd.DataFrame(list(over_time_data), columns=['user_id','over_time','over_time_type'])
     over_time_total = over_time_data.groupby(['user_id']).sum()
+    over_time_total = over_time_total.rename(columns={'over_time':'加班工时'})
     over_user=[]
     for i in range(len(over_time_total)):
         user=User.objects.get(id=over_time_total.index[i]).get_full_name()
@@ -1419,11 +1421,15 @@ def group_statistic(request):
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
+        trans_time = getTransTime(request,month,year)
+        
         oper_bar = op_bar(anls_opcounts)
         if month ==0:
             month = '全年'
         else:
             month = str(month)+'月'
+        #### get group transfer time
+
         return render(request,'report/pop_analysis.html',{
             'anls_result':anls_result.to_html(index=None),
             'title':month+groups+'工时汇总',
@@ -1437,7 +1443,7 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
-            
+            'trans_time':trans_time.to_html(),
             
         })
     else:
@@ -1800,7 +1806,22 @@ def dashBoard(request):
     else:
         return HttpResponse('You do not have permission to view it. Please contact admin')
     
-
+### get temporary transfer of employees
+@login_required(login_url='/accounts/login/')  
+def getTransTime(request, month, year):
+    today = date.today()
+    date_range=monthrange(int(year),int(month))
+    from_date = today.replace(year=int(year),month=int(month),day=1)
+    to_date = today.replace(year=int(year),month=int(month),day=date_range[1])
+    res = GroupPerform.objects.filter(date__range=(from_date,to_date)).values_list('group','work_group','natural_time')
+    df = pd.DataFrame(list(res))
+    data = df[df[0]!=df[1]]
+    piv = pd.pivot_table(data,index=0,columns=1,aggfunc=np.sum)
+    piv.columns = piv.columns.droplevel()
+    piv = piv.fillna(0)
+    piv.columns.name='借调班组'
+    piv.index.name='原班组'
+    return piv
 
 
 
