@@ -4,14 +4,14 @@ from pyecharts import Bar,Pie
 def eply_kpi_bar(data):
     bar = Bar("制造工效比",title_pos="10%",title_top='1%',width='100%')
     bar.add('',data['用户'],round(data['工效比'],2),legend_pos='38%',legend_top='7%',mark_line_raw=[{'yAxis': 1.2}],is_label_show=True,
-        is_datazoom_show=True,datazoom_type='both',is_toolbox_show =False,xaxis_rotate=30)
+        is_toolbox_show =False,xaxis_rotate=30)
 
 
     return bar.render_embed()
 def eply_eff_bar(data):
     bar = Bar("工时有效率",title_pos="10%",title_top='1%',width='100%')
     bar.add('',data['用户'],round(data['工时有效率'],2),label_color=['#2f4554'],legend_pos='38%',legend_top='7%',mark_line_raw=[{'yAxis': 0.75}],is_label_show=True,
-        is_datazoom_show=True,datazoom_type='both',is_toolbox_show =False,xaxis_rotate=30)
+        is_toolbox_show =False,xaxis_rotate=30)
 
     return bar.render_embed()
 #### 统计表工步

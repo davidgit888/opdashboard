@@ -2,7 +2,7 @@
 <script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
 <link href="{% static 'css/table.css' %}" rel="stylesheet">  
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script>
-<script src="{% static 'js/table_freeze.js' %}"></script>
+
 <script src="{% static 'js/jquery.floatThead.js' %}"></script>
 <script>
 
@@ -21,7 +21,7 @@
     
     window.onload = function(){
         for(i=0;i<t_len;i++){
-            $('#search_table thead tr').append( '<th>'  + type_info["type"][i] + '</th>' );
+            $('#firs_tr').append( '<th>'  + type_info["type"][i] + '</th>' );
         }
         
         for(i=0;i<jdoc_list.length;i++){
@@ -89,8 +89,8 @@
         <br/><br/>
         <table id='search_table' style='text-align:center;' border=1  >
             <thead>
-                <tr>
-                    <th>SFG</th>
+                <tr id='firs_tr'>
+                    <th >SFG</th>
                 </tr>
                
                 

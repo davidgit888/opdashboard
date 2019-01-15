@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo
+from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo,WorkGroups
 from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -501,7 +501,17 @@ def user_work_group_ids(group,date):
     else:
         return None
 
-
+#### get usr's ids accroding to work group
+def workGroupId(group):
+    all_ids = []
+    if group:
+        f_group = WorkGroups.objects.get(group_name=group)
+        results = UserGroups.objects.filter(work_group=f_group)
+        for i in range(len(results)):
+            all_ids.append(results[i].user.id)
+        
+    return all_ids
+        
 # save produce worktime
 @login_required(login_url='/accounts/login/')  
 def get_data(request):
@@ -846,7 +856,7 @@ def get_standard_time(request):
             result = {'result':'无标准工时'}
         return HttpResponse(json.dumps(result), content_type='application/json')
 
-# get login user's all groups
+# get login user's all original groups
 def get_groups(request):
     user_all_permissions = []
     user = User.objects.get(id=request.user.id)
@@ -861,13 +871,19 @@ def get_groups(request):
 
 #get all op_ids and all_user_ids in 统计表
 def analysis_op_user(request):
-    username = request.user.id
+    username = request.user.username
     #result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
+
     user_groups = []
-    data_groups = get_groups(request)
-    for i in range(len(data_groups)):
-            if '数据' in data_groups[i]:
-                user_groups.append(data_groups[i])
+    all_user=['testa','testb','testp','testsm','teste']
+    if username in all_user:
+        group = UserGroups.objects.get(user=request.user.id)
+        user_groups.append(group.work_group.group_name)
+    else:
+        data_groups = get_groups(request)
+        for i in range(len(data_groups)):
+                if '数据' in data_groups[i]:
+                    user_groups.append(data_groups[i])
     all_user_ids = []
     all_op_id = []
 
@@ -1754,4 +1770,38 @@ def update_docinfo(request):
         'doc_info':doc_info,
         'doc_type':doc_type,
         'sfg':sfg,
+
+
     })
+
+###  show dashboard for different group ###########
+@login_required(login_url='/accounts/login/')  
+def dashBoard(request):
+    all_user=['testa','testb','testp','testsm','teste','admin']
+    if request.user.username in all_user:
+        today = date.today()
+        year = today.year
+        month = today.month
+        user = UserGroups.objects.get(user=request.user.id)
+        group = user.work_group.group_name
+        all_ids = workGroupId('数据-装配组A')
+        all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,group,month,all_ids,all_op_id,year)
+        employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
+        employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
+
+        oper_bar = op_bar(anls_opcounts)
+        return render(request,'report/dashboard.html',{
+            'employee_bar':employee_bar,
+            'employee_eff_bar':employee_eff_bar,
+            'oper_bar':oper_bar,
+
+        })
+    else:
+        return HttpResponse('You do not have permission to view it. Please contact admin')
+    
+
+
+
+
+   

@@ -22,7 +22,7 @@
         $.get("/report/save_doc_info/",doc_data, function(ret){
             alert(ret);
             var sfg = $("#sfg").val();
-            window.location.replace('http://10.136.6.87:8888/report/search_docinfo/?sfg='+sfg);
+            window.location.replace('/report/search_docinfo/?sfg='+sfg);
         }); 
     }
     function back(){
