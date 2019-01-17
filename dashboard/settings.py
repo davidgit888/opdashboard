@@ -46,11 +46,17 @@ INSTALLED_APPS = [
     'op.apps.OpConfig',
     'shortageConf.apps.ShortageconfConfig',
     'report.apps.ReportConfig',
+    # 'django_crontab',
     #'OpReport.apps.OpreportConfig',
 
     
 ]
 
+# 最简单配置
+# CRONJOBS = [
+#     # 表示每天2：01执行
+#     ('01 * * * *', 'op.views.crontTest')
+# ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -181,10 +181,13 @@
                             {% endautoescape %}
                         </div>
                         <div>
+                        {% if trans_time %}
+                        
                             <h2>借调工时统计</h2>
                             {% autoescape off %}
                             {{trans_time}}
                             {% endautoescape %}
+                        {% endif %}
                         </div>
                   
 

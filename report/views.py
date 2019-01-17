@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo,WorkGroups
-from datetime import date, timedelta
+from datetime import date, timedelta,datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
@@ -19,7 +19,7 @@ import calendar
 from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar
 from django.db.models import Q
 from op.models import InstalledCmm, DeliveredCmm
-
+from time import sleep
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -30,7 +30,6 @@ def get_current_date_data(request, result):
     standard_time_total = 0
     real_time_total = 0
     quantity_total = 0
-    overtime_total = 0
     count_total = 0
     for i in range(len(result)):
         a={}
@@ -591,30 +590,42 @@ def get_data(request):
 
             today = date.today()
             year = today.year
-            month = calendar.month_abbr[today.month]
+            input_month = datetime.strptime(date_time,"%Y-%m-%d")
+            month = calendar.month_abbr[input_month.month]
             ## save to InstalledCmm, DeliveredCmm
+            sleep(0.5)
             if op_id=='51':
                 # return HttpResponse('Yes 51')
-               
-                
+                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
+                sfg_qty_total = 0
+                if len(sfg_qty) !=0:
+                    for i in range(len(sfg_qty)):
+                        sfg_qty_total += sfg_qty[i][0]
                 result = InstalledCmm.objects.filter(Year=year).values()
-                
                 if len(result) == 0:
-                    query = InstalledCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
                     query.save()
-                else:
+                string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
+                # return HttpResponse(string)
+                if round(sfg_qty_total,3) ==1: 
                     total = result[0][month]
-                    total = float(total)+ float(qty)
+                    total += 1
                     # return HttpResponse(total)
                     InstalledCmm.objects.filter(Year=year).update(**{month:total})
             if op_id=='142':
+               
+                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
+                sfg_qty_total = 0
+                if len(sfg_qty) != 0:
+                    for i in range(len(sfg_qty)):
+                        sfg_qty_total += sfg_qty[i][0] 
                 result_deli = DeliveredCmm.objects.filter(Year=year).values()
                 if len(result_deli) == 0:
-                    query = DeliveredCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
                     query.save()
-                else:
+                if round(sfg_qty_total,3) ==1:
                     total = result_deli[0][month]
-                    total = float(total)+ float(qty)
+                    total += 1
                     # return HttpResponse(total)
                     DeliveredCmm.objects.filter(Year=year).update(**{month:total})
             all_show_digits = global_context(request)
@@ -1375,7 +1386,7 @@ def group_statistic(request):
     groups = request.GET.get('group')
     user = User.objects.get(id=request.user.id)
     require_user_groups = user.groups
-    
+   ### check if the use has the group 
     pemsion_check = False
     for i in require_user_groups.select_related():
         if groups in i.name:
@@ -1421,8 +1432,11 @@ def group_statistic(request):
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
-        trans_time = getTransTime(request,month,year)
-        
+        if check: 
+            trans_time = getTransTime(request,month,year)
+            trans_time=trans_time.to_html()
+        else:
+            trans_time=None
         oper_bar = op_bar(anls_opcounts)
         if month ==0:
             month = '全年'
@@ -1443,7 +1457,7 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
-            'trans_time':trans_time.to_html(),
+            'trans_time':trans_time
             
         })
     else:
