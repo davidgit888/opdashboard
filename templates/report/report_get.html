@@ -310,7 +310,7 @@
                 <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/>
                 {% comment %} <p style='color:green'>消息: 加班工时已可以提交，谢谢！</p> {% endcomment %}
 
-                <form onsubmit='valid_report()' action="/report/" method="post" >
+                <form onsubmit='valid_report()'  method="post" >
                     {% csrf_token %}
                     
                     {% if save_message %}

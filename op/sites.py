@@ -2,6 +2,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .productionUpdate import updateProduction
+from report.views import dashBoard
 
 @login_required
 def Installed_CMM(request):
@@ -30,6 +31,7 @@ def Waiting_Order_and_Inventory(request):
 @login_required
 def produced(rquest):
     results = updateProduction()
+    dashBoard(rquest)
     return render(rquest, 'op/生产制造.html')
 
 @login_required

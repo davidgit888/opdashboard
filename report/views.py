@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo,WorkGroups
-from datetime import date, timedelta
+from datetime import date, timedelta,datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
@@ -16,10 +16,10 @@ from pyecharts import Bar
 # from django.template import RequestContext
 import pandas as pd
 import calendar
-from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar
+from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar,standardTime
 from django.db.models import Q
 from op.models import InstalledCmm, DeliveredCmm
-
+from time import sleep
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -30,7 +30,6 @@ def get_current_date_data(request, result):
     standard_time_total = 0
     real_time_total = 0
     quantity_total = 0
-    overtime_total = 0
     count_total = 0
     for i in range(len(result)):
         a={}
@@ -447,12 +446,12 @@ def save_overtime_data(request):
         query=OverTime(user=f_user,over_time=over_time,over_time_type=over_time_type,is_paid=is_paid,date=date,groups=user_group)
         query.save()
         check='Y'
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Successful','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+        # test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Successful','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
         return HttpResponse(json.dumps(check), content_type='application/json')
     except Exception as ex:    
         template = "加班工时保存失败"
         message = template + json.dumps(ex.args)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+        # test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
         return HttpResponse(json.dumps(message), content_type='application/json')
 
 def test_log_duplication(user,username,action,detail,comments):
@@ -591,30 +590,42 @@ def get_data(request):
 
             today = date.today()
             year = today.year
-            month = calendar.month_abbr[today.month]
+            input_month = datetime.strptime(date_time,"%Y-%m-%d")
+            month = calendar.month_abbr[input_month.month]
             ## save to InstalledCmm, DeliveredCmm
+            sleep(0.5)
             if op_id=='51':
                 # return HttpResponse('Yes 51')
-               
-                
+                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
+                sfg_qty_total = 0
+                if len(sfg_qty) !=0:
+                    for i in range(len(sfg_qty)):
+                        sfg_qty_total += sfg_qty[i][0]
                 result = InstalledCmm.objects.filter(Year=year).values()
-                
                 if len(result) == 0:
-                    query = InstalledCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
                     query.save()
-                else:
+                # string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
+                # return HttpResponse(string)
+                if round(sfg_qty_total,3) ==1: 
                     total = result[0][month]
-                    total = float(total)+ float(qty)
+                    total += 1
                     # return HttpResponse(total)
                     InstalledCmm.objects.filter(Year=year).update(**{month:total})
             if op_id=='142':
+               
+                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
+                sfg_qty_total = 0
+                if len(sfg_qty) != 0:
+                    for i in range(len(sfg_qty)):
+                        sfg_qty_total += sfg_qty[i][0] 
                 result_deli = DeliveredCmm.objects.filter(Year=year).values()
                 if len(result_deli) == 0:
-                    query = DeliveredCmm(Year=year,Jan=qty,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
                     query.save()
-                else:
+                if round(sfg_qty_total,3) ==1:
                     total = result_deli[0][month]
-                    total = float(total)+ float(qty)
+                    total += 1
                     # return HttpResponse(total)
                     DeliveredCmm.objects.filter(Year=year).update(**{month:total})
             all_show_digits = global_context(request)
@@ -633,14 +644,14 @@ def get_data(request):
             all_dict.update(all_show_digits)
             
             ip = get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Report '+str(sfg),request.META['HTTP_USER_AGENT'],str(sfg) +':工步'+str(op_id)+" Successful " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty))
+            # test_log_duplication(request.user.id,request.user.get_full_name(),'Report '+str(sfg),request.META['HTTP_USER_AGENT'],str(sfg) +':工步'+str(op_id)+" Successful " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty))
             return render(request, 'report/report_get.html', all_dict)
         except Exception as ex:    
             template = "保存失败"
             message = template + json.dumps(ex.args)
             # save failed message 
             ip = get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Report'+str(sfg),request.META['HTTP_USER_AGENT'],str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
+            # test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
             all_show_digits = global_context(request)
             local_jason1 = {
                 
@@ -656,14 +667,17 @@ def get_data(request):
     else:
         f_user = User.objects.get(id=request.user.id)
         ip = get_client_ip(request)
-        username = request.user.get_full_name()
+        # username = request.user.get_full_name()
         action_log = '制造工时Qty多次提交' 
         detail_message = request.META['HTTP_USER_AGENT']
         comments = str(sfg) +':工步'+str(op_id)+" Failed, " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty)
-        test_log_duplication(request.user.id,request.user.get_full_name(),action_log,request.META['HTTP_USER_AGENT'],comments)
+        test_log_duplication(request.user.id,request.user.get_full_name(),action_log,detail_message,comments)
         # query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
         # query.save()
-        return render(request, 'report/report_get.html')
+        message = '数量已经为1，无法再添加，请联系班组长进行修改！'
+        return render(request, 'report/report_get.html',{
+            'error_message':message,
+        })
         
     #制造工时
     # real_time = request.POST['real_time']
@@ -770,8 +784,8 @@ def supportive_time(request):
         comments=comments,groups=user_group,vertical=vertical)
 
         query.save()
-        ip = get_client_ip(request)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Successful '+ip  +'Date: '+date_time)
+        # ip = get_client_ip(request)
+        # test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Successful '+ip  +'Date: '+date_time)
         save_message="保存成功"
         # get global info
         all_show_digits = global_context(request)
@@ -788,8 +802,8 @@ def supportive_time(request):
     except Exception as ex:    
         template = "保存失败"
         message = template + json.dumps(ex.args)
-        ip=get_client_ip(request)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Failed '+json.dumps(ex.args) +'Date: '+date_time)
+        # ip=get_client_ip(request)
+        # test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Failed '+json.dumps(ex.args) +'Date: '+date_time)
         local_jason = {
            
             'supportive_error_message':message,
@@ -1375,7 +1389,7 @@ def group_statistic(request):
     groups = request.GET.get('group')
     user = User.objects.get(id=request.user.id)
     require_user_groups = user.groups
-    
+   ### check if the use has the group 
     pemsion_check = False
     for i in require_user_groups.select_related():
         if groups in i.name:
@@ -1421,8 +1435,11 @@ def group_statistic(request):
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
-        trans_time = getTransTime(request,month,year)
-        
+        if check: 
+            trans_time = getTransTime(request,month,year)
+            trans_time=trans_time.to_html()
+        else:
+            trans_time=None
         oper_bar = op_bar(anls_opcounts)
         if month ==0:
             month = '全年'
@@ -1443,7 +1460,7 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
-            'trans_time':trans_time.to_html(),
+            'trans_time':trans_time
             
         })
     else:
@@ -1795,12 +1812,13 @@ def dashBoard(request):
         data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,group,month,all_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
-
+        # perform = standardTime(anls_result.drop(anls_result.index[len(anls_result.index)-1]),anls_opcounts)
         oper_bar = op_bar(anls_opcounts)
         return render(request,'report/dashboard.html',{
             'employee_bar':employee_bar,
             'employee_eff_bar':employee_eff_bar,
             'oper_bar':oper_bar,
+            # 'perform':perform,
 
         })
     else:

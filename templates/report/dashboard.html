@@ -4,9 +4,21 @@
     <script src="{% static 'js/echarts.js' %}"></script>
     <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
 
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="3600">
+</head>
 <div>
-    {{employee_bar}}
-    {{employee_eff_bar}}
-    {{oper_bar}}
+    <div style='float:left;width:45%;height:50%;border:1px solid black'>
+        
+        {{employee_bar}}
+    </div>
+    <div style='float:left;width:45%;height:50%;border:1px solid black'>
+        {{employee_eff_bar}}
+    </div>
+    <div style='float:left;width:45%;height:50%;border:1px solid black'>
+        {{oper_bar}} 
+    </div>
+    {{perform}}
 
 </div>

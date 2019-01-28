@@ -1,4 +1,4 @@
-from pyecharts import Bar,Pie
+from pyecharts import Bar,Pie,Grid
 
 #### 统计表业绩
 def eply_kpi_bar(data):
@@ -51,4 +51,28 @@ def support_bar(data,month):
     #     bar.add('',month_list, data.iloc[0],is_legend_show=True,is_label_show=True,legend_orient='vertical',legend_pos='right',
     #         is_toolbox_show=False)
     return bar.render_embed()
-    
+
+### get standard time
+def standardTime(data,op):
+    bar = Bar(title='产出工时',title_pos='71%',title_top='1%',width='100%')
+    bar.add('',data['用户'],data['个人绩效'], legend_pos='38%',legend_top='7%',mark_line_raw=[{'yAxis': 1.2}],is_label_show=True,
+        is_toolbox_show =False,xaxis_rotate=30)
+    bar1 = Bar("制造工效比",title_pos="10%",title_top='1%',width='100%')
+    bar1.add('',data['用户'],round(data['工效比'],2),legend_pos='38%',legend_top='7%',mark_line_raw=[{'yAxis': 1.2}],is_label_show=True,
+        is_toolbox_show =False,xaxis_rotate=30)
+    bar2 = Bar("工时有效率",title_pos="71%",title_top='51%',width='100%')
+    bar2.add('',data['用户'],round(data['工时有效率'],2),label_color=['#2f4554'],legend_pos='38%',legend_top='7%',mark_line_raw=[{'yAxis': 0.75}],is_label_show=True,is_toolbox_show =False,xaxis_rotate=30)
+    bar3 = Bar("工步统计",title_pos="10%",title_top='51%',width='100%')
+    name = []
+    qty = []
+    for i in range(len(op)):
+        name.append(op[i]['op_name'])
+        qty.append(op[i]['qty'])
+
+    bar3.add('工步',name,qty,is_legend_show=False,label_color=['#FFB90F'],is_label_show=True,is_toolbox_show =False,xaxis_rotate=30)
+    grid = Grid(width='100%',height='100%')
+    grid.add(bar,grid_bottom='60%',grid_left='60%')
+    grid.add(bar1, grid_bottom='60%',grid_right='60%')
+    grid.add(bar2,grid_top='60%',grid_left='60%')
+    grid.add(bar3,grid_top='60%',grid_right='60%')
+    return grid.render_embed()

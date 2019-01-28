@@ -12,6 +12,7 @@ from report.models import TraceLog
 from django.template import loader
 from pyecharts import Line3D
 import math
+from time import sleep
 # check login details and redirect
 REMOTE_HOST = "https://pyecharts.github.io/assets/js"
 
@@ -229,3 +230,5 @@ def updateShortageData(request):
    
     update_shortage_list['shortageMessage'] = json.dumps(results)
     return render(request,'op/updateList.html',update_shortage_list)
+
+   
