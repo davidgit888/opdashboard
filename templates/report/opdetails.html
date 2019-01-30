@@ -1,0 +1,33 @@
+
+    {% load staticfiles %}
+
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
+    <script src="{% static 'js/jquery.tablesorter.js' %}"></script>
+    <link href="{% static 'css/table.css' %}" rel="stylesheet">
+<script>
+    window.onload=function(){
+         $(function() {
+        
+                $("table").tablesorter({
+                    theme : 'blue',
+
+                    dateFormat : "yyyymmdd", // set the default date format
+
+                    // or to change the format for specific columns, add the dateFormat to the headers option:
+                    headers: {
+                    0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                    // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                    // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                    }
+
+                });
+                });
+    }
+</script>
+<div>
+    {% autoescape off %}
+        {{table}}
+    {% endautoescape %}
+    
+</div>

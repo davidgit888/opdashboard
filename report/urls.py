@@ -29,6 +29,7 @@ urlpatterns = [
     path('search_docinfo/',views.search_docinfo),
     path('update_docinfo/',views.update_docinfo),
     path('dashboard/', views.dashBoard),
+    path('opdetails/',views.opdetails),
     
     #path('upload_excel/',)
 ]

@@ -1404,6 +1404,16 @@ def updateEchartOp(table):
     op142 = len(table[16][table[16]==1])
     return op51,op142 
 
+def opdetails(request):
+    table = opCompletTable()
+    for i in range(len(table.columns)):
+        op_name = Op.objects.get(id=table.columns[i]).op_name
+        table = table.rename(columns={table.columns[i]:op_name})
+    table.columns.name='工步'
+    table.index.name='SFG'
+    return render(request,'report/opdetails.html',{
+        'table':table.to_html(),
+    })
 
 # get popup window in 统计表
 def group_statistic(request):

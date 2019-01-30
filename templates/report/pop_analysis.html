@@ -160,6 +160,9 @@
                                 </tbody>
 
                             </table>
+                            {% if request.user.username in 'admin,pengpeng,liuxinxin,caolong' %}
+                                <a href='/report/opdetails/'>a link</a>
+                            {% endif %}
                         </div>
                         <br/>
                         <div >
