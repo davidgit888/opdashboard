@@ -594,40 +594,44 @@ def get_data(request):
             month = calendar.month_abbr[input_month.month]
             ## save to InstalledCmm, DeliveredCmm
             sleep(0.5)
-            if op_id=='51':
-                # return HttpResponse('Yes 51')
-                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
-                sfg_qty_total = 0
-                if len(sfg_qty) !=0:
-                    for i in range(len(sfg_qty)):
-                        sfg_qty_total += sfg_qty[i][0]
-                result = InstalledCmm.objects.filter(Year=year).values()
-                if len(result) == 0:
-                    query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
-                    query.save()
-                # string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
-                # return HttpResponse(string)
-                if round(sfg_qty_total,3) ==1: 
-                    total = result[0][month]
-                    total += 1
-                    # return HttpResponse(total)
-                    InstalledCmm.objects.filter(Year=year).update(**{month:total})
-            if op_id=='142':
+            if op_id=='51' or op_id=='142':
+                # # return HttpResponse('Yes 51')
+                # sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
+                # sfg_qty_total = 0
+                # if len(sfg_qty) !=0:
+                #     for i in range(len(sfg_qty)):
+                #         sfg_qty_total += sfg_qty[i][0]
+                # result = InstalledCmm.objects.filter(Year=year).values()
+                # if len(result) == 0:
+                #     query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                #     query.save()
+                # # string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
+                # # return HttpResponse(string)
+                # if round(sfg_qty_total,3) ==1: 
+                #     total = result[0][month]
+                #     total += 1
+                #     # return HttpResponse(total)
+                #     InstalledCmm.objects.filter(Year=year).update(**{month:total})
+                op_table=opCompletTable()
+                op51,op142 = updateEchartOp(op_table)
+                InstalledCmm.objects.filter(Year=year).update(**{month:op51})
+                DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
+            # if op_id=='142':
                
-                sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
-                sfg_qty_total = 0
-                if len(sfg_qty) != 0:
-                    for i in range(len(sfg_qty)):
-                        sfg_qty_total += sfg_qty[i][0] 
-                result_deli = DeliveredCmm.objects.filter(Year=year).values()
-                if len(result_deli) == 0:
-                    query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
-                    query.save()
-                if round(sfg_qty_total,3) ==1:
-                    total = result_deli[0][month]
-                    total += 1
-                    # return HttpResponse(total)
-                    DeliveredCmm.objects.filter(Year=year).update(**{month:total})
+            #     sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
+            #     sfg_qty_total = 0
+            #     if len(sfg_qty) != 0:
+            #         for i in range(len(sfg_qty)):
+            #             sfg_qty_total += sfg_qty[i][0] 
+            #     result_deli = DeliveredCmm.objects.filter(Year=year).values()
+            #     if len(result_deli) == 0:
+            #         query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+            #         query.save()
+            #     if round(sfg_qty_total,3) ==1:
+            #         total = result_deli[0][month]
+            #         total += 1
+            #         # return HttpResponse(total)
+            #         DeliveredCmm.objects.filter(Year=year).update(**{month:total})
             all_show_digits = global_context(request)
             save_message="保存成功"
             local_jason = {
@@ -1341,6 +1345,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     results = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids,op_id__in=all_op_id).values()
     df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
     table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
+    table = table.round(2)
     data_opcounts = table[table==1]
 
 
@@ -1381,6 +1386,24 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         over_user.append(user)
     over_time_total.index=over_user
     return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total
+
+def opCompletTable():
+    today = date.today()
+    from_date = today.replace(day=1)
+    
+    result = Report.objects.filter(date__range=(from_date,today)).values()
+    df = pd.DataFrame(list(result),columns=['sfg_id','op_id_id','qty'])
+    table = pd.pivot_table(df,index=['sfg_id'],columns=['op_id_id'],aggfunc=np.sum)
+    table = table.fillna(0)
+    table.columns=table.columns.droplevel()
+    table = table.round(2)
+    return table
+
+def updateEchartOp(table):
+    op51 = len(table[5][table[5]==1])
+    op142 = len(table[16][table[16]==1])
+    return op51,op142 
+
 
 # get popup window in 统计表
 def group_statistic(request):

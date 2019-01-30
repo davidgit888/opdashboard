@@ -2,7 +2,10 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .productionUpdate import updateProduction
-from report.views import dashBoard
+from report.views import dashBoard,updateEchartOp,opCompletTable
+from .models import InstalledCmm, DeliveredCmm
+from datetime import date
+import calendar
 
 @login_required
 def Installed_CMM(request):
@@ -30,8 +33,16 @@ def Waiting_Order_and_Inventory(request):
 
 @login_required
 def produced(rquest):
+    
+    # dashBoard(rquest)
+    table = opCompletTable()
+    op51,op142 = updateEchartOp(table)
+    today = date.today()
+    year = today.year
+    month = calendar.month_abbr[today.month]
+    InstalledCmm.objects.filter(Year=year).update(**{month:op51})
+    DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
     results = updateProduction()
-    dashBoard(rquest)
     return render(rquest, 'op/生产制造.html')
 
 @login_required
