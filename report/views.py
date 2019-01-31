@@ -593,7 +593,7 @@ def get_data(request):
             input_month = datetime.strptime(date_time,"%Y-%m-%d")
             month = calendar.month_abbr[input_month.month]
             ## save to InstalledCmm, DeliveredCmm
-            sleep(0.5)
+            # sleep(0.5)
             if op_id=='51' or op_id=='142':
                 # # return HttpResponse('Yes 51')
                 # sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
@@ -612,7 +612,7 @@ def get_data(request):
                 #     total += 1
                 #     # return HttpResponse(total)
                 #     InstalledCmm.objects.filter(Year=year).update(**{month:total})
-                op_table=opCompletTable()
+                op_table=opCompletTable(input_month.replace(day=1),date_time)
                 op51,op142 = updateEchartOp(op_table)
                 InstalledCmm.objects.filter(Year=year).update(**{month:op51})
                 DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
@@ -1387,9 +1387,9 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     over_time_total.index=over_user
     return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total
 
-def opCompletTable():
-    today = date.today()
-    from_date = today.replace(day=1)
+def opCompletTable(from_date,today):
+    # today = date.today()
+    # from_date = today.replace(day=1)
     
     result = Report.objects.filter(date__range=(from_date,today)).values()
     df = pd.DataFrame(list(result),columns=['sfg_id','op_id_id','qty'])

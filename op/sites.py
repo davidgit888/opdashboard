@@ -33,11 +33,12 @@ def Waiting_Order_and_Inventory(request):
 
 @login_required
 def produced(rquest):
-    
-    # dashBoard(rquest)
-    table = opCompletTable()
-    op51,op142 = updateEchartOp(table)
     today = date.today()
+    # dashBoard(rquest)
+    from_date = today.replace(day=1)
+    table = opCompletTable(from_date,today)
+    op51,op142 = updateEchartOp(table)
+    
     year = today.year
     month = calendar.month_abbr[today.month]
     InstalledCmm.objects.filter(Year=year).update(**{month:op51})
