@@ -592,6 +592,8 @@ def get_data(request):
             year = today.year
             input_month = datetime.strptime(date_time,"%Y-%m-%d")
             month = calendar.month_abbr[input_month.month]
+            last_day = calendar.monthrange(year,input_month.month)
+
             ## save to InstalledCmm, DeliveredCmm
             # sleep(0.5)
             if op_id=='51' or op_id=='142':
@@ -612,10 +614,11 @@ def get_data(request):
                 #     total += 1
                 #     # return HttpResponse(total)
                 #     InstalledCmm.objects.filter(Year=year).update(**{month:total})
-                op_table=opCompletTable(input_month.replace(day=1),date_time)
-                op51,op142 = updateEchartOp(op_table)
-                InstalledCmm.objects.filter(Year=year).update(**{month:op51})
-                DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
+                op_table=opCompletTable(input_month.replace(day=1),input_month.replace(day=last_day[1]))
+                if len(op_table) != 0:
+                    op51,op142 = updateEchartOp(op_table)
+                    InstalledCmm.objects.filter(Year=year).update(**{month:op51})
+                    DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
             # if op_id=='142':
                
             #     sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
@@ -1390,19 +1393,32 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
 def opCompletTable(from_date,today):
     # today = date.today()
     # from_date = today.replace(day=1)
-    
+    ###### get values
     result = Report.objects.filter(date__range=(from_date,today)).values()
     df = pd.DataFrame(list(result),columns=['sfg_id','op_id_id','qty'])
     table = pd.pivot_table(df,index=['sfg_id'],columns=['op_id_id'],aggfunc=np.sum)
     table = table.fillna(0)
-    table.columns=table.columns.droplevel()
-    table = table.round(2)
+    try:
+        table.columns=table.columns.droplevel()
+        table = table.round(2)
+    except:
+        table = ''
+    
     return table
 
 def updateEchartOp(table):
-    op51 = len(table[5][table[5]==1])
-    op142 = len(table[16][table[16]==1])
-    return op51,op142 
+    if len(table) != 0:
+        if 5 in table.columns:
+            op51 = len(table[5][table[5]==1])
+        else:
+            op51 = 0
+        if 16 in table.columns:
+            op142 = len(table[16][table[16]==1])
+        else:
+            op142 = 0
+        return op51,op142 
+    else:
+        return 0,0
 
 def opdetails(request):
     table = opCompletTable()
