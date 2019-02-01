@@ -1120,7 +1120,7 @@ def report_analysis(request):
             # all_user_ids = user_work_group_ids(group,date.today())
             p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
             #数据组
-            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
             if data_group:
                 anls_group = data_group[0]
             else:
@@ -1350,9 +1350,8 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
     table = table.round(2)
     data_opcounts = table[table==1]
-
-
-
+    
+   
     op_count_total = []
     for i in range(len(data_opcounts.columns)):
         a={}
@@ -1361,6 +1360,17 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         a['op_name'] = op_name
         a['qty'] = qty
         op_count_total.append(a)
+        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
+    # data_opcounts = table.fillna(0)
+    # data_opcounts=data_opcounts.fillna(0)
+    # data_opcounts.columns = data_opcounts.columns.droplevel()
+    # for i in range(len(data_opcounts.columns)):
+    #     op_name = Op.objects.get(id=data_opcounts.columns[i]).op_name
+    #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i]:op_name})
+    data_opcounts = data_opcounts.fillna(0)
+    data_opcounts.index.name='SFG'
+    data_opcounts.columns.name = '工步'
+
 
     # supportive time analyze
     sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
@@ -1388,7 +1398,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         user=User.objects.get(id=over_time_total.index[i]).get_full_name()
         over_user.append(user)
     over_time_total.index=over_user
-    return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total
+    return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts
 
 def opCompletTable(from_date,today):
     # today = date.today()
@@ -1421,7 +1431,9 @@ def updateEchartOp(table):
         return 0,0
 
 def opdetails(request):
-    table = opCompletTable()
+    today = date.today()
+    from_date = today.replace(day=1)
+    table = opCompletTable(from_date,today)
     for i in range(len(table.columns)):
         op_name = Op.objects.get(id=table.columns[i]).op_name
         table = table.rename(columns={table.columns[i]:op_name})
@@ -1475,12 +1487,12 @@ def group_statistic(request):
         
         support_list = []
         for i in range(1,13):
-            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,i,all_user_ids,all_op_id,year)
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_group,i,all_user_ids,all_op_id,year)
             support_list.append(sup_not_bor_total)
         
         
         supp_bar = support_bar(support_list,month)
-        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
+        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
@@ -1509,7 +1521,8 @@ def group_statistic(request):
             'employee_eff_bar':employee_eff_bar,
             'op_bar':oper_bar,
             'supp_bar':supp_bar,
-            'trans_time':trans_time
+            'trans_time':trans_time,
+            'data_opcounts':data_opcounts.to_html(),
             
         })
     else:
@@ -1858,7 +1871,7 @@ def dashBoard(request):
         group = user.work_group.group_name
         all_ids = workGroupId('数据-装配组A')
         all_user_ids, all_op_id, user_groups = analysis_op_user(request)
-        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total = perform_analysis(request,group,month,all_ids,all_op_id,year)
+        data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,group,month,all_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         # perform = standardTime(anls_result.drop(anls_result.index[len(anls_result.index)-1]),anls_opcounts)
@@ -1882,13 +1895,16 @@ def getTransTime(request, month, year):
     to_date = today.replace(year=int(year),month=int(month),day=date_range[1])
     res = GroupPerform.objects.filter(date__range=(from_date,to_date)).values_list('group','work_group','natural_time')
     df = pd.DataFrame(list(res))
-    data = df[df[0]!=df[1]]
-    piv = pd.pivot_table(data,index=0,columns=1,aggfunc=np.sum)
-    piv.columns = piv.columns.droplevel()
-    piv = piv.fillna(0)
-    piv.columns.name='借调班组'
-    piv.index.name='原班组'
-    return piv
+    if len(df) !=0:
+        data = df[df[0]!=df[1]]
+        piv = pd.pivot_table(data,index=0,columns=1,aggfunc=np.sum)
+        piv.columns = piv.columns.droplevel()
+        piv = piv.fillna(0)
+        piv.columns.name='借调班组'
+        piv.index.name='原班组'
+        return piv
+    else:
+        return pd.DataFrame()
 
 
 
