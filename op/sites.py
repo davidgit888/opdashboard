@@ -33,8 +33,8 @@ def Waiting_Order_and_Inventory(request):
 
 @login_required
 def produced(rquest):
+    #### update this month data
     today = date.today()
-    # dashBoard(rquest)
     from_date = today.replace(day=1)
     table = opCompletTable(from_date,today)
     op51,op142 = updateEchartOp(table)

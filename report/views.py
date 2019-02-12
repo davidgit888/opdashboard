@@ -1353,6 +1353,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     
    
     op_count_total = []
+    #### swich op id to op name
     for i in range(len(data_opcounts.columns)):
         a={}
         op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
@@ -1367,11 +1368,19 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     # for i in range(len(data_opcounts.columns)):
     #     op_name = Op.objects.get(id=data_opcounts.columns[i]).op_name
     #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i]:op_name})
-    data_opcounts = data_opcounts.fillna(0)
+
+    ##### new code
+    # data_opcounts = data_opcounts.fillna(0)
+    # data_opcounts.index.name='SFG'
+    # data_opcounts.columns.name = '工步'
+    data_opcounts = table.fillna(0)
+    
+    for i in range(len(data_opcounts.columns)):
+        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name,data_opcounts.columns[i][0]:'数量'})
+    # data_opcounts.columns = data_opcounts.columns.droplevel()
     data_opcounts.index.name='SFG'
-    data_opcounts.columns.name = '工步'
-
-
+    
     # supportive time analyze
     sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
     sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
@@ -1889,10 +1898,15 @@ def dashBoard(request):
 ### get temporary transfer of employees
 @login_required(login_url='/accounts/login/')  
 def getTransTime(request, month, year):
-    today = date.today()
-    date_range=monthrange(int(year),int(month))
-    from_date = today.replace(year=int(year),month=int(month),day=1)
-    to_date = today.replace(year=int(year),month=int(month),day=date_range[1])
+    if month == 0:
+        today = date.today()
+        from_date = today.replace(year=int(year),month=1,day=1)
+        to_date = today.replace(year=int(year),month=12,day=31)
+    else:
+        today = date.today()
+        date_range=monthrange(int(year),int(month))
+        from_date = today.replace(year=int(year),month=int(month),day=1)
+        to_date = today.replace(year=int(year),month=int(month),day=date_range[1])
     res = GroupPerform.objects.filter(date__range=(from_date,to_date)).values_list('group','work_group','natural_time')
     df = pd.DataFrame(list(res))
     if len(df) !=0:
