@@ -475,7 +475,7 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-# get user's work groups in UserGroup table
+# get login user's work groups in UserGroup table
 def user_work_group(request):
     user = UserGroups.objects.filter(user=request.user.id)
     if user:
@@ -1409,6 +1409,8 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     over_time_total.index=over_user
     return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts
 
+
+##### get all completed op
 def opCompletTable(from_date,today):
     # today = date.today()
     # from_date = today.replace(day=1)
@@ -1439,6 +1441,9 @@ def updateEchartOp(table):
     else:
         return 0,0
 
+
+
+### get opDetails
 def opdetails(request):
     today = date.today()
     from_date = today.replace(day=1)
@@ -1451,6 +1456,57 @@ def opdetails(request):
     return render(request,'report/opdetails.html',{
         'table':table.to_html(),
     })
+
+
+### get group performance accroding to work group and assign kpi to according group not default group
+def workTimeAnalysis(group,month,year):
+    if month and year:
+        end_date = calendar.monthrange(year,month)
+        today = date.today()
+        from_date = today.replace(year=year,month=month,day=1)
+        to_date = today.replace(year=year,month=month,day=end_date[1])
+    else:
+        return HttpResponse('No date selected')
+    results = GroupPerform.objects.filter(work_group=group,date__range=(from_date,to_date)).values()
+    df = pd.DataFrame(list(results), columns=['user','natural_time','performance','standard_time','real_time',
+    'supportive_time','borrow_time','date','username','group'])
+    # data = df.groupby(['user']).sum() # Group all users performance per
+    if len(df) != 0:
+        data = pd.pivot_table(df, index=['user'],values=['natural_time','performance','standard_time','real_time',
+        'supportive_time','borrow_time'], aggfunc=np.sum) #{'natural_time':np.sum,'performance':np.sum,'standard_time':np.sum,'real_time':np.sum,
+        # 'supportive_time':np.sum,'borrow_time':np.sum,'kpi':np.mean,'efficiency':np.mean})
+        cols = ['natural_time','performance','standard_time','real_time',
+        'supportive_time','borrow_time','kpi','efficiency']
+        data.index.name='用户'
+        data['kpi']=round(data['standard_time']/data['real_time'],2)
+        data['efficiency']=round(data['real_time']/(data['real_time'] + data['supportive_time']),2)
+        data = data[cols]
+        
+        total = data.sum()
+        
+        total.name = '总和'
+        mean_kpi = round(total['standard_time']/total['real_time'],2)
+        # data_efficiency = data[data['efficiency' ]!=0]
+        # data_kpi = data[data['kpi'] !=0]
+        
+        mean_efficiency = round(total['real_time']/(total['real_time'] + total['supportive_time']),2)
+        total['kpi'] = round(mean_kpi,2)
+        total['efficiency'] = round(mean_efficiency,2)
+        
+        data = data.append(total)
+        data = data.fillna(0.0)
+        data = data.reset_index()
+    else:
+        a = {'natural_time':[0,0],'performance':[0,0],'standard_time':[0,0],'real_time':[0,0],
+        'supportive_time':[0,0],'borrow_time':[0,0],'kpi':[0,0],'efficiency':[0,0]}
+        data = pd.DataFrame(data=a,index=['数据','汇总'])
+    # data total for each person performance
+    
+    data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
+     "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
+    
+    
+    return data
 
 # get popup window in 统计表
 def group_statistic(request):
@@ -1489,9 +1545,12 @@ def group_statistic(request):
                 all_user_ids.append(all_users[i].id)
             for i in range(len(ops)):
                 all_op_id.append(ops[i].op_id)
-            
+            # work_time_anls_group = user_work_group(request)
+            work_time_anls = workTimeAnalysis(groups,month,year)
+            work_time_anls_table = work_time_anls.to_html(index=None)
         else:
             all_user_ids, all_op_id, user_group = analysis_op_user(request)
+            work_time_anls_table = None
             # return HttpResponse(all_user_ids)
         
         support_list = []
@@ -1508,6 +1567,7 @@ def group_statistic(request):
         if check: 
             trans_time = getTransTime(request,month,year)
             trans_time=trans_time.to_html()
+
         else:
             trans_time=None
         oper_bar = op_bar(anls_opcounts)
@@ -1532,6 +1592,7 @@ def group_statistic(request):
             'supp_bar':supp_bar,
             'trans_time':trans_time,
             'data_opcounts':data_opcounts.to_html(),
+            'work_time_anls_table':work_time_anls_table,
             
         })
     else:

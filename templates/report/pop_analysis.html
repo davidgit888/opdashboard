@@ -145,6 +145,13 @@
                                     
                                     {% endautoescape %}
                         </div>
+                        {% comment %} work time analysis according to work group not default group {% endcomment %}
+                        <div>
+                            <h2>工时分析</h2>
+                            {% autoescape off %}
+                                {{work_time_anls_table}}
+                            {% endautoescape %}
+                        </div>
                         <div>
                         <h2>工步总数统计</h2>
                             <table border=1>
