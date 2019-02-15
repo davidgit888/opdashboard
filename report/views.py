@@ -446,12 +446,13 @@ def save_overtime_data(request):
         query=OverTime(user=f_user,over_time=over_time,over_time_type=over_time_type,is_paid=is_paid,date=date,groups=user_group)
         query.save()
         check='Y'
-        # test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Successful','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+        test_log_duplication(request.user.id,request.user.get_full_name(),'添加加班 Successful','加班种类 '+over_time_type +',付钱：'+str(is_paid)+',加班数：'+
+        str(over_time),'时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
         return HttpResponse(json.dumps(check), content_type='application/json')
     except Exception as ex:    
         template = "加班工时保存失败"
         message = template + json.dumps(ex.args)
-        # test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+        test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
         return HttpResponse(json.dumps(message), content_type='application/json')
 
 def test_log_duplication(user,username,action,detail,comments):
@@ -650,15 +651,15 @@ def get_data(request):
             all_dict = local_jason.copy()
             all_dict.update(all_show_digits)
             
-            ip = get_client_ip(request)
-            # test_log_duplication(request.user.id,request.user.get_full_name(),'Report '+str(sfg),request.META['HTTP_USER_AGENT'],str(sfg) +':工步'+str(op_id)+" Successful " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty))
+            # ip = get_client_ip(request)
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Report add',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
             return render(request, 'report/report_get.html', all_dict)
         except Exception as ex:    
             template = "保存失败"
             message = template + json.dumps(ex.args)
             # save failed message 
-            ip = get_client_ip(request)
-            # test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
+            # ip = get_client_ip(request)
+            test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
             all_show_digits = global_context(request)
             local_jason1 = {
                 
@@ -673,11 +674,11 @@ def get_data(request):
             return HttpResponseRedirect("#")
     else:
         f_user = User.objects.get(id=request.user.id)
-        ip = get_client_ip(request)
+        # ip = get_client_ip(request)
         # username = request.user.get_full_name()
         action_log = '制造工时Qty多次提交' 
-        detail_message = request.META['HTTP_USER_AGENT']
-        comments = str(sfg) +':工步'+str(op_id)+" Failed, " +ip +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty)
+        detail_message = "Failed"
+        comments = str(sfg) +':工步'+str(op_id)+" Failed, "  +'Date: '+date_time +'Date: '+date_time +'数量为: '+str(qty)
         test_log_duplication(request.user.id,request.user.get_full_name(),action_log,detail_message,comments)
         # query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
         # query.save()
@@ -792,7 +793,11 @@ def supportive_time(request):
 
         query.save()
         # ip = get_client_ip(request)
-        # test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Successful '+ip  +'Date: '+date_time)
+        test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add','休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
+        ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
+        ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
+        ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
+        ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
         save_message="保存成功"
         # get global info
         all_show_digits = global_context(request)
@@ -810,7 +815,7 @@ def supportive_time(request):
         template = "保存失败"
         message = template + json.dumps(ex.args)
         # ip=get_client_ip(request)
-        # test_log_duplication(request.user.id,request.user.get_full_name(),'Support',request.META['HTTP_USER_AGENT'],'Failed '+json.dumps(ex.args) +'Date: '+date_time)
+        test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add',"Failed",'Failed '+json.dumps(ex.args) +'Date: '+date_time)
         local_jason = {
            
             'supportive_error_message':message,
@@ -894,6 +899,10 @@ def get_groups(request):
 def analysis_op_user(request):
     username = request.user.username
     #result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
+    all_work_groups = []
+    wgroup_data = WorkGroups.objects.all().values()
+    for i in range(len(wgroup_data)):
+        all_work_groups.append(wgroup_data[i]['group_name'])
 
     user_groups = []
     all_user=['testa','testb','testp','testsm','teste']
@@ -995,8 +1004,9 @@ def analysis_op_user(request):
         all_user_ids.remove(1)
     if len(user_groups) >2:
         user_groups.append('ALL')
+        all_work_groups.append('ALL')
    
-    return all_user_ids, all_op_id,user_groups
+    return all_user_ids, all_op_id,user_groups,all_work_groups
 
 # check if use is report module manager
 def is_report_manager(request):
@@ -1029,7 +1039,7 @@ def report_analysis(request):
         a_month = int(a_month)
 
  
-    all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+    all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
     is_manager = is_report_manager(request)
     # if user_manager_group:
     #     for i in range(len(user_manager_group)):
@@ -1146,7 +1156,7 @@ def report_analysis(request):
                 'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
                 'sup_bor_total':sup_bor_total.to_html(),
                 'over_time_total':over_time_total.to_html(),
-                'user_groups':user_groups,
+                'user_groups':all_work_groups,
 
                 
                 
@@ -1241,7 +1251,7 @@ def perform_pop(request):
     is_manager = is_report_manager(request)
     if is_manager:
         # manager can see all members
-        all_user_ids, all_op_id,user_groups = analysis_op_user(request)
+        all_user_ids, all_op_id,user_groups,all_work_groups = analysis_op_user(request)
     else:
         # forman can see only work group
         group = user_work_group(request)
@@ -1255,6 +1265,66 @@ def perform_pop(request):
         'p_save_status':p_save_status,
         'all_user_ids':all_user_ids,
     })
+
+###### return all op details and op count total
+def getOpDetails(from_date,to_date,user_groups,all_op_id):
+    
+    results = Report.objects.filter(date__range=(from_date,to_date),groups__in=user_groups,op_id__in=all_op_id).values()
+    df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
+    table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
+    table = table.round(2)
+    data_opcounts = table[table==1]
+    
+   
+    op_count_total = []
+    #### swich op id to op name
+    for i in range(len(data_opcounts.columns)):
+        a={}
+        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+        qty = data_opcounts['qty'][data_opcounts.columns[i][1]].sum()
+        a['op_name'] = op_name
+        a['qty'] = qty
+        op_count_total.append(a)
+        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
+    # data_opcounts = table.fillna(0)
+    # data_opcounts=data_opcounts.fillna(0)
+    # data_opcounts.columns = data_opcounts.columns.droplevel()
+    # for i in range(len(data_opcounts.columns)):
+    #     op_name = Op.objects.get(id=data_opcounts.columns[i]).op_name
+    #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i]:op_name})
+
+    ##### new code
+    # data_opcounts = data_opcounts.fillna(0)
+    # data_opcounts.index.name='SFG'
+    # data_opcounts.columns.name = '工步'
+    data_opcounts = table.fillna(0)
+    
+    for i in range(len(data_opcounts.columns)):
+        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name,data_opcounts.columns[i][0]:'数量'})
+    # data_opcounts.columns = data_opcounts.columns.droplevel()
+    data_opcounts.index.name='SFG'
+
+    return data_opcounts, op_count_total
+###### return supportive time without borrow and borrow time in 统计表
+def getSupportOpTime(from_date,to_date,user_groups):
+    sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),groups__in=user_groups).values()
+    sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
+    'granite','prob','shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair','equipment_mantainence',
+    'inventory_check','quality_check','document','conference','group_management','record','vertical','borrow_time','borrow_name','comments','date'])
+    sup_not_bor_total = sup_pd_data.sum()[1:21]
+    sup_not_bor_total= sup_not_bor_total.to_frame()
+    sup_not_bor_total = sup_not_bor_total.T.rename(columns={'rest':'休息','clean_time':'卫生','inside_group':'组内','outside_group':'组外','complete_machine':'整机',
+    'granite':'花岗石','prob':'物流搬运','shortage':'补缺件','plan_change':'计划调整','human_quality_issue_rework':'人为质量问题',
+    'item_quality_issue':'零件质量问题','human_quality_issue_repair':'人为质量问题返修','equipment_mantainence':'设备维护','inventory_check':'库存核查',
+    'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录','vertical':'线性/垂直度修正'})
+    
+    sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
+    sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()
+    sup_bor_total = sup_bor_total.rename(columns={'borrow_time':'外借工时'})
+    sup_bor_total.index.name='外借种类'
+
+    return sup_not_bor_total,sup_bor_total
 
 #统计表 op_total
 def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
@@ -1345,60 +1415,87 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     # data_total = data.sum(numeric_only=True)
 
     # get all total qty based on ops
-    results = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids,op_id__in=all_op_id).values()
-    df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
-    table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
-    table = table.round(2)
-    data_opcounts = table[table==1]
-    
-   
-    op_count_total = []
-    #### swich op id to op name
-    for i in range(len(data_opcounts.columns)):
-        a={}
-        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
-        qty = data_opcounts['qty'][data_opcounts.columns[i][1]].sum()
-        a['op_name'] = op_name
-        a['qty'] = qty
-        op_count_total.append(a)
-        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
-    # data_opcounts = table.fillna(0)
-    # data_opcounts=data_opcounts.fillna(0)
-    # data_opcounts.columns = data_opcounts.columns.droplevel()
-    # for i in range(len(data_opcounts.columns)):
-    #     op_name = Op.objects.get(id=data_opcounts.columns[i]).op_name
-    #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i]:op_name})
 
-    ##### new code
-    # data_opcounts = data_opcounts.fillna(0)
-    # data_opcounts.index.name='SFG'
-    # data_opcounts.columns.name = '工步'
-    data_opcounts = table.fillna(0)
+
+    #### old result ###
+    # results = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids,op_id__in=all_op_id).values()
+
+    # results = Report.objects.filter(date__range=(from_date,to_date),groups__in=user_groups,op_id__in=all_op_id).values()
+    # df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
+    # table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
+    # table = table.round(2)
+    # data_opcounts = table[table==1]
+    data_opcounts,op_count_total = getOpDetails(from_date,to_date,user_groups,all_op_id)
+   
+    # op_count_total = []
+    # #### swich op id to op name
+    # for i in range(len(data_opcounts.columns)):
+    #     a={}
+    #     op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+    #     qty = data_opcounts['qty'][data_opcounts.columns[i][1]].sum()
+    #     a['op_name'] = op_name
+    #     a['qty'] = qty
+    #     op_count_total.append(a)
+    #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
+    # # data_opcounts = table.fillna(0)
+    # # data_opcounts=data_opcounts.fillna(0)
+    # # data_opcounts.columns = data_opcounts.columns.droplevel()
+    # # for i in range(len(data_opcounts.columns)):
+    # #     op_name = Op.objects.get(id=data_opcounts.columns[i]).op_name
+    # #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i]:op_name})
+
+    # ##### new code
+    # # data_opcounts = data_opcounts.fillna(0)
+    # # data_opcounts.index.name='SFG'
+    # # data_opcounts.columns.name = '工步'
+    # data_opcounts = table.fillna(0)
     
-    for i in range(len(data_opcounts.columns)):
-        op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
-        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name,data_opcounts.columns[i][0]:'数量'})
-    # data_opcounts.columns = data_opcounts.columns.droplevel()
-    data_opcounts.index.name='SFG'
+    # for i in range(len(data_opcounts.columns)):
+    #     op_name = Op.objects.get(id=data_opcounts.columns[i][1]).op_name
+    #     data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name,data_opcounts.columns[i][0]:'数量'})
+    # # data_opcounts.columns = data_opcounts.columns.droplevel()
+    # data_opcounts.index.name='SFG'
     
     # supportive time analyze
-    sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
-    sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
-    'granite','prob','shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair','equipment_mantainence',
-    'inventory_check','quality_check','document','conference','group_management','record','vertical','borrow_time','borrow_name','comments','date'])
-    sup_not_bor_total = sup_pd_data.sum()[1:21]
-    sup_not_bor_total= sup_not_bor_total.to_frame()
-    sup_not_bor_total = sup_not_bor_total.T.rename(columns={'rest':'休息','clean_time':'卫生','inside_group':'组内','outside_group':'组外','complete_machine':'整机',
-    'granite':'花岗石','prob':'物流搬运','shortage':'补缺件','plan_change':'计划调整','human_quality_issue_rework':'人为质量问题',
-    'item_quality_issue':'零件质量问题','human_quality_issue_repair':'人为质量问题返修','equipment_mantainence':'设备维护','inventory_check':'库存核查',
-    'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录','vertical':'线性/垂直度修正'})
+    sup_not_bor_total,sup_bor_total = getSupportOpTime(from_date,to_date,user_groups)
+
+    ### old code
+    # sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
+    # sup_logs = SupportiveTime.objects.filter(date__range=(from_date,to_date),groups__in=user_groups).values()
+    # sup_pd_data =  pd.DataFrame(list(sup_logs), columns=['user','rest','clean_time','inside_group','outside_group','complete_machine',
+    # 'granite','prob','shortage','plan_change','human_quality_issue_rework','item_quality_issue','human_quality_issue_repair','equipment_mantainence',
+    # 'inventory_check','quality_check','document','conference','group_management','record','vertical','borrow_time','borrow_name','comments','date'])
+    # sup_not_bor_total = sup_pd_data.sum()[1:21]
+    # sup_not_bor_total= sup_not_bor_total.to_frame()
+    # sup_not_bor_total = sup_not_bor_total.T.rename(columns={'rest':'休息','clean_time':'卫生','inside_group':'组内','outside_group':'组外','complete_machine':'整机',
+    # 'granite':'花岗石','prob':'物流搬运','shortage':'补缺件','plan_change':'计划调整','human_quality_issue_rework':'人为质量问题',
+    # 'item_quality_issue':'零件质量问题','human_quality_issue_repair':'人为质量问题返修','equipment_mantainence':'设备维护','inventory_check':'库存核查',
+    # 'quality_check':'质量核查','document':'档案整理','conference':'会议','group_management':'班组管理','record':'记录','vertical':'线性/垂直度修正'})
     
-    sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
-    sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()
-    sup_bor_total = sup_bor_total.rename(columns={'borrow_time':'外借工时'})
-    sup_bor_total.index.name='外借种类'
+    # sup_bor_pd_data = sup_pd_data[['borrow_name','borrow_time']]
+    # sup_bor_total = sup_bor_pd_data.groupby(['borrow_name']).sum()
+    # sup_bor_total = sup_bor_total.rename(columns={'borrow_time':'外借工时'})
+    # sup_bor_total.index.name='外借种类'
+################
+
     # over_time_data = Report.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values_list('over_time','over_time_type')
-    over_time_data = OverTime.objects.filter(date__range=(from_date,to_date),user__in=all_user_ids).values()
+    # over_time_data = OverTime.objects.filter(date__range=(from_date,to_date),groups__in=user_groups).values()
+    # over_time_data = pd.DataFrame(list(over_time_data), columns=['user_id','over_time','over_time_type'])
+    # over_time_total = over_time_data.groupby(['user_id']).sum()
+    # over_time_total = over_time_total.rename(columns={'over_time':'加班工时'})
+    # over_user=[]
+    # for i in range(len(over_time_total)):
+    #     user=User.objects.get(id=over_time_total.index[i]).get_full_name()
+    #     over_user.append(user)
+    # over_time_total.index=over_user
+
+    ######## get over time total 
+    over_time_total = getOverTime(from_date,to_date,user_groups)
+    return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts
+
+######## return overtime total
+def getOverTime(from_date,to_date,user_groups):
+    over_time_data = OverTime.objects.filter(date__range=(from_date,to_date),groups__in=user_groups).values()
     over_time_data = pd.DataFrame(list(over_time_data), columns=['user_id','over_time','over_time_type'])
     over_time_total = over_time_data.groupby(['user_id']).sum()
     over_time_total = over_time_total.rename(columns={'over_time':'加班工时'})
@@ -1407,7 +1504,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         user=User.objects.get(id=over_time_total.index[i]).get_full_name()
         over_user.append(user)
     over_time_total.index=over_user
-    return data_groups, data, op_count_total, sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts
+    return over_time_total
 
 
 ##### get all completed op
@@ -1460,13 +1557,19 @@ def opdetails(request):
 
 ### get group performance accroding to work group and assign kpi to according group not default group
 def workTimeAnalysis(group,month,year):
+    today = date.today()
     if month and year:
         end_date = calendar.monthrange(year,month)
-        today = date.today()
+        
         from_date = today.replace(year=year,month=month,day=1)
         to_date = today.replace(year=year,month=month,day=end_date[1])
     else:
-        return HttpResponse('No date selected')
+        a = {'数据':[0,0]}
+        data = pd.DataFrame(data=a)
+    if month == 0:
+        from_date = today.replace(year=year,month=1,day=1)
+        to_date = today.replace(year=year,month=12,day=31)
+    
     results = GroupPerform.objects.filter(work_group=group,date__range=(from_date,to_date)).values()
     df = pd.DataFrame(list(results), columns=['user','natural_time','performance','standard_time','real_time',
     'supportive_time','borrow_time','date','username','group'])
@@ -1503,9 +1606,9 @@ def workTimeAnalysis(group,month,year):
     # data total for each person performance
     
     data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
-     "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
-    
-    
+    "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
+        
+        
     return data
 
 # get popup window in 统计表
@@ -1549,8 +1652,10 @@ def group_statistic(request):
             work_time_anls = workTimeAnalysis(groups,month,year)
             work_time_anls_table = work_time_anls.to_html(index=None)
         else:
-            all_user_ids, all_op_id, user_group = analysis_op_user(request)
-            work_time_anls_table = None
+            all_user_ids, all_op_id, user_group,all_work_groups = analysis_op_user(request)
+            a = {'数据':[0,0]}
+            work_time_anls_table = pd.DataFrame(data=a).to_html(index=None)
+             
             # return HttpResponse(all_user_ids)
         
         support_list = []
@@ -1564,6 +1669,7 @@ def group_statistic(request):
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
 
+        op_t_total = round(sup_not_bor_total.T.sum()[0],2)
         if check: 
             trans_time = getTransTime(request,month,year)
             trans_time=trans_time.to_html()
@@ -1593,6 +1699,7 @@ def group_statistic(request):
             'trans_time':trans_time,
             'data_opcounts':data_opcounts.to_html(),
             'work_time_anls_table':work_time_anls_table,
+            'op_t_total':op_t_total,
             
         })
     else:
@@ -1940,7 +2047,7 @@ def dashBoard(request):
         user = UserGroups.objects.get(user=request.user.id)
         group = user.work_group.group_name
         all_ids = workGroupId('数据-装配组A')
-        all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+        all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
         data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,group,month,all_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))

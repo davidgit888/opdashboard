@@ -171,7 +171,7 @@
                                 </tbody>
 
                             </table>
-                            {% if request.user.username in 'admin,pengpeng,liuxinxin,caolong' %}
+                            {% comment %} {% if request.user.username in 'admin,pengpeng,liuxinxin,caolong' %} {% endcomment %}
                                 {% comment %} <a href='/report/opdetails/'>工步详情</a> {% endcomment %}
                                 <input type="button" id='opdetails' value='工步详情'>
                                 <div id='optables' style="display:none">
@@ -180,7 +180,7 @@
                                     {{data_opcounts}}
                                     {% endautoescape %}
                                 </div>
-                            {% endif %}
+                            {% comment %} {% endif %} {% endcomment %}
                         </div>
                         <br/>
                         <div >
@@ -195,7 +195,7 @@
                             
                         </div>
                         <div width='100%'>
-                            <h2>辅助工时统计</h2>
+                            <h2>辅助工时统计(汇总{{op_t_total}})</h2>
                             {% autoescape off %}
                         
                             {{sup_not_bor_total}}

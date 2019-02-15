@@ -189,7 +189,7 @@ def adminUtl(request):
 
 @login_required(login_url='/accounts/login/')
 def log(request):
-    logs = LogEntry.objects.all()
+    logs = LogEntry.objects.all()[:1000]
     log_list = []
     for i in range(len(logs)):
         a = {}
@@ -208,7 +208,7 @@ def log(request):
         log_list.append(a)
     # list_logs = get_all_logs(logs)
     trace_log_l = []
-    trace_log = TraceLog.objects.all().values().order_by('-date')
+    trace_log = TraceLog.objects.all().values().order_by('-date')[:1000]
     for i in range(len(trace_log)):
         a = {}
         a['username']=trace_log[i]['username']
