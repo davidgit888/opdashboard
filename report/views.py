@@ -1156,7 +1156,7 @@ def report_analysis(request):
                 'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
                 'sup_bor_total':sup_bor_total.to_html(),
                 'over_time_total':over_time_total.to_html(),
-                'user_groups':all_work_groups,
+                'user_groups':user_groups,
 
                 
                 
