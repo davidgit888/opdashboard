@@ -450,7 +450,7 @@
                             <p>From: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             To: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
                             <span>筛选：</span><input type="text" id="filterName">
-                            <input type='submit' value='Submit'></p>
+                            <input type='submit' value='查询'></p>
                     </form>
                 </fieldset>
             </div>
@@ -538,7 +538,7 @@
                             <p>Date: <input id='p_perform_today' name='p_perform_today' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             <input type='hidden' value='dKpi'>
                             <span>筛选：</span><input type="text" id="filterName1">
-                            <input id='p_submit' type='submit' value='Submit'></p>
+                            <input id='p_submit' type='submit' value='查询'></p>
                     </form>
                 </fieldset>
             </div>
@@ -664,7 +664,7 @@
                                 <option value="{{i}}">{{i}}</option>
                             {% endfor %}
                         </select>
-                        <input id='a_submit' type='button' value='Submit'>
+                        <input id='a_submit' type='button' value='提交'>
                         {% autoescape off %}
                             <h2>{{anls_title}}</h2>
                             <p>{{anls_result}}</p>

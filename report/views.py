@@ -895,7 +895,7 @@ def get_groups(request):
 # def get_origin_group(ids):
     
 
-#get all op_ids and all_user_ids in 统计表
+#get all op_ids and all_user_ids in 统计表 accroding to login user's original groups. For finding users in foreman groups
 def analysis_op_user(request):
     username = request.user.username
     #result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
@@ -1052,6 +1052,10 @@ def report_analysis(request):
     #     all_user_ids.remove(1)
 
     work_group = user_work_group(request)
+    is_electronic = False
+    orginal_group = get_groups(request)
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
     
     if len(all_user_ids) != 0 and len(all_op_id) != 0:
         # if request.user.id==9:
@@ -1065,7 +1069,7 @@ def report_analysis(request):
         ####+++++++++++++++
         
         ##++++++++According to Work Group to filter the schedule results++++++
-        if is_manager:
+        if is_manager or is_electronic:
             items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
         else:
             items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
@@ -1249,7 +1253,11 @@ def perform_pop(request):
     #return HttpResponse(date)
     # all_user_ids, all_op_id, user_groups = analysis_op_user(request)
     is_manager = is_report_manager(request)
-    if is_manager:
+    is_electronic = False
+    orginal_group = get_groups(request)
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
+    if is_manager or is_electronic:
         # manager can see all members
         all_user_ids, all_op_id,user_groups,all_work_groups = analysis_op_user(request)
     else:
