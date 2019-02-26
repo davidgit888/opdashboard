@@ -161,6 +161,7 @@ class GroupPerform(models.Model):
     username = models.CharField(max_length=18,verbose_name='用户名',default=0)
     group = models.CharField(max_length=10,verbose_name='原班组',default='None')
     work_group = models.CharField(max_length=10,verbose_name='工作组',default='')
+    date_create = models.DateTimeField(auto_now=True)
     def __str__(self):
         return '%s %s %s %s %s %s %s %s %s %s %s %s %s' % (self.user, self.natural_time, self.performance, self.standard_time,self.real_time,
         self.supportive_time,self.borrow_time,self.kpi,self.efficiency,self.date,self.username,self.group,self.work_group)

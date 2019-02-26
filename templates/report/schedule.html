@@ -298,8 +298,8 @@
             allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
             for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
                 if(data[i][j+1000]>=1){
-                    allRows +='<td  style="background:green">'+data[i][j+10]+'</td>';
-                    allRows +='<td  style="background:green">'+data[i][j+100]+'</td>';
+                    allRows +='<td  style="background:#00EC00">'+data[i][j+10]+'</td>';
+                    allRows +='<td  style="background:#00EC00">'+data[i][j+100]+'</td>';
                 }
                 else if(data[i][j+10]=='---'){
                     allRows +='<td contenteditable="true">'+data[i][j+10]+'</td>';
@@ -585,7 +585,7 @@
             <br/>
             <div style="overflow:scroll" >
                 <br/><br/>
-                <label style='background:green'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
+                <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
                 <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
                 <a>导出表格</a>
                 <br/><br/>
