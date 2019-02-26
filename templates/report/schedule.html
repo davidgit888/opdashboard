@@ -7,6 +7,32 @@
 <link href="{% static 'css/table.css' %}" rel="stylesheet">
 <script src="{% static 'js/jquery.floatThead.js' %}"></script>
 <script>
+
+    //show qty that is not 1 in schedule module
+    function showQty(data,id){
+        //document.getElementById(id).style.display = "block";
+        document.getElementById(id).innerHTML = data;
+        document.getElementById(id).style.background = 'orange';
+        //console.log(data);
+        
+    }
+
+    function hideQty(data,id){
+        //document.getElementById(id).style.display = "none";
+        //window.alert=function(){};
+        document.getElementById(id).innerHTML = data.toString();
+        document.getElementById(id).style.background = 'yellow';
+    }
+
+    var schedule = '{{schedule_json|safe}}';
+    var data = $.parseJSON(schedule);
+    {% comment %} $(document).ready(function(){ 
+       
+        
+        //alert(Object.keys(data[0])['length']);  
+    }); {% endcomment %}
+
+    
     var today = new Date();
     var today_year = today.getFullYear();
     function support_time_log(){
@@ -183,23 +209,24 @@
         //scrolify($('#performance_table'), 650);
         
 
-    // sort date
-      $(function() {
-            // call the tablesorter plugin
-        $("table").tablesorter({
-            theme : 'blue',
+        // sort date
+        $(function() {
+                // call the tablesorter plugin
+            $("table").tablesorter({
+                theme : 'blue',
 
-            dateFormat : "yyyymmdd", // set the default date format
+                dateFormat : "yyyymmdd", // set the default date format
 
-            // or to change the format for specific columns, add the dateFormat to the headers option:
-            headers: {
-            0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
-            // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
-            // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
-            }
+                // or to change the format for specific columns, add the dateFormat to the headers option:
+                headers: {
+                0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                }
 
+            });
         });
-        });
+
         $("#a_submit").click(function(){
             
             var date = $('#a_month option:selected').val();
@@ -278,6 +305,36 @@
             checkboxes.prop('checked', $(this).is(':checked'));
         });
 
+        //form the schedule table
+        for(i=0;i<data.length;i++){
+            var allRows = '';
+            allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
+            for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
+                if(data[i][j+1000]>=1){
+                    allRows +='<td style="background:green">'+data[i][j+10]+'</td>';
+                    allRows +='<td style="background:green">'+data[i][j+100]+'</td>';
+                }
+                else if(data[i][j+10]=='---'){
+                    allRows +='<td>'+data[i][j+10]+'</td>';
+                    allRows +='<td>'+data[i][j+100]+'</td>';
+                }
+                else{
+                    ///// old data
+                    //allRows +='<td style="background:yellow">'+data[i][j+10]+'</td>';
+                    var user = "'"+data[i][j+10]+"'";
+                    allRows += '<td id="'+(i*100000+j)+'" style="background:yellow" onmouseover="showQty('+data[i][j+1000]+','+(i*100000+j)+
+                        ')" onmouseout="hideQty('+user.toString()+ ','+(i*100000+j)+
+                        ')">'+data[i][j+10]+'</td>';
+                    ////new 
+                    allRows +='<td style="background:yellow"> '+data[i][j+100]+'</td>';
+                }
+                
+            }
+            allRows += '</tr>';
+            $('#tblNeedsScrolling tbody ').append(allRows);
+            
+        }  
+
     }
     {% comment %} function syncscroll(obj)
         {
@@ -339,7 +396,7 @@
         scrolify($('#tblNeedsScrolling'), 640); // 160 is height
         }); {% endcomment %}
     
-    $(document).ready(function() {
+   $(document).ready(function() {
             var $table = $('#tblNeedsScrolling');
             $table.floatThead({
             scrollContainer: function($table){
@@ -347,7 +404,9 @@
             }
             });
         
-    });
+    }); 
+
+    
 
 </script>
 <style>
@@ -442,6 +501,7 @@
                 {{message}}
             {% endif %}
             <br/>
+            {{time_perform}}
             <div style='position:relative;left:18%;'>
                 <fieldset style = 'width:600px'>
                     <legend>查询</legend>
@@ -455,8 +515,12 @@
                 </fieldset>
             </div>
             <br/>
-            <div style="overflow:scroll " >
-                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'>
+            <div style="overflow:scroll" >
+                <br/><br/>
+                <label style='background:green'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
+                <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>
+                <br/><br/>
+                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'> 
                 
                     <thead>
                         <tr class = 'parent' style='text-align:center;font-size:14px'>
@@ -479,28 +543,30 @@
                             {% for i in op_list  %}
                                 <td class = 'tableHead' >员工</td>
                                 <td class = 'tableHead'  >日期</td>
+                                {% comment %} <td class = 'tableHead'>完成度</td> {% endcomment %}
 
                             {% endfor %}
                             
                         </thead>
-                        <tbody>
+                        <tbody id='schedule_tbody'>
 
                         </tr>
                     
-                    
+{% comment %}                     
                                 {% for  i in schedule_list  %}
                                 <tr class="{% cycle 'row1' 'row2' %}" > 
                                        
                                         {% for key, value in i.items %}
                                             
                                             <td >{{value}}</td>
+                                           
                                         {% endfor %}
                                         
                                     </tr>   
                                     
                                     {% endfor %}        
                                             
-                                    
+                                     {% endcomment %}
                             
                         
                         </tr>

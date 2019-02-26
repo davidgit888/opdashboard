@@ -20,6 +20,7 @@ from .echarts import op_bar,eply_eff_bar,eply_kpi_bar,support_bar,standardTime
 from django.db.models import Q
 from op.models import InstalledCmm, DeliveredCmm
 from time import sleep
+import time
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -1081,6 +1082,8 @@ def report_analysis(request):
             # data['user'][0].last_name
             # data['user'][0].first_name
         
+        ##### start schedule #######
+        
         data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
         if len(data) != 0:
             data = data.drop_duplicates()
@@ -1092,7 +1095,10 @@ def report_analysis(request):
             # for i in range(len(data)):
             #     data['op_id'][i] = data['op'][i].op_id
             sfg_list = data['sfg_id'].unique()
-
+            data_total = data.pivot_table(index=['sfg_id'],columns=['op_id_id'],values=['qty'],aggfunc=np.sum)
+            data_total.columns=data_total.columns.droplevel()
+            data_total = data_total.fillna(0)
+            data_total = round(data_total,2)
             for i in range(len(sfg_list)):
                 # a = []
                 # a.append(sfg_list[i])
@@ -1116,33 +1122,53 @@ def report_analysis(request):
                     a['sfg_comments'] = sfg_comments
                 except:
                     a['sfg_comments'] = 'N'
-
+                
                 ####  test ########
                 for j in range(len(all_op_id)):
                     user=  data[(data['sfg_id']==sfg_list[i]) & (data['op_id_id']==all_op_id[j].id)]
-
+                    
                     if not user.empty:
                         username = User.objects.get(id=user['user_id'][user.index[0]]).get_full_name()
-                        a[all_op_id[j].op_id] = username#user['user_id'][user.index[0]] + user['user_id'][user.index[0]]
-                        a[all_op_id[j].op_name] = user['date'][user.index[0]].strftime('%Y-%m-%d')
+                        ###### get total qty
+                        qty = data_total[data_total.index==sfg_list[i]][all_op_id[j].id]
+                        # a[all_op_id[j].op_id] = username#user['user_id'][user.index[0]] + user['user_id'][user.index[0]]
+                        # a[all_op_id[j].op_name] = user['date'][user.index[0]].strftime('%Y-%m-%d')
+                        a[j+10] = username
+                        a[j+100] =  user['date'][user.index[0]].strftime('%Y-%m-%d')
+                        a[j+1000] = qty[0]
+                       
                     else:
-                        a[all_op_id[j].op_id] = '---'
-                        a[all_op_id[j].op_name] = '---'
-          
+                        # a[all_op_id[j].op_id] = '---'
+                        # a[all_op_id[j].op_name] = '---'
+                        a[j+10] = '---'
+                        a[j+100] = '---'
+                        a[j+1000] = 0
+                        
+
                 schedule_list.append(a)
             # group = user_work_group(request)
             # all_user_ids = user_work_group_ids(group,date.today())
+
+           
+            
+
             p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
-            #数据组
+
+            #####数据组
             data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
             if data_group:
                 anls_group = data_group[0]
             else:
                 anls_group = ''
             
+
+            end_time = time.time()
+
+           
             return render(request, 'report/schedule.html', {
                 
                 'schedule_list':schedule_list,
+                'schedule_json':json.dumps(schedule_list),
                 'op_list':all_op_id,
                 
                 'p_perform_list':p_perform_list,
@@ -1160,11 +1186,7 @@ def report_analysis(request):
                 'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
                 'sup_bor_total':sup_bor_total.to_html(),
                 'over_time_total':over_time_total.to_html(),
-                'user_groups':user_groups,
-
-                
-                
-                
+                'user_groups':user_groups,  
             })
         else:
             return render(request, 'report/schedule.html',{
