@@ -1,7 +1,7 @@
 {% load staticfiles %}
 
 <script src="{% static 'js/Calendar.js' %}"></script>
-<script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
 
 <script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
 <link href="{% static 'css/table.css' %}" rel="stylesheet">
@@ -67,8 +67,16 @@
     $(function () {
         $("#filterName").keyup(function () {
         $("#tblNeedsScrolling tbody tr").hide() //将tbody中的tr都隐藏
-            .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
+            .filter(":contains('"+($(this).val())+"')").show();
+            $("#tblNeedsScrolling tbody tr td").css("color","black");
+
+            if($("#filterName").val() !=' ' && $("#filterName").val() != ''){
+                $("#tblNeedsScrolling tbody tr td").filter(":contains('"+($(this).val())+"')").css( "color", "orange" ); //，将符合条件的筛选出来
+                $("#tblNeedsScrolling tbody tr td").filter(":not(:contains('"+($(this).val())+"'))").css( "color", "black" );
+            }
+           
         });
+        
      });
 
      $(function () {
@@ -283,6 +291,37 @@
             }) {% endcomment %}
 
         });
+
+                //form the schedule table
+        for(i=0;i<data.length;i++){
+            var allRows = '';
+            allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
+            for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
+                if(data[i][j+1000]>=1){
+                    allRows +='<td  style="background:green">'+data[i][j+10]+'</td>';
+                    allRows +='<td  style="background:green">'+data[i][j+100]+'</td>';
+                }
+                else if(data[i][j+10]=='---'){
+                    allRows +='<td contenteditable="true">'+data[i][j+10]+'</td>';
+                    allRows +='<td contenteditable="true">'+data[i][j+100]+'</td>';
+                }
+                else{
+                    ///// old data
+                    //allRows +='<td style="background:yellow">'+data[i][j+10]+'</td>';
+                    var user = "'"+data[i][j+10]+"'";
+                    allRows += '<td  id="'+(i*100000+j)+'" style="background:yellow" onmouseover="showQty('+data[i][j+1000]+','+(i*100000+j)+
+                        ')" onmouseout="hideQty('+user.toString()+ ','+(i*100000+j)+
+                        ')">'+data[i][j+10]+'</td>';
+                    ////new 
+                    allRows +='<td  style="background:yellow"> '+data[i][j+100]+'</td>';
+                }
+                
+            }
+            allRows += '</tr>';
+            $('#tblNeedsScrolling tbody ').append(allRows);
+            
+        }  
+
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
                 
                 var sfg = $(this).parent('tr').find('td').eq(0).html();
@@ -305,37 +344,20 @@
             checkboxes.prop('checked', $(this).is(':checked'));
         });
 
-        //form the schedule table
-        for(i=0;i<data.length;i++){
-            var allRows = '';
-            allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
-            for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
-                if(data[i][j+1000]>=1){
-                    allRows +='<td style="background:green">'+data[i][j+10]+'</td>';
-                    allRows +='<td style="background:green">'+data[i][j+100]+'</td>';
-                }
-                else if(data[i][j+10]=='---'){
-                    allRows +='<td>'+data[i][j+10]+'</td>';
-                    allRows +='<td>'+data[i][j+100]+'</td>';
-                }
-                else{
-                    ///// old data
-                    //allRows +='<td style="background:yellow">'+data[i][j+10]+'</td>';
-                    var user = "'"+data[i][j+10]+"'";
-                    allRows += '<td id="'+(i*100000+j)+'" style="background:yellow" onmouseover="showQty('+data[i][j+1000]+','+(i*100000+j)+
-                        ')" onmouseout="hideQty('+user.toString()+ ','+(i*100000+j)+
-                        ')">'+data[i][j+10]+'</td>';
-                    ////new 
-                    allRows +='<td style="background:yellow"> '+data[i][j+100]+'</td>';
-                }
-                
-            }
-            allRows += '</tr>';
-            $('#tblNeedsScrolling tbody ').append(allRows);
-            
-        }  
 
+      
+        var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
+                    // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
+                    var blob = new Blob([html], { type: "application/vnd.ms-excel" });
+                    var a = document.getElementsByTagName("a")[0];
+                    // 利用URL.createObjectURL()方法为a元素生成blob URL
+                    a.href = URL.createObjectURL(blob);
+                    // 设置文件名
+                    a.download = "生产进度.xls";
     }
+    // end of window.onload 
+
+
     {% comment %} function syncscroll(obj)
         {
         //y.innerHTML = obj.scrollTop;
@@ -346,6 +368,51 @@
         scroll2.children[0].style.top =  "-"+obj.scrollTop;
         
         } {% endcomment %}
+
+    // export Schedule table to excel
+    function exportSchedule(){
+          //download excel
+        {% comment %} var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
+                    // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
+                    var blob = new Blob([html], { type: "application/vnd.ms-excel" });
+                    var a = document.getElementsByTagName("a")[0];
+                    // 利用URL.createObjectURL()方法为a元素生成blob URL
+                    a.href = URL.createObjectURL(blob);
+                    // 设置文件名
+                    a.download = "生产进度.xls"; {% endcomment %}
+
+        var tab_text="<table border='2px'><tr bgcolor='#87AFC6'>";
+        var textRange; var j=0;
+        tab = document.getElementById('tblNeedsScrolling'); // id of table
+
+        for(j = 0 ; j < tab.rows.length ; j++) 
+        {     
+            tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
+            //tab_text=tab_text+"</tr>";
+        }
+
+        tab_text=tab_text+"</table>";
+        tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+        tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
+        tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+        var ua = window.navigator.userAgent;
+        var msie = ua.indexOf("MSIE "); 
+
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+        {
+            txtArea1.document.open("txt/html","replace");
+            txtArea1.document.write(tab_text);
+            txtArea1.document.close();
+            txtArea1.focus(); 
+            sa=txtArea1.document.execCommand("SaveAs",true,"生产进度.xls");
+        }  
+        else                 //other browser not tested on IE 11
+            sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));  
+
+        return (sa);
+    }
+
     // Freeze the header of table
     function scrolify(tblAsJQueryObject, height) {
         var oTbl = tblAsJQueryObject;
@@ -501,7 +568,8 @@
                 {{message}}
             {% endif %}
             <br/>
-            {{time_perform}}
+             
+
             <div style='position:relative;left:18%;'>
                 <fieldset style = 'width:600px'>
                     <legend>查询</legend>
@@ -518,7 +586,8 @@
             <div style="overflow:scroll" >
                 <br/><br/>
                 <label style='background:green'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
-                <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>
+                <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
+                <a>导出表格</a>
                 <br/><br/>
                 <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'> 
                 
