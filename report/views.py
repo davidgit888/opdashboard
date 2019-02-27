@@ -428,7 +428,7 @@ def index(request):
    
     return render(request, 'report/report_get.html', all_show_digts)
 
-# when click submit to save to database
+# when click submit to save overtime data to database
 @login_required(login_url='/accounts/login/')  
 def save_overtime_data(request):
     user = request.user.id
@@ -442,20 +442,27 @@ def save_overtime_data(request):
         is_paid=1
     else:
         is_paid=0
-
-    try:
-        query=OverTime(user=f_user,over_time=over_time,over_time_type=over_time_type,is_paid=is_paid,date=date,groups=user_group)
-        query.save()
-        check='Y'
-        test_log_duplication(request.user.id,request.user.get_full_name(),'添加加班 Successful','加班种类 '+over_time_type +',付钱：'+str(is_paid)+',加班数：'+
-        str(over_time),'时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
-        return HttpResponse(json.dumps(check), content_type='application/json')
-    except Exception as ex:    
-        template = "加班工时保存失败"
-        message = template + json.dumps(ex.args)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
-        return HttpResponse(json.dumps(message), content_type='application/json')
-
+    date_submit = datetime.strptime(date,"%Y-%m-%d").date()
+    perform_history = GroupPerform.objects.filter(date=date_submit,username=request.user.id)
+        
+    if not perform_history:
+        try:
+            query=OverTime(user=f_user,over_time=over_time,over_time_type=over_time_type,is_paid=is_paid,date=date,groups=user_group)
+            query.save()
+            check='Y'
+            test_log_duplication(request.user.id,request.user.get_full_name(),'添加加班 Successful','加班种类 '+over_time_type +',付钱：'+str(is_paid)+',加班数：'+
+            str(over_time),'时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+            return HttpResponse(json.dumps(check), content_type='application/json')
+        except Exception as ex:    
+            template = "加班工时保存失败"
+            message = template + json.dumps(ex.args)
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime '+over_time_type,'Failed','时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+            return HttpResponse(json.dumps(message), content_type='application/json')
+    else:
+        test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime add after submit',' Failed, 加班种类 '+over_time_type +',付钱：'+str(is_paid)+',加班数：'+
+            str(over_time),'时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
+        return HttpResponse(json.dumps('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！'),content_type='application/json')
+#### save log in trace log table
 def test_log_duplication(user,username,action,detail,comments):
     try:
         f_user = User.objects.get(id=user)
@@ -679,7 +686,7 @@ def get_data(request):
                 all_dict1.update(all_show_digits)
                 return HttpResponseRedirect("#")
         else:
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Report add after submit',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Report add after submit','Falied, '+str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
             return HttpResponse('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！')
     else:
         f_user = User.objects.get(id=request.user.id)
@@ -789,56 +796,65 @@ def supportive_time(request):
         vertical=0
 
 
-    
-    try:    
+    date_submit = datetime.strptime(date_time,"%Y-%m-%d").date()
+    perform_history = GroupPerform.objects.filter(date=date_submit,username=request.user.id)
+        
+    if not perform_history:
+        try:    
 
-        f_user = User.objects.get(id=request.user.id)
-        query = SupportiveTime(user=f_user,rest=rest,clean_time=clean,inside_group=inside_group,outside_group=outside_group,
-        complete_machine=complete_machine,granite=granite,prob=prob,shortage=shortage,plan_change=plan_change,
-        human_quality_issue_rework=human_quality_issue_rework,item_quality_issue=item_quality_issue,human_quality_issue_repair=human_quality_issue_repair,
-        equipment_mantainence=equipment_mantainence,inventory_check=inventory_check,quality_check=quality_check,
-        document=document,conference=conference,group_management=group_management,record=record,date=date_time,borrow_time=borrow_time,borrow_name=borrow_type,
-        comments=comments,groups=user_group,vertical=vertical)
+            f_user = User.objects.get(id=request.user.id)
+            query = SupportiveTime(user=f_user,rest=rest,clean_time=clean,inside_group=inside_group,outside_group=outside_group,
+            complete_machine=complete_machine,granite=granite,prob=prob,shortage=shortage,plan_change=plan_change,
+            human_quality_issue_rework=human_quality_issue_rework,item_quality_issue=item_quality_issue,human_quality_issue_repair=human_quality_issue_repair,
+            equipment_mantainence=equipment_mantainence,inventory_check=inventory_check,quality_check=quality_check,
+            document=document,conference=conference,group_management=group_management,record=record,date=date_time,borrow_time=borrow_time,borrow_name=borrow_type,
+            comments=comments,groups=user_group,vertical=vertical)
 
-        query.save()
-        # ip = get_client_ip(request)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add','休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
-        ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
-        ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
-        ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
-        ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
-        save_message="保存成功"
-        # get global info
-        all_show_digits = global_context(request)
-        local_jason = {
+            query.save()
+            # ip = get_client_ip(request)
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add','休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
+            ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
+            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
+            ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
+            ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
+            save_message="保存成功"
+            # get global info
+            all_show_digits = global_context(request)
+            local_jason = {
+                
+                'supportive_save_message':save_message,
+                # 'supportive_logs':supportive_logs,
+                # 'supportive_total':supportive_total,
+
+            }
+            all_dict = local_jason.copy()
+            all_dict.update(all_show_digits)
+            return render(request, 'report/report_get.html', all_dict)
+        except Exception as ex:    
+            template = "保存失败"
+            message = template + json.dumps(ex.args)
+            # ip=get_client_ip(request)
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add',"Failed",'Failed '+json.dumps(ex.args) +'Date: '+date_time)
+            local_jason = {
             
-            'supportive_save_message':save_message,
-            # 'supportive_logs':supportive_logs,
-            # 'supportive_total':supportive_total,
+                'supportive_error_message':message,
+                # 'supportive_logs':supportive_logs,
+                # 'supportive_total':supportive_total,
+            }
+            all_show_digits = global_context(request)
+            all_dict = local_jason.copy()
+            all_dict.update(all_show_digits)
+            return render(request, 'report/report_get.html', all_dict)
+        
+    else:
+        test_log_duplication(request.user.id,request.user.get_full_name(),'Support add after submit','Failed, 休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
+            ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
+            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
+            ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
+            ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
+        return HttpResponse('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！')
 
-        }
-        all_dict = local_jason.copy()
-        all_dict.update(all_show_digits)
-        return render(request, 'report/report_get.html', all_dict)
-    except Exception as ex:    
-        template = "保存失败"
-        message = template + json.dumps(ex.args)
-        # ip=get_client_ip(request)
-        test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add',"Failed",'Failed '+json.dumps(ex.args) +'Date: '+date_time)
-        local_jason = {
-           
-            'supportive_error_message':message,
-            # 'supportive_logs':supportive_logs,
-            # 'supportive_total':supportive_total,
-         }
-        all_show_digits = global_context(request)
-        all_dict = local_jason.copy()
-        all_dict.update(all_show_digits)
-        return render(request, 'report/report_get.html', all_dict)
-    
-
-
-    # return render(request, 'report/report_get.html',{
+        # return render(request, 'report/report_get.html',{
     #     'save_message':"successful",
     #     'borrow':borrow_time,
     # })
