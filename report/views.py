@@ -582,97 +582,105 @@ def get_data(request):
             qty_check = False
     
     if qty_check:
-        try:
-            #f_sfg = SfmProd.objects.get(sfg_id=sfg)
-            f_op = Op.objects.get(op_id=op_id)
-            f_user = User.objects.get(id=user)
-            query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,
-            date=date_time,groups=user_group)
-            query.save()
+        date_submit = datetime.strptime(date_time,"%Y-%m-%d").date()
+        perform_history = GroupPerform.objects.filter(date=date_submit,username=request.user.id)
+        
+        if not perform_history:
+            # return HttpResponse('not able to find history'+date_time+', id is ' + str(user))
+            try:
+                #f_sfg = SfmProd.objects.get(sfg_id=sfg)
+                f_op = Op.objects.get(op_id=op_id)
+                f_user = User.objects.get(id=user)
+                query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,
+                date=date_time,groups=user_group)
+                query.save()
 
-            today = date.today()
-            year = today.year
-            input_month = datetime.strptime(date_time,"%Y-%m-%d")
-            month = calendar.month_abbr[input_month.month]
-            last_day = calendar.monthrange(year,input_month.month)
+                today = date.today()
+                year = today.year
+                input_month = datetime.strptime(date_time,"%Y-%m-%d")
+                month = calendar.month_abbr[input_month.month]
+                last_day = calendar.monthrange(year,input_month.month)
 
-            ## save to InstalledCmm, DeliveredCmm
-            # sleep(0.5)
-            if op_id=='51' or op_id=='142':
-                # # return HttpResponse('Yes 51')
-                # sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
-                # sfg_qty_total = 0
-                # if len(sfg_qty) !=0:
-                #     for i in range(len(sfg_qty)):
-                #         sfg_qty_total += sfg_qty[i][0]
-                # result = InstalledCmm.objects.filter(Year=year).values()
-                # if len(result) == 0:
-                #     query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
-                #     query.save()
-                # # string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
-                # # return HttpResponse(string)
-                # if round(sfg_qty_total,3) ==1: 
-                #     total = result[0][month]
-                #     total += 1
-                #     # return HttpResponse(total)
-                #     InstalledCmm.objects.filter(Year=year).update(**{month:total})
-                op_table=opCompletTable(input_month.replace(day=1),input_month.replace(day=last_day[1]))
-                if len(op_table) != 0:
-                    op51,op142 = updateEchartOp(op_table)
-                    InstalledCmm.objects.filter(Year=year).update(**{month:op51})
-                    DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
-            # if op_id=='142':
-               
-            #     sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
-            #     sfg_qty_total = 0
-            #     if len(sfg_qty) != 0:
-            #         for i in range(len(sfg_qty)):
-            #             sfg_qty_total += sfg_qty[i][0] 
-            #     result_deli = DeliveredCmm.objects.filter(Year=year).values()
-            #     if len(result_deli) == 0:
-            #         query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
-            #         query.save()
-            #     if round(sfg_qty_total,3) ==1:
-            #         total = result_deli[0][month]
-            #         total += 1
-            #         # return HttpResponse(total)
-            #         DeliveredCmm.objects.filter(Year=year).update(**{month:total})
-            all_show_digits = global_context(request)
-            save_message="保存成功"
-            local_jason = {
+                ## save to InstalledCmm, DeliveredCmm
+                # sleep(0.5)
+                if op_id=='51' or op_id=='142':
+                    # # return HttpResponse('Yes 51')
+                    # sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=5).values_list('qty')
+                    # sfg_qty_total = 0
+                    # if len(sfg_qty) !=0:
+                    #     for i in range(len(sfg_qty)):
+                    #         sfg_qty_total += sfg_qty[i][0]
+                    # result = InstalledCmm.objects.filter(Year=year).values()
+                    # if len(result) == 0:
+                    #     query = InstalledCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                    #     query.save()
+                    # # string = "sfg: " + str(sfg_qty_total) + ', qty: ' + str(qty) + ", total: " + str(round(sfg_qty_total+float(qty), 3))
+                    # # return HttpResponse(string)
+                    # if round(sfg_qty_total,3) ==1: 
+                    #     total = result[0][month]
+                    #     total += 1
+                    #     # return HttpResponse(total)
+                    #     InstalledCmm.objects.filter(Year=year).update(**{month:total})
+                    op_table=opCompletTable(input_month.replace(day=1),input_month.replace(day=last_day[1]))
+                    if len(op_table) != 0:
+                        op51,op142 = updateEchartOp(op_table)
+                        InstalledCmm.objects.filter(Year=year).update(**{month:op51})
+                        DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
+                # if op_id=='142':
                 
-                'save_message':save_message,
-                
-                # 'supportive_logs':supportive_logs,
-                # 'supportive_total':supportive_total,
+                #     sfg_qty = Report.objects.filter(sfg_id=sfg,op_id_id=16).values_list('qty')
+                #     sfg_qty_total = 0
+                #     if len(sfg_qty) != 0:
+                #         for i in range(len(sfg_qty)):
+                #             sfg_qty_total += sfg_qty[i][0] 
+                #     result_deli = DeliveredCmm.objects.filter(Year=year).values()
+                #     if len(result_deli) == 0:
+                #         query = DeliveredCmm(Year=year,Jan=0,Feb=0,Mar=0,Apr=0,May=0,Jun=0,Jul=0,Aug=0,Sep=0,Oct=0,Nov=0,Dec=0)
+                #         query.save()
+                #     if round(sfg_qty_total,3) ==1:
+                #         total = result_deli[0][month]
+                #         total += 1
+                #         # return HttpResponse(total)
+                #         DeliveredCmm.objects.filter(Year=year).update(**{month:total})
+                all_show_digits = global_context(request)
+                save_message="保存成功"
+                local_jason = {
+                    
+                    'save_message':save_message,
+                    
+                    # 'supportive_logs':supportive_logs,
+                    # 'supportive_total':supportive_total,
 
-            }
+                }
 
-            
-            all_dict = local_jason.copy()
-            all_dict.update(all_show_digits)
-            
-            # ip = get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Report add',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
-            return render(request, 'report/report_get.html', all_dict)
-        except Exception as ex:    
-            template = "保存失败"
-            message = template + json.dumps(ex.args)
-            # save failed message 
-            # ip = get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
-            all_show_digits = global_context(request)
-            local_jason1 = {
                 
-                'error_message':message,
-                # 'supportive_logs':supportive_logs,
-                # 'supportive_total':supportive_total,
-            }
-            
-            
-            all_dict1 = local_jason1.copy()
-            all_dict1.update(all_show_digits)
-            return HttpResponseRedirect("#")
+                all_dict = local_jason.copy()
+                all_dict.update(all_show_digits)
+                
+                # ip = get_client_ip(request)
+                test_log_duplication(request.user.id,request.user.get_full_name(),'Report add',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
+                return render(request, 'report/report_get.html', all_dict)
+            except Exception as ex:    
+                template = "保存失败"
+                message = template + json.dumps(ex.args)
+                # save failed message 
+                # ip = get_client_ip(request)
+                test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
+                all_show_digits = global_context(request)
+                local_jason1 = {
+                    
+                    'error_message':message,
+                    # 'supportive_logs':supportive_logs,
+                    # 'supportive_total':supportive_total,
+                }
+                
+                
+                all_dict1 = local_jason1.copy()
+                all_dict1.update(all_show_digits)
+                return HttpResponseRedirect("#")
+        else:
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Report add after submit',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
+            return HttpResponse('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！')
     else:
         f_user = User.objects.get(id=request.user.id)
         # ip = get_client_ip(request)
