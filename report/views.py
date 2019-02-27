@@ -1110,7 +1110,7 @@ def report_analysis(request):
         
         data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
         if len(data) != 0:
-            data = data.drop_duplicates()
+            # data = data.drop_duplicates()
             data.index = range(len(data))
             schedule_list = []
             # data['op_id'] = 0
