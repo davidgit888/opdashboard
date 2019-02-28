@@ -463,7 +463,8 @@
         scrolify($('#tblNeedsScrolling'), 640); // 160 is height
         }); {% endcomment %}
     
-   $(document).ready(function() {
+    // make schedule table's head to floate
+   {% comment %} $(document).ready(function() {
             var $table = $('#tblNeedsScrolling');
             $table.floatThead({
             scrollContainer: function($table){
@@ -471,7 +472,39 @@
             }
             });
         
-    }); 
+    });  {% endcomment %}
+
+    
+    $('body').on('mousewheel',function(){
+        //alert('wheel moved')
+        // floate schedule table
+        var $table = $('#tblNeedsScrolling');
+        $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        });
+
+        //floate perform table
+        var $perform_table = $('#performance_table');
+        $perform_table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        }); 
+
+        {% comment %} $('table').floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        });
+         {% endcomment %}
+    });
+
+    $(document).ready(function(){
+        $("#schedule_date_p").html("<strong>开始日期: </strong><u>"+'{{from_date}}'+'</u>, <strong>结束日期: </strong><u>'+'{{to_date}}'+'</u>');
+        //$("#schedule_to_date_p").html('结束日期'+'{{to_date}}');
+    })
 
     
 
@@ -575,10 +608,13 @@
                     <legend>查询</legend>
                     <form onsubmit='support_time_log()' action="/report/" method="post" >
                             {% csrf_token %}
-                            <p>From: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
-                            To: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > </p>
-                            <span>筛选：</span><input type="text" id="filterName">
+                            <p>开始日期: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            结束日期: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            &nbsp&nbsp
                             <input type='submit' value='查询'></p>
+                            </p>
+                            <span>数据筛选：</span><input type="text" id="filterName">
+                            
                     </form>
                 </fieldset>
             </div>
@@ -588,7 +624,10 @@
                 <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
                 <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
                 <a>导出表格</a>
-                <br/><br/>
+                &nbsp&nbsp&nbsp&nbsp
+                <p id="schedule_date_p"></p>
+                
+                <br/>
                 <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'> 
                 
                     <thead>
@@ -670,7 +709,7 @@
                     <legend>查询</legend>
                     <form onsubmit='performance_total()' action="/report/" method="post" >
                             {% csrf_token %}
-                            <p>Date: <input id='p_perform_today' name='p_perform_today' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            <p>日期: <input id='p_perform_today' name='p_perform_today' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             <input type='hidden' value='dKpi'>
                             <span>筛选：</span><input type="text" id="filterName1">
                             <input id='p_submit' type='submit' value='查询'></p>
