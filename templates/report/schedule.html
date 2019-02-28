@@ -485,13 +485,7 @@
             }
         });
 
-        //floate perform table
-        var $perform_table = $('#performance_table');
-        $perform_table.floatThead({
-            scrollContainer: function($table){
-                return $table.closest('.wrapper');
-            }
-        }); 
+        
 
         {% comment %} $('table').floatThead({
             scrollContainer: function($table){
@@ -595,7 +589,7 @@
         <li class='notselected' id='litotal' >统计表</li>
         <li class='notselected' id='ldoc'>归档信息</li>
 
-        <div id = 'dSchedule'  width=100%>
+        <div id = 'dSchedule'  width=100% >
 
             {% if message %}
                 {{message}}
@@ -603,7 +597,7 @@
             <br/>
              
 
-            <div style='position:relative;left:18%;'>
+            <div style='position:relative;left:30%;text-align:center;align:center;width:100%'>
                 <fieldset style = 'width:600px'>
                     <legend>查询</legend>
                     <form onsubmit='support_time_log()' action="/report/" method="post" >
@@ -619,7 +613,7 @@
                 </fieldset>
             </div>
             <br/>
-            <div style="overflow:scroll" >
+            <div style="align:center;text-align:center;position:relative;" >
                 <br/><br/>
                 <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
                 <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
@@ -628,7 +622,7 @@
                 <p id="schedule_date_p"></p>
                 
                 <br/>
-                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px'> 
+                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px;align:center;width:100%'> 
                 
                     <thead>
                         <tr class = 'parent' style='text-align:center;font-size:14px'>
