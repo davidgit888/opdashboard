@@ -217,7 +217,7 @@
         //scrolify($('#performance_table'), 650);
         
 
-        // sort date
+        // sort tables date
         $(function() {
                 // call the tablesorter plugin
             $("table").tablesorter({
@@ -327,7 +327,7 @@
                 var sfg = $(this).parent('tr').find('td').eq(0).html();
                 
             url = '/report/get_sfg_comments/?sfg='+sfg
-            newwindow=window.open(url,'windowName','height=500,width=500,top=100, left=200');
+            newwindow=window.open(url,'windowName','height=590,width=1000,top=100, left=200');
             if (window.focus) {newwindow.focus()}
            //if(newwindow){data.submit();}
             
@@ -496,7 +496,8 @@
     });
 
     $(document).ready(function(){
-        $("#schedule_date_p").html("<strong>开始日期: </strong><u>"+'{{from_date}}'+'</u>, <strong>结束日期: </strong><u>'+'{{to_date}}'+'</u>');
+        $("#schedule_date_p").html('<strong>开始日期: </strong><u><span style="color:coral">'+'{{from_date}}'+'</u></span>, <strong>结束日期: </strong><u><span style="color:coral">'
+        +'{{to_date}}'+'</span></u>');
         //$("#schedule_to_date_p").html('结束日期'+'{{to_date}}');
     })
 
@@ -598,11 +599,13 @@
              
 
             <div style='position:relative;left:30%;text-align:center;align:center;width:100%'>
+                <br/>
                 <fieldset style = 'width:600px'>
                     <legend>查询</legend>
                     <form onsubmit='support_time_log()' action="/report/" method="post" >
                             {% csrf_token %}
                             <p>开始日期: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            &nbsp&nbsp
                             结束日期: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             &nbsp&nbsp
                             <input type='submit' value='查询'></p>
@@ -612,7 +615,7 @@
                     </form>
                 </fieldset>
             </div>
-            <br/>
+            
             <div style="align:center;text-align:center;position:relative;" >
                 <br/><br/>
                 <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp

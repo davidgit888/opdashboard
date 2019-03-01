@@ -36,7 +36,13 @@
                     for(j=0;j<t_len;j++){
                         
                         if(results['sfg'][k]==jdoc_list[i] && results['type_id'][k]==type_info['id'][j]){
-                            $('#search_table tbody ').append( '<td>'  + results["info"][k] + '</td>' );   
+                            if(results["info"][k].includes('Y')){
+                                $('#search_table tbody ').append( '<td style="background:#00EC00">'  + results["info"][k] + '</td>' ); 
+                            }
+                            else{
+                                $('#search_table tbody ').append( '<td>'  + results["info"][k] + '</td>' ); 
+                            }
+                              
                         }    
                     }
                     
@@ -68,6 +74,17 @@
         window.location.replace('/report/search_docinfo/?sfg='+sfg_id);
     }
     
+{% comment %} 
+    $('body').on('mousewheel',function(){
+        //alert('wheel moved')
+        // floate schedule table
+        var $table = $('#search_table');
+        $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        });
+    }); {% endcomment %}
 </script>
 
 <div>

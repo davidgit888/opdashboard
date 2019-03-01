@@ -171,8 +171,8 @@ class GroupPerform(models.Model):
         verbose_name_plural = '班组业绩统计'
 
 class SfgComments(models.Model):
-    sfg = models.CharField(max_length=5, verbose_name='SFG')
-    comments = models.CharField(max_length=50, verbose_name='备注',null=True, default='', blank=True)
+    sfg = models.CharField(max_length=20, verbose_name='SFG')
+    comments = models.CharField(max_length=200, verbose_name='备注',null=True, default='', blank=True)
     class Meta:
         verbose_name = 'SFG备注信息'
         verbose_name_plural = 'SFG备注信息'

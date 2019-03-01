@@ -1,23 +1,50 @@
 
-<h2>更新SFG备注信息</h2>
-{% if save_message %}{{save_message}}{% endif %}
+
+{% load staticfiles %}
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
 <script>
+    function update_comments(){
+        
+        var comm = $('#comments').val().replace(/\n/g, ",");
+        document.forms[0].action = '/report/update_sfg_comments/?sfg='+'{{sfg}}'+'&comments='+comm;
+    };
+
     function selfClose(){
-        window.close();
+            window.close();
+    };
+
+    var a = '{{save_message}}';
+    window.onload = function (){
+        if(a.length != 0){
+            alert(a);
+        }
     }
 </script>
-<div>
-    <form action='/report/update_sfg_comments/' method='post'>
-        {% csrf_token %}
-        <label>SFG: </label>
-        <input type='text' id='sfg' name='sfg' readonly='readonly' value='{{sfg}}'>
-        <br/><br/>
-        <label>备注:</label>
-        <br/><br/>
-        <textarea id='comments' name='comments' style="width:250px;height:250px;" >{{comments}}</textarea>
-        <br/><br/>
-        <input type='submit' value='更新'>
-        &nbsp&nbsp&nbsp&nbsp
-        <input type='button' value='取消' onclick='selfClose()'>
-    </form>
+<div style='text-align:center'>
+    <br/><br/>
+    <h2>更新SFG备注信息</h2>
+    <strong><p style='color:green'>{% if save_message %}{{save_message}}{% endif %}</p></strong>
+    <script>
+        function selfClose(){
+            window.close();
+        }
+    </script>
+    <div>
+        <form onsubmit='update_comments()'  method='post'>
+            {% csrf_token %}
+            <label>SFG: </label>
+            <input type='text' id='sfg' name='sfg' readonly='readonly' value='{{sfg}}'>
+            <br/><br/>
+            <label>备注:</label>
+            <br/><br/>
+            <textarea id='comments' name='comments' style="width:250px;height:250px;" >{{comments}}</textarea>
+            <br/><br/>
+            <input type='submit' value='更新'>
+            &nbsp&nbsp&nbsp&nbsp
+            <input type='button' value='不更新' onclick='selfClose()'>
+            &nbsp&nbsp&nbsp&nbsp
+            <input type='button' value='关闭' onclick='selfClose()'>
+        </form>
+    </div>
 </div>

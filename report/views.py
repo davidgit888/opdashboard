@@ -461,7 +461,7 @@ def save_overtime_data(request):
     else:
         test_log_duplication(request.user.id,request.user.get_full_name(),'Overtime add after submit',' Failed, 加班种类 '+over_time_type +',付钱：'+str(is_paid)+',加班数：'+
             str(over_time),'时间： '+str(over_time)+', Date: '+date +' is_Paid: '+str(is_paid))
-        return HttpResponse(json.dumps('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！'),content_type='application/json')
+        return HttpResponse(json.dumps('保存失败！该日期的报工已经被班组长提交，未防止业绩受损，请联系班组长删除该业绩后再进行提交！'),content_type='application/json')
 #### save log in trace log table
 def test_log_duplication(user,username,action,detail,comments):
     try:
@@ -687,7 +687,7 @@ def get_data(request):
                 return HttpResponseRedirect("#")
         else:
             test_log_duplication(request.user.id,request.user.get_full_name(),'Report add after submit','Falied, '+str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
-            return HttpResponse('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！')
+            return HttpResponse('保存失败！该日期的报工已经被班组长提交，未防止业绩受损，请联系班组长删除该业绩后再进行提交！')
     else:
         f_user = User.objects.get(id=request.user.id)
         # ip = get_client_ip(request)
@@ -852,7 +852,7 @@ def supportive_time(request):
             ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
             ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
             ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
-        return HttpResponse('保存失败！该日期的报工已经被班组长提交，请联系班组长删除该业绩后再进行提交！')
+        return HttpResponse('保存失败！该日期的报工已经被班组长提交，未防止业绩受损，请联系班组长删除该业绩后再进行提交！')
 
         # return render(request, 'report/report_get.html',{
     #     'save_message':"successful",
@@ -1949,10 +1949,10 @@ def get_sfg_comments(request):
 
 # create comments of sfg for wang
 def create_new_sfg_comments(request):
-    sfg = request.POST['sfg']
-    comments = request.POST['comments']
+    sfg = request.GET.get('sfg')
+    comments = request.GET.get('comments')
 
-    if sfg or comments:
+    if sfg and comments:
         query = SfgComments(sfg=sfg,comments=comments)
         query.save()
         message='保存成功'
@@ -1960,7 +1960,7 @@ def create_new_sfg_comments(request):
         return render(request, 'report/update_sfg_comments.html',{
                 'save_message':message,
                 'sfg':sfg,
-                'comments':comments
+                'comments':comments,
                 })
     else:
         return render(request, 'report/update_sfg_comments.html',{
@@ -1970,8 +1970,8 @@ def create_new_sfg_comments(request):
 
 # update comments of sfg for wang
 def update_sfg_comments(request):
-    sfg = request.POST['sfg']
-    comments = request.POST['comments']
+    sfg = request.GET.get('sfg')
+    comments = request.GET.get('comments')
 
     if sfg or comments:
         query = SfgComments.objects.get(sfg=sfg)
