@@ -812,9 +812,9 @@ def supportive_time(request):
 
             query.save()
             # ip = get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add','休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
+            test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add','休息:'+str(rest)+',卫生：'+str(clean)+',组内:'+str(inside_group)+
             ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
-            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
+            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
             ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
             ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
             save_message="保存成功"
@@ -1055,7 +1055,7 @@ def report_analysis(request):
     a_year = date.today().year
     
     if not from_date:
-        from_date = date.today() - timedelta(days=30)
+        from_date = date.today() - timedelta(days=60)
     if not to_date:
         to_date = date.today()
     if not a_month:

@@ -26,6 +26,21 @@
 
     var schedule = '{{schedule_json|safe}}';
     var data = $.parseJSON(schedule);
+    var dataLength = Object.keys(data)['length'];
+    
+    for(j=0;j<10;j++){
+    var a = {};
+    
+        for(i=0;i<dataLength-3;i++){
+            
+            a[Object.keys(data[0])[i]]='---';
+            a['sfg_id']='---';
+            a['type_name']='---';
+            a['sfg_comments']='---';
+            
+        };
+        data.push(a);
+    };
     {% comment %} $(document).ready(function(){ 
        
         
@@ -64,6 +79,8 @@
         if (window.focus) {newwindow.focus()}
            
     }
+
+    // filter schedule keywords
     $(function () {
         $("#filterName").keyup(function () {
         $("#tblNeedsScrolling tbody tr").hide() //将tbody中的tr都隐藏
@@ -218,6 +235,7 @@
         
 
         // sort tables date
+        
         $(function() {
                 // call the tablesorter plugin
             $("table").tablesorter({
@@ -292,10 +310,17 @@
 
         });
 
-                //form the schedule table
+            //form the schedule table
         for(i=0;i<data.length;i++){
             var allRows = '';
-            allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
+            if(data[i]['sfg_id'] != '---'){
+
+            
+                allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
+            }
+            else{
+                allRows += '<tr><td contenteditable="true">'+data[i]['sfg_id']+'</td><td contenteditable="true">'+data[i]['type_name']+'</td>'+'<td contenteditable="true">'+data[i]['sfg_comments']+'</td>';
+            }
             for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
                 if(data[i][j+1000]>=1){
                     allRows +='<td  style="background:#00EC00">'+data[i][j+10]+'</td>';
@@ -319,19 +344,27 @@
             }
             allRows += '</tr>';
             $('#tblNeedsScrolling tbody ').append(allRows);
+       
             
         }  
 
+       
+
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
-                
+
+            var comments = $(this).parent('tr').find('td').eq(2).html();
+            if(comments != '---'){
+
+              
                 var sfg = $(this).parent('tr').find('td').eq(0).html();
                 
-            url = '/report/get_sfg_comments/?sfg='+sfg
-            newwindow=window.open(url,'windowName','height=590,width=1000,top=100, left=200');
-            if (window.focus) {newwindow.focus()}
-           //if(newwindow){data.submit();}
-            
-            //var b = $("#b").val();
+                url = '/report/get_sfg_comments/?sfg='+sfg
+                newwindow=window.open(url,'windowName','height=590,width=1000,top=100, left=200');
+                if (window.focus) {newwindow.focus()}
+            //if(newwindow){data.submit();}
+                
+                //var b = $("#b").val();
+            } 
             
         });
 
