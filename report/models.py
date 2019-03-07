@@ -26,14 +26,15 @@ class TypeStandard(models.Model):
     op_id = models.IntegerField( verbose_name='工步')
     prob_info = models.ForeignKey(Prob, verbose_name='测头信息',db_column='prob_info',on_delete=models.CASCADE,null=True, blank=True)
     standard_time = models.CharField(verbose_name='标准工时',max_length=20)
+
+    def __str__(self):
+            
+        return '%s %s %s %s' % (self.type_name, self.op_id, self.prob_info, self.standard_time)
     class Meta:
         verbose_name = '标准工时'
         verbose_name_plural = '标准工时'
 
 
-
-    def __str__(self):
-        return '%s' % (self.prob_info)
 
 class Op(models.Model):
     op_id = models.IntegerField()

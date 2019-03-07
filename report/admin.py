@@ -156,24 +156,42 @@ class TypeStandarAdmin(admin.ModelAdmin):
             path('upload_excel/', self.upload_excel)
         ]
         return my_urls + urls
+    
+    actions = ["export_as_excel"]  
+    
+    def export_as_excel(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
 
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        writer = csv.writer(response,dialect='excel',encoding='utf-8')
+
+        writer.writerow(field_names[1:])
+
+
+        for obj in queryset:
+            row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
+    
+        return response
+    export_as_excel.short_description = "下载"
     def upload_excel(self,request):
         if request.method == 'POST':
             excel_file = request.FILES["file"]
             data = pd.read_excel(excel_file)
             data = data.loc[:,~data.columns.str.contains('^Unnamed')]
-            data = data.dropna()
-            data = data[data['ProductNo']!='ProductNo']
-            data.index=range(len(data))
-            data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
+            # data = data.dropna()
+            # data = data[data['ProductNo']!='ProductNo']
+            # data.index=range(len(data))
+            # data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
             data = data.fillna(0)
             try:
                 
                     # a =SfmProd.objects.all()
-                try:
-                    TypeStandard.objects.all().delete()
-                except:
-                    pass
+                # try:
+                #     TypeStandard.objects.all().delete()
+                # except:
+                #     pass
                 for i in range(len(data)):
                     if data['prob'][i] != 0:
 
