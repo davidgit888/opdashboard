@@ -321,7 +321,7 @@ class GroupPerformAdmin(admin.ModelAdmin):
     fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
     'date','username','group','work_group']
     list_display=('user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
-    'date','username','group','work_group')
+    'date','username','group','work_group','date_create')
     search_fields = ['user','natural_time','performance','standard_time','real_time','supportive_time','borrow_time','kpi','efficiency',
     'date','username','group','work_group']
     actions = ["export_as_excel"]  
