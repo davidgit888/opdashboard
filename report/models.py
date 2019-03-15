@@ -254,4 +254,50 @@ class DocInfo(models.Model):
     class Meta:
         verbose_name = '归档信息'
         verbose_name_plural = '归档信息'
-    
+
+class Material(models.Model):
+    sno = models.CharField(max_length=20,verbose_name='编号')
+    name = models.CharField(max_length=50,verbose_name='物料名称')
+    unit = models.CharField(max_length=10,verbose_name='单位')
+    attribute = models.CharField(max_length=50,verbose_name='规格')
+    comments = models.CharField(max_length=1,verbose_name='是否为包装材料')
+    price = models.FloatField(max_length=10,verbose_name='单价')
+
+class MaterialApprove(models.Model):
+    sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
+    year = models.IntegerField(max_length=4,verbose_name='年份')
+    quarter = models.CharField(max_length=10,verbose_name='季度')
+    group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    qty = models.IntegerField(max_length=4, verbose_name='数量')
+    qty_request = models.IntegerField(max_length=4,verbose_name='申请数量')
+    date = models.DateTimeField(auto_now=True)
+
+class MaterialGet(models.Model):
+    sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
+    year = models.IntegerField(max_length=4,verbose_name='年份')
+    quarter = models.CharField(max_length=10,verbose_name='季度')
+    group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    qty = models.IntegerField( verbose_name='数量')
+    date = models.DateTimeField(auto_now=True)
+
+class MeterialUse(models.Model):
+    sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
+    year = models.IntegerField(max_length=4,verbose_name='年份')
+    quarter = models.CharField(max_length=10,verbose_name='季度')
+    group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    qty = models.FloatField( verbose_name='数量')
+    date = models.DateTimeField(auto_now=True)
+
+class MeterialSurplus(models.Model):
+    sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
+    year = models.IntegerField(max_length=4,verbose_name='年份')
+    quarter = models.CharField(max_length=10,verbose_name='季度')
+    group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
+    qty = models.FloatField( verbose_name='数量')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    date = models.DateTimeField(auto_now=True)
+
+

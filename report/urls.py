@@ -30,6 +30,9 @@ urlpatterns = [
     path('update_docinfo/',views.update_docinfo),
     path('dashboard/', views.dashBoard),
     path('opdetails/',views.opdetails),
+    path('materialApprove/',views.materialApprove),
+    path('materialGet/',views.materialGet),
+    path('materialCheck/',views.materialCheck),
     
     #path('upload_excel/',)
 ]

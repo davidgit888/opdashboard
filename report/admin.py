@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -486,6 +486,33 @@ class DocInfoAdmin(admin.ModelAdmin):
     list_display = ('sfg','type','info','date')
     search_fields = ['sfg','type__type','info']
 
+
+class MaterialAdmin(admin.ModelAdmin):
+    fields = ['sno','name','unit','attribute','comments','price']
+    list_display = ('sno','name','unit','attribute','comments','price')
+    search_fields = ['sno','name','unit','attribute','comments','price']
+
+class MaterialApproveAdmin(admin.ModelAdmin):
+    fields = ['sno','year','quarter','group','user','qty']
+    list_display = ('sno','year','quarter','group','user','qty','date')
+    search_fields = ['sno','year','quarter','group','user','qty','date']
+
+class MaterialGetAdmin(admin.ModelAdmin):
+    fields = ['sno','year','quarter','group','user','qty']
+    list_display = ('sno','year','quarter','group','user','qty','date')
+    search_fields = ['sno','year','quarter','group','user','qty','date']
+
+class MeterialUseAdmin(admin.ModelAdmin):
+    fields = ['sno','year','quarter','group','user','qty']
+    list_display = ('sno','year','quarter','group','user','qty','date')
+    search_fields = ['sno','year','quarter','group','user','qty','date']
+
+class MeterialSurplusAdmin(admin.ModelAdmin):
+    fields = ['sno','year','quarter','group','user','qty']
+    list_display = ('sno','year','quarter','group','user','qty','date')
+    search_fields = ['sno','year','quarter','group','user','qty','date']
+
+
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
 admin.site.register(TypeStandard, TypeStandarAdmin)
@@ -504,3 +531,8 @@ admin.site.register(UserGroups,UserGroupsAdmin)
 admin.site.register(WorkGroups,WorkGroupsAdmin)
 admin.site.register(DocType, DocTypeAdmin)
 admin.site.register(DocInfo,DocInfoAdmin)
+admin.site.register(Material,MaterialAdmin)
+admin.site.register(MaterialApprove,MaterialApproveAdmin)
+admin.site.register(MaterialGet,MaterialGetAdmin)
+admin.site.register(MeterialUse,MeterialUseAdmin)
+admin.site.register(MeterialSurplus,MeterialSurplusAdmin)

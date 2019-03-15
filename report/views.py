@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo,WorkGroups
+from .models import Prob, Op, SfmProd, TypeStandard, Report,SupportiveTime,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,UserGroups,DocType,DocInfo,WorkGroups,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus
 from datetime import date, timedelta,datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -530,18 +530,18 @@ def get_data(request):
     except:
 
         pass
-    sfg = request.POST['sfg_id']
-    type = request.POST['prod_type']
-    op_id = request.POST['op_id']
-    prob_info = request.POST['prob_info']
-    user = request.POST['user_name']
-    # standard_time = request.POST['standard_time']
-    real_time = request.POST['real_time']
-    qty = request.POST['qty']
-    # over_time= request.POST['over_time']
-    # over_time_type = request.POST['over_time_type']
+    sfg = request.GET.get('sfg_id')
+    type = request.GET.get('prod_type')
+    op_id = request.GET.get('op_id')
+    prob_info = request.GET.get('prob_info')
+    #user = request.GET.get('user_name')
+    # standard_time = request.GET.get('standard_time']
+    real_time = request.GET.get('real_time')
+    qty = request.GET.get('qty')
+    # over_time= request.GET.get('over_time']
+    # over_time_type = request.GET.get('over_time_type']
     # is_paid = request.POST.get('is_paid')
-    date_time = request.POST.get('prodate')
+    date_time = request.GET.get('prodate')
     user_group = user_work_group(request)
     # check if standard time exist
     if prob_info == 'None':
@@ -597,7 +597,7 @@ def get_data(request):
             try:
                 #f_sfg = SfmProd.objects.get(sfg_id=sfg)
                 f_op = Op.objects.get(op_id=op_id)
-                f_user = User.objects.get(id=user)
+                f_user = User.objects.get(id=request.user.id)
                 query = Report(sfg_id=sfg,type_name=type,op_id=f_op,prob=prob_info,qty=qty,user=f_user,standard_tiem=standard_time,real_time=real_time,
                 date=date_time,groups=user_group)
                 query.save()
@@ -649,42 +649,47 @@ def get_data(request):
                 #         total += 1
                 #         # return HttpResponse(total)
                 #         DeliveredCmm.objects.filter(Year=year).update(**{month:total})
-                all_show_digits = global_context(request)
+                
+                
+                # all_show_digits = global_context(request)
                 save_message="保存成功"
-                local_jason = {
+                # local_jason = {
                     
-                    'save_message':save_message,
+                #     'save_message':save_message,
                     
-                    # 'supportive_logs':supportive_logs,
-                    # 'supportive_total':supportive_total,
+                #     # 'supportive_logs':supportive_logs,
+                #     # 'supportive_total':supportive_total,
 
-                }
+                # }
 
                 
-                all_dict = local_jason.copy()
-                all_dict.update(all_show_digits)
+                # all_dict = local_jason.copy()
+                # all_dict.update(all_show_digits)
                 
                 # ip = get_client_ip(request)
                 test_log_duplication(request.user.id,request.user.get_full_name(),'Report add',str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
-                return render(request, 'report/report_get.html', all_dict)
+                
+                return HttpResponse(json.dumps(save_message), content_type='application/json')
+                #return render(request, 'report/report_get.html', all_dict)
             except Exception as ex:    
                 template = "保存失败"
                 message = template + json.dumps(ex.args)
                 # save failed message 
                 # ip = get_client_ip(request)
-                test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +':工步'+str(op_id)+" Failed "+json.dumps(ex.args)  +'Date: '+date_time +'数量为: '+str(qty))
-                all_show_digits = global_context(request)
-                local_jason1 = {
+                test_log_duplication(request.user.id,request.user.get_full_name(),message,str(sfg) +',:工步'+str(op_id) +', Date: '+date_time +'数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
+                # all_show_digits = global_context(request)
+                # local_jason1 = {
                     
-                    'error_message':message,
-                    # 'supportive_logs':supportive_logs,
-                    # 'supportive_total':supportive_total,
-                }
+                #     'error_message':message,
+                #     # 'supportive_logs':supportive_logs,
+                #     # 'supportive_total':supportive_total,
+                # }
                 
                 
-                all_dict1 = local_jason1.copy()
-                all_dict1.update(all_show_digits)
-                return HttpResponseRedirect("#")
+                # all_dict1 = local_jason1.copy()
+                # all_dict1.update(all_show_digits)
+                # return HttpResponseRedirect("#")
+                return HttpResponse(json.dumps(message), content_type='application/json')
         else:
             test_log_duplication(request.user.id,request.user.get_full_name(),'Report add after submit','Falied, '+str(sfg) +', 工步: '+str(op_id)+" , "  +' Date: '+date_time +', 数量为: '+str(qty),'Type:'+type+ ', Probe:' + prob_info)
             return HttpResponse('保存失败！该日期的报工已经被班组长提交，未防止业绩受损，请联系班组长删除该业绩后再进行提交！')
@@ -699,9 +704,11 @@ def get_data(request):
         # query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
         # query.save()
         message = '数量已经为1，无法再添加，请联系班组长进行修改！'
-        return render(request, 'report/report_get.html',{
-            'error_message':message,
-        })
+        # return render(request, 'report/report_get.html',{
+        #     'error_message':message,
+        # })
+        #return HttpResponse(json.dumps(message), content_type='application/json')
+        return HttpResponse(message)
         
     #制造工时
     # real_time = request.POST['real_time']
@@ -723,30 +730,30 @@ def get_data(request):
 @login_required(login_url='/accounts/login/')  
 def supportive_time(request):
 
-    rest = request.POST['rest']
-    clean = request.POST['clean']
-    record = request.POST['record']
-    inside_group = request.POST['inside_group']
-    outside_group = request.POST['outside_group']
-    complete_machine = request.POST['complete_machine']
-    granite = request.POST['granite']
-    prob = request.POST['prob']
-    shortage = request.POST['shortage']
-    plan_change = request.POST['plan_change']
-    human_quality_issue_rework = request.POST['human_quality_issue_rework']
-    item_quality_issue = request.POST['item_quality_issue']
-    human_quality_issue_repair = request.POST['human_quality_issue_repair']
-    equipment_mantainence = request.POST['equipment_mantainence']
-    inventory_check = request.POST['inventory_check']
-    quality_check = request.POST['quality_check']
-    document = request.POST['document']
-    conference = request.POST['conference']
-    group_management = request.POST['group_management']
-    borrow_time = request.POST['borrow_time']
-    borrow_type = request.POST['borrow_type']
-    vertical = request.POST['vertical']
-    comments = request.POST['comments']
-    date_time = request.POST.get('suportdate')
+    rest = request.GET.get('rest')
+    clean = request.GET.get('clean')
+    record = request.GET.get('record')
+    inside_group = request.GET.get('inside_group')
+    outside_group = request.GET.get('outside_group')
+    complete_machine = request.GET.get('complete_machine')
+    granite = request.GET.get('granite')
+    prob = request.GET.get('prob')
+    shortage = request.GET.get('shortage')
+    plan_change = request.GET.get('plan_change')
+    human_quality_issue_rework = request.GET.get('human_quality_issue_rework')
+    item_quality_issue = request.GET.get('item_quality_issue')
+    human_quality_issue_repair = request.GET.get('human_quality_issue_repair')
+    equipment_mantainence = request.GET.get('equipment_mantainence')
+    inventory_check = request.GET.get('inventory_check')
+    quality_check = request.GET.get('quality_check')
+    document = request.GET.get('document')
+    conference = request.GET.get('conference')
+    group_management = request.GET.get('group_management')
+    borrow_time = request.GET.get('borrow_time')
+    borrow_type = request.GET.get('borrow_type')
+    vertical = request.GET.get('vertical')
+    comments = request.GET.get('comments')
+    date_time = request.GET.get('suportdate')
     user_group = user_work_group(request)
     if not rest:
         rest=0
@@ -817,34 +824,37 @@ def supportive_time(request):
             ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
             ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
             ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
-            save_message="保存成功"
+            save_message="辅助工时保存成功"
             # get global info
-            all_show_digits = global_context(request)
-            local_jason = {
+            # all_show_digits = global_context(request)
+            # local_jason = {
                 
-                'supportive_save_message':save_message,
-                # 'supportive_logs':supportive_logs,
-                # 'supportive_total':supportive_total,
+            #     'supportive_save_message':save_message,
+            #     'save_message':save_message,
+            #     # 'supportive_logs':supportive_logs,
+            #     # 'supportive_total':supportive_total,
 
-            }
-            all_dict = local_jason.copy()
-            all_dict.update(all_show_digits)
-            return render(request, 'report/report_get.html', all_dict)
+            # }
+            # all_dict = local_jason.copy()
+            # all_dict.update(all_show_digits)
+            # return render(request, 'report/report_get.html', all_dict)
+            return HttpResponse(json.dumps(save_message), content_type='application/json')
         except Exception as ex:    
             template = "保存失败"
             message = template + json.dumps(ex.args)
             # ip=get_client_ip(request)
-            test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add',"Failed",'Failed '+json.dumps(ex.args) +'Date: '+date_time)
-            local_jason = {
+            # test_log_duplication(request.user.id,request.user.get_full_name(),'Support Add',"Failed",'Failed '+json.dumps(ex.args) +'Date: '+date_time)
+            # local_jason = {
             
-                'supportive_error_message':message,
-                # 'supportive_logs':supportive_logs,
-                # 'supportive_total':supportive_total,
-            }
-            all_show_digits = global_context(request)
-            all_dict = local_jason.copy()
-            all_dict.update(all_show_digits)
-            return render(request, 'report/report_get.html', all_dict)
+            #     'supportive_error_message':message,
+            #     # 'supportive_logs':supportive_logs,
+            #     # 'supportive_total':supportive_total,
+            # }
+            # all_show_digits = global_context(request)
+            # all_dict = local_jason.copy()
+            # all_dict.update(all_show_digits)
+            # return render(request, 'report/report_get.html', all_dict)
+            return HttpResponse(json.dumps(message), content_type='application/json')
         
     else:
         test_log_duplication(request.user.id,request.user.get_full_name(),'Support add after submit','Failed, 休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
@@ -1014,6 +1024,18 @@ def analysis_op_user(request):
     for i in range(len(user_manager_result)):
         user_manager_group.append(user_manager_result[i].id)    
 
+    #### sort op id ######
+    op_id_ids = []
+    for i in range(len(all_op_id)):
+        op_id_ids.append(all_op_id[i].op_id)
+    
+    op_id_ids.sort()
+
+    op_id_sorted = []
+    for i in range(len(op_id_ids)):
+        a = Op.objects.get(op_id=op_id_ids[i])
+        op_id_sorted.append(a)
+
     # get Op name
     if user_manager_group:
         for i in range(len(user_manager_group)):
@@ -1031,7 +1053,7 @@ def analysis_op_user(request):
         user_groups.append('ALL')
         all_work_groups.append('ALL')
    
-    return all_user_ids, all_op_id,user_groups,all_work_groups
+    return all_user_ids, op_id_sorted,user_groups,all_work_groups
 
 # check if use is report module manager
 def is_report_manager(request):
@@ -1840,7 +1862,7 @@ def get_real_time_estimate(request):
         real_time = {'real_time_estimate': round(1 - total,2)}
         return HttpResponse(json.dumps(real_time), content_type='application/json')
 
-#get produce time filtered by time
+#get produce time filtered by time in report get
 def get_produce_time_bytime(request):
     
     from_date = request.POST.get('prod_from_date')
@@ -1859,6 +1881,7 @@ def get_produce_time_bytime(request):
     result = Report.objects.filter(user=username,date__range=(from_date,to_date)).order_by('date')
     logs,standard_time_total, real_time_total = get_current_date_data(request,result)
     all_show_digts = global_context(request)
+    # switch the new data
     all_show_digts['logs'] = logs
     all_show_digts['error_prod_from_date'] = message_from
     all_show_digts['error_prod_to_date'] = message_to
@@ -2141,6 +2164,40 @@ def getTransTime(request, month, year):
         return piv
     else:
         return pd.DataFrame()
+
+# approve material
+def materialApprove(request):
+    year = int(request.GET.get('year'))
+    quarter = request.GET.get('quarter')
+    group = request.GET.get('group')
+
+    # workGroup = WorkGroups.objects.get(group_name=group)
+    # matrl = Material.objects.all().values()
+    # if quarter != 0:
+    #     matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=group)
+    # else:
+    #     matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=group)
+    # matrlUse = MeterialUse.objects.filter()
+    return render(request, 'report/material_approve.html',{
+        'year':year,
+        'quarter':quarter,
+        'group':group,
+    })
+
+# get material
+def materialGet(request):
+    year = request.GET.get('year')
+    quarter = request.GET.get('quarter')
+    group = request.GET.get('group')
+    return render(request,'report/material_get.html')
+
+# check material
+def materialCheck(request):
+    year = request.GET.get('year')
+    quarter = request.GET.get('quarter')
+    group = request.GET.get('group')
+    return render(request,'report/material_check.html')
+
 
 
 
