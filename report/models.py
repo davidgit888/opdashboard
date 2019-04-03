@@ -97,6 +97,7 @@ class SupportiveTime(models.Model):
     date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
     groups = models.CharField(max_length=20,default='',verbose_name='班组')
     vertical = models.FloatField(verbose_name='线性/垂直度修正',max_length=10,null=True, default=0, blank=True)
+    date_create = models.DateTimeField(auto_created=True,verbose_name='创建时间',default=now())
     
     def __str__(self):
         return '%s %s ' % (self.user, self.date)
@@ -261,26 +262,44 @@ class Material(models.Model):
     unit = models.CharField(max_length=10,verbose_name='单位')
     attribute = models.CharField(max_length=50,verbose_name='规格')
     comments = models.CharField(max_length=1,verbose_name='是否为包装材料')
-    price = models.FloatField(max_length=10,verbose_name='单价')
+    price = models.FloatField(max_length=10,verbose_name='单价',default='')
+    def __str__(self):
+        return '%s %s %s %s' %(self.sno, self.name, self.attribute,self.unit)
+    class Meta:
+        verbose_name = '物耗材料'
+        verbose_name_plural = '物耗材料'    
 
 class MaterialApprove(models.Model):
     sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
-    year = models.IntegerField(max_length=4,verbose_name='年份')
+    year = models.IntegerField(verbose_name='年份')
     quarter = models.CharField(max_length=10,verbose_name='季度')
     group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
-    qty = models.IntegerField(max_length=4, verbose_name='数量')
-    qty_request = models.IntegerField(max_length=4,verbose_name='申请数量')
+    qty = models.IntegerField(verbose_name='审批数量',default=0)
+    qty_request = models.IntegerField(verbose_name='申请数量',default=0)
+    qty_sup = models.FloatField(verbose_name='结余数量',default=0)
+    qty_get = models.IntegerField(verbose_name='到货',default=0)
     date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s %s %s %s %s %s' %(self.year, self.quarter, self.sno,self.group,self.qty,self.qty_request)
+    class Meta:
+        verbose_name = '物耗申请审批'
+        verbose_name_plural = '物耗申请审批'
 
 class MaterialGet(models.Model):
     sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
-    year = models.IntegerField(max_length=4,verbose_name='年份')
+    year = models.IntegerField(verbose_name='年份')
     quarter = models.CharField(max_length=10,verbose_name='季度')
     group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
-    qty = models.IntegerField( verbose_name='数量')
+    qty = models.IntegerField( verbose_name='数量',default=0)
     date = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return '%s %s %s %s %s %s' %(self.year, self.quarter, self.sno,self.group,self.qty,self.date)
+    class Meta:
+        verbose_name = '物耗材料到货'
+        verbose_name_plural = '物耗材料到货'
 
 class MeterialUse(models.Model):
     sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
@@ -288,16 +307,42 @@ class MeterialUse(models.Model):
     quarter = models.CharField(max_length=10,verbose_name='季度')
     group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
-    qty = models.FloatField( verbose_name='数量')
+    qty = models.FloatField( verbose_name='数量',default=0)
     date = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return '%s %s %s %s %s %s' %(self.year, self.quarter, self.sno,self.group,self.qty,self.date)
+    class Meta:
+        verbose_name = '物耗领用'
+        verbose_name_plural = '物耗领用'
 
 class MeterialSurplus(models.Model):
     sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
-    year = models.IntegerField(max_length=4,verbose_name='年份')
+    year = models.IntegerField(verbose_name='年份')
     quarter = models.CharField(max_length=10,verbose_name='季度')
     group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
-    qty = models.FloatField( verbose_name='数量')
+    qty = models.FloatField( verbose_name='数量',default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
     date = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return '%s %s %s %s %s %s' %(self.year, self.quarter, self.sno,self.group,self.qty,self.date)
+    class Meta:
+        verbose_name = '物耗结余'
+        verbose_name_plural = '物耗结余'
 
 
+class UserInfo(models.Model):
+    """UserInfo"""
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
+    staff_no = models.CharField(max_length=10,verbose_name='工号',default='')
+    duty = models.CharField(max_length=10,verbose_name='职位',default='')
+    email = models.CharField(max_length=50,verbose_name='邮箱',default='')
+    work_group = models.ForeignKey(WorkGroups, db_column='group_name',on_delete=models.CASCADE,verbose_name='工作组',default='')
+    department = models.CharField(max_length=30,verbose_name='部门',default='')
+    mobile = models.IntegerField(verbose_name='电话')
+
+
+    def __str__(self):
+        return '%s %s %s %s %s %s' %(self.user_id, self.staff_no, self.duty,self.email,self.work_group,self.department)
+    class Meta:
+        verbose_name = '用户信息'
+        verbose_name_plural = '用户信息'

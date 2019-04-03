@@ -3,7 +3,11 @@
 {% load staticfiles %}
 <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
 <script src="{% static 'js/Calendar.js' %}"></script>   
-<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script src="{% static 'js/kendo.all.min.js' %}"></script>
+
+<link href="{% static 'css/kendo.common.min.css' %}" rel="stylesheet"> 
+<link href="{% static 'css/kendo.default.min.css' %}" rel="stylesheet" /> 
 <script>
     var totalHour = parseFloat('{{g_today_real_time_total}}') + parseFloat('{{g_today_supportive_total_without_coef}}');
     // validate produce time and save data
@@ -19,9 +23,10 @@
         var op = document.getElementById('op_id').value;
         var date_time = document.getElementById('prodate').value;
         
-        totalHour = Math.round((parseFloat(real_time) + parseFloat(totalHour)) * 100) / 100;
+        totalHour = (parseFloat(real_time) + parseFloat(totalHour)).toFixed(2);
+        totalHour = parseFloat(totalHour).toFixed(2);
         //alert(qty_check);
-        var retVal = confirm("本日总工时为： "+totalHour+" , 是否确定？");
+        var retVal = confirm("本日总工时为： "+parseFloat(totalHour).toFixed(2)+" , 是否确定？");
 
         if( retVal == true ) {
             //document.write ("User wants to continue!");
@@ -146,10 +151,10 @@
         
     }
 
-    //validate support time
+    //validate support time save support time
     function valid_support(){
         
-        totalHour = parseFloat(totalHour);
+        totalHour = parseFloat(totalHour).toFixed(2);
         //totalHour = parseFloat(real_time) + parseFloat(totalHour);
         var rest = document.getElementById('rest').value;
         if(rest.length!=0){
@@ -265,8 +270,8 @@
         var date_time = $('#suportdate').val();
         
         //
-        
-        var retVal = confirm("本日总工时为： "+totalHour+", 是否确定？");
+       
+        var retVal = confirm("本日总工时为： "+parseFloat(totalHour).toFixed(2)+", 是否确定？");
         if( retVal == true ) {
             {% comment %} if (isNaN(rest) ||(isNaN(clean))){
                 alert("休息工时必须是数字且不为空");
@@ -280,7 +285,7 @@
                 });
         }else{
             alert('取消保存！');
-            location.reload();
+            //location.reload();
         }
 
     }
@@ -474,6 +479,7 @@
         <li class='notselected' id='liproduce' style='background:orange'>制造工时</li>
         <li class='notselected' id='lireport'>辅助工时</li>
         <li class='notselected' id='lidash'>月度统计图</li>
+        <li class='notselected' id='limaterial'>物耗使用</li>
         
         <div id='dproduce' style='display:block;'>
             {% comment %} 制造工时表 {% endcomment %}
@@ -902,6 +908,60 @@
             {% include 'echarts/individul_kpi.html' %}
             <p>{{user_groups}}</p>
         </div>
+
+        <div id='dmaterial' style='display:none'>
+            <br/><br/>
+            <div>
+                <fieldset>
+                        <legend>物耗使用</legend>
+                            <label>物料编码</lable>
+                            <input type='text' id='material_so' name='material_so'>
+                             <br/><br/>
+                             <label>物料名称</lable>
+                            <input type='text' id='material_name' name='material_name' readonly>
+                             <br/><br/>
+                            <label>使用数量</lable>
+                            <input type='text' id='material_qty' name='material_qty'>
+                            <br/><br/>
+                            
+                            
+                </fieldset>
+                <br/><br/>
+                <input type='button' id="saveUsage" onclick='saveUsage()'  value='保存'>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function(){
+                $('#material_so').change(function(){
+                    var msno = $('#material_so').val();
+                    $.get("/report/getMaterialNo/",{'msno':msno}, function(ret){
+                
+                        $('#material_name').val(ret);
+                        
+                })
+
+            });
+            });
+            function saveUsage(){
+                var msno = $('#material_so').val();
+                var name = $('#material_name').val();
+                var qtyUse = $('#material_qty').val();
+                if(msno =='' || name == ''){
+                    alert('编号和物料名称不能为空')
+                }
+                else if(isNaN(qtyUse) || qtyUse == ''){
+                    alert('数量必须是数字且不为空');
+                }
+                else{
+                     $.get("/report/saveMaterialUse/",{'msno':msno,'qty':qtyUse}, function(ret){
+                
+                        alert(ret);
+                        
+                    })
+                }
+               
+            }
+        </script>
     </div>
 </body>
 </html>

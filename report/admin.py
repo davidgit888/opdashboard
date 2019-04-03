@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus,UserInfo
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -57,7 +57,7 @@ class ReportAdmin(admin.ModelAdmin):
         #field_names.append('full_name')
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response,dialect='excel',encoding='gb2312')
+        writer = csv.writer(response,dialect='excel',encoding='GB18030')
 
         writer.writerow(field_names[1:])
         for obj in queryset:
@@ -124,7 +124,7 @@ class SupportiveTimeAdmin(admin.ModelAdmin):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response,dialect='excel',encoding='gb2312')
+        writer = csv.writer(response,dialect='excel',encoding='GB18030')
 
         writer.writerow(field_names[1:])
 
@@ -332,7 +332,7 @@ class GroupPerformAdmin(admin.ModelAdmin):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response,dialect='excel',encoding='gb2312')
+        writer = csv.writer(response,dialect='excel',encoding='GB18030')
 
         writer.writerow(field_names[1:])
 
@@ -396,7 +396,7 @@ class OverTimeAdmin(admin.ModelAdmin):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response,dialect='excel',encoding='gb2312')
+        writer = csv.writer(response,dialect='excel',encoding='GB18030')
 
         writer.writerow(field_names[1:])
 
@@ -491,10 +491,47 @@ class MaterialAdmin(admin.ModelAdmin):
     fields = ['sno','name','unit','attribute','comments','price']
     list_display = ('sno','name','unit','attribute','comments','price')
     search_fields = ['sno','name','unit','attribute','comments','price']
+    
+    change_list_template = "report/upload_excel.html"
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('upload_excel/', self.upload_excel)
+        ]
+        return my_urls + urls
+
+    def upload_excel(self,request):
+        if request.method == 'POST':
+            excel_file = request.FILES["file"]
+            data = pd.read_excel(excel_file)
+            data['price'] = data['price'].round(2)
+            #data['ProductNo'] = data['ProductNo'].apply(lambda x: int(x))
+            try:
+                
+                    # a =SfmProd.objects.all()
+                try:
+                    Material.objects.all().delete()
+                except:
+                    return HttpResponse('cannot delete all')
+                for i in range(len(data)):
+                    query = Material(sno=data['ID'][i],name=data['name'][i],unit=data['unit'][i],
+                        attribute=data['type'][i],comments=data['yon'][i],price=data['price'][i])
+                    query.save()
+                self.message_user(request, '上传成功')
+                return redirect("..")
+            except Exception as e:
+                messages.error(request,'上传失败 '+str(e))
+                return redirect("..")
+
+        form = UploadExcel()
+        
+        return render(request, 'admin/report_excel_form.html',{
+            'form':form,
+        })
 
 class MaterialApproveAdmin(admin.ModelAdmin):
-    fields = ['sno','year','quarter','group','user','qty']
-    list_display = ('sno','year','quarter','group','user','qty','date')
+    fields = ['sno','year','quarter','group','user','qty','qty_request','qty_sup','qty_get']
+    list_display = ('sno','year','quarter','group','user','qty','date','qty_request','qty_sup','qty_get')
     search_fields = ['sno','year','quarter','group','user','qty','date']
 
 class MaterialGetAdmin(admin.ModelAdmin):
@@ -512,6 +549,15 @@ class MeterialSurplusAdmin(admin.ModelAdmin):
     list_display = ('sno','year','quarter','group','user','qty','date')
     search_fields = ['sno','year','quarter','group','user','qty','date']
 
+class UserInfoAdmin(admin.ModelAdmin):
+    """docstring for UserInfoAdmin"""
+    fields = ['user_id','staff_no','duty','email','work_group','department','mobile']
+    list_display = ('user_id','staff_no','duty','email','work_group','department','mobile')
+    search_fields = ['user_id','staff_no','duty','email','work_group','department','mobile']
+
+
+    
+        
 
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SupportiveTime, SupportiveTimeAdmin)
@@ -533,6 +579,7 @@ admin.site.register(DocType, DocTypeAdmin)
 admin.site.register(DocInfo,DocInfoAdmin)
 admin.site.register(Material,MaterialAdmin)
 admin.site.register(MaterialApprove,MaterialApproveAdmin)
-admin.site.register(MaterialGet,MaterialGetAdmin)
-admin.site.register(MeterialUse,MeterialUseAdmin)
+# admin.site.register(MaterialGet,MaterialGetAdmin)
+# admin.site.register(MeterialUse,MeterialUseAdmin)
 admin.site.register(MeterialSurplus,MeterialSurplusAdmin)
+admin.site.register(UserInfo,UserInfoAdmin)

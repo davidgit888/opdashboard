@@ -28,19 +28,7 @@
     var data = $.parseJSON(schedule);
     var dataLength = Object.keys(data)['length'];
     
-    for(j=0;j<10;j++){
-    var a = {};
-    
-        for(i=0;i<dataLength-3;i++){
-            
-            a[Object.keys(data[0])[i]]='---';
-            a['sfg_id']='---';
-            a['type_name']='---';
-            a['sfg_comments']='---';
-            
-        };
-        data.push(a);
-    };
+
     {% comment %} $(document).ready(function(){ 
        
         
@@ -311,7 +299,8 @@
         });
 
             //form the schedule table
-        for(i=0;i<data.length;i++){
+        $(document).ready(function(){
+            for(i=0;i<data.length;i++){
             var allRows = '';
             if(data[i]['sfg_id'] != '---'){
 
@@ -342,14 +331,14 @@
                 }
                 
             }
-            allRows += '</tr>';
+            
             $('#tblNeedsScrolling tbody ').append(allRows);
+            //console.log(i);
        
             
-        }  
-
-       
-
+        } 
+        //alert(allRows);
+        });
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
 
             var comments = $(this).parent('tr').find('td').eq(2).html();
@@ -448,50 +437,7 @@
     }
 
     // Freeze the header of table
-    function scrolify(tblAsJQueryObject, height) {
-        var oTbl = tblAsJQueryObject;
-
-        // for very large tables you can remove the four lines below
-        // and wrap the table with <div> in the mark-up and assign
-        // height and overflow property  
-        var oTblDiv = $("<div/>");
-        oTblDiv.css('height', height);
-        oTblDiv.css('overflow', 'scroll');
-        oTbl.wrap(oTblDiv);
-
-        // save original width
-        oTbl.attr("data-item-original-width", oTbl.width());
-        oTbl.find('thead tr td').each(function() {
-            $(this).attr("data-item-original-width", $(this).width());
-        });
-        oTbl.find('tbody tr:eq(0) td').each(function() {
-            $(this).attr("data-item-original-width", $(this).width());
-        });
-
-
-        // clone the original table
-        var newTbl = oTbl.clone();
-
-        // remove table header from original table
-        oTbl.find('thead tr').remove();
-        // remove table body from new table
-        newTbl.find('tbody tr').remove();
-
-        oTbl.parent().parent().prepend(newTbl);
-        newTbl.wrap("<div/>");
-
-        // replace ORIGINAL COLUMN width        
-        newTbl.width(newTbl.attr('data-item-original-width'));
-        newTbl.find('thead tr td').each(function() {
-            $(this).width($(this).attr("data-item-original-width"));
-        });
-        oTbl.width(oTbl.attr('data-item-original-width'));
-        oTbl.find('tbody tr:eq(0) td').each(function() {
-            $(this).width($(this).attr("data-item-original-width"));
-        });
-
-        
-    }
+   
 {% comment %} 
         $(document).ready(function() {
         scrolify($('#tblNeedsScrolling'), 640); // 160 is height
@@ -521,12 +467,7 @@
 
         
 
-        {% comment %} $('table').floatThead({
-            scrollContainer: function($table){
-                return $table.closest('.wrapper');
-            }
-        });
-         {% endcomment %}
+       
     });
 
     $(document).ready(function(){
@@ -623,7 +564,7 @@
         <li class='notselected' id='liKpi' >业绩表</li>
         <li class='notselected' id='litotal' >统计表</li>
         <li class='notselected' id='ldoc'>归档信息</li>
-        {% comment %} <li class='notselected' id='ldoc'>物料损耗</li> {% endcomment %}
+        <li class='notselected' id='lmat'>物料损耗</li>
          
 
         <div id = 'dSchedule'  width=100% >
@@ -684,30 +625,15 @@
                             {% for i in op_list  %}
                                 <td class = 'tableHead' >员工</td>
                                 <td class = 'tableHead'  >日期</td>
-                                {% comment %} <td class = 'tableHead'>完成度</td> {% endcomment %}
+                                
 
                             {% endfor %}
                             
                         </thead>
-                        <tbody id='schedule_tbody'>
+                        <tbody>
 
                         </tr>
-                    
-            {% comment %}                     
-                                {% for  i in schedule_list  %}
-                                <tr class="{% cycle 'row1' 'row2' %}" > 
-                                       
-                                        {% for key, value in i.items %}
-                                            
-                                            <td >{{value}}</td>
-                                           
-                                        {% endfor %}
-                                        
-                                    </tr>   
-                                    
-                                    {% endfor %}        
-                                            
-                                     {% endcomment %}
+
                             
                         
                         </tr>
@@ -716,18 +642,7 @@
                 </table>
                 
             </div>
-            {% comment %} <br/> <br/> <br/>
-            {{schedule_list}}
-            <br/> <br/> <br/>
-            <p>Value</p>
-            {% for  i in schedule_list  %}
-                
-                {% for key,value in i.items %}
-                
-                <p>value: {{value}}</p>
-                {% endfor %}
-                
-            {% endfor %}                   {% endcomment %}
+    
                             
         
         </div>
@@ -753,7 +668,7 @@
                     <p id='p_save_message'></p>
                     <p id='cd_time'></p>
                     
-                    <input type='button' value='提交数据' onclick='save_all_perform()'>
+                    <!-- <input type='button' value='提交数据' onclick='save_all_perform()'> -->
                 
             </div>
             <div height='80%'>
@@ -942,9 +857,13 @@
                         <option value=0>全年</option>    
                     </select>
                 <select id='m_group' name='m_group'>
+                        
                             {% for i in user_groups %}
-                                <option value="{{i}}">{{i}}</option>
+                                {% if '数据-检验' not in i %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endif %}
                             {% endfor %}
+                        
                 </select>
             <input type='button' onclick='materialCheck()' value='查看季度物耗'>
             <input type='button' onclick='materialGet()' value='新增物耗收货'>
@@ -980,7 +899,7 @@
                         var m_year= $('#m_year option:selected').val();
                         var m_quarter = $('#m_quarter option:selected').val();
                         var m_group = $('#m_group option:selected').val();
-                        url = '/report/materialApprove/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group;
+                        url = '/report/materialApprove/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group+'&messages=';
                         newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
                         if (window.focus) {newwindow.focus()}
                     }

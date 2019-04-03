@@ -5,6 +5,7 @@ from datetime import date, timedelta,datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 # from django.core.serializers import serialize
 import json
 from calendar import monthrange
@@ -21,6 +22,7 @@ from django.db.models import Q
 from op.models import InstalledCmm, DeliveredCmm
 from time import sleep
 import time
+import math
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -86,10 +88,8 @@ def kpi_dash(request):
         month_first = today.replace(month=i+1,day=1)
         last = calendar.monthrange(today.year,i+1)[1]
         month_last = today.replace(month=i+1,day=last)
-
         # get Report KPI
         result_today = Report.objects.filter(user=request.user.id,date__range=(month_first,month_last))
-        
         list_logs, standard_time_total, real_time_total = get_current_date_data(request, result_today)
         # Get suppotive data
         reuslt_month_supportive = SupportiveTime.objects.filter(user=request.user.id, date__range=(month_first,month_last))
@@ -107,10 +107,7 @@ def kpi_dash(request):
         months.append(str(i+1))
         efficiency_list.append(efficiency_month)
     bar = Bar("员工工效比",title_top='1%')
-    
-    
     bar.add("工效比", months, kpi_list, legend_pos='40%',legend_top='6%',mark_line_raw=[{'yAxis': 1.2}],is_label_show=True,is_toolbox_show =False)
-    
     bar.add('工时有效率',months,efficiency_list,legend_pos='40%',legend_top='6%',mark_line_raw=[{'yAxis': 0.75}],is_label_show=True,is_toolbox_show =False)
 
     # context = dict(
@@ -1076,7 +1073,10 @@ def report_analysis(request):
     a_month = request.POST.get('a_month')
     a_year = date.today().year
     
-    if not from_date:
+    is_manager = is_report_manager(request)
+    if not from_date and is_manager:
+        from_date = date.today() - timedelta(days=20)
+    else:
         from_date = date.today() - timedelta(days=60)
     if not to_date:
         to_date = date.today()
@@ -1087,7 +1087,7 @@ def report_analysis(request):
 
  
     all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
-    is_manager = is_report_manager(request)
+    
     # if user_manager_group:
     #     for i in range(len(user_manager_group)):
     #         if user_manager_group[i] in all_user_ids:
@@ -1121,7 +1121,7 @@ def report_analysis(request):
         else:
             items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
         #data = pd.DataFrame(list(items), columns=['sfg_id','type_name','op_id_id','user_id','date'])
-        data = pd.DataFrame()
+        # data = pd.DataFrame()
         # for i in range(len(items)):
         #     data = data.append({'sfg':items[i].sfg_id, 'type':items[i].type_name,'op':items[i].op_id,'user':items[i].user,'date':items[i].date}, ignore_index=True)
         #     # data['op'][0].op_id
@@ -1198,7 +1198,7 @@ def report_analysis(request):
            
             
 
-            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+           
 
             #####数据组
             data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
@@ -1208,9 +1208,13 @@ def report_analysis(request):
                 anls_group = ''
             
 
-            end_time = time.time()
+            # end_time = time.time()
 
-           
+            if not is_manager and not is_electronic:
+                group = user_work_group(request)
+                all_user_ids = user_work_group_ids(group,today)
+            
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
             return render(request, 'report/schedule.html', {
                 
                 'schedule_list':schedule_list,
@@ -2170,18 +2174,48 @@ def materialApprove(request):
     year = int(request.GET.get('year'))
     quarter = request.GET.get('quarter')
     group = request.GET.get('group')
-
-    # workGroup = WorkGroups.objects.get(group_name=group)
-    # matrl = Material.objects.all().values()
-    # if quarter != 0:
-    #     matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=group)
-    # else:
-    #     matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=group)
+    save_message = request.GET.get('messages')
+    if not save_message:
+        save_message=''
+    if group != 'ALL':
+        workGroup = WorkGroups.objects.get(group_name=group)
+    matrl = Material.objects.all().values()
+    matrl_pd = pd.DataFrame(list(matrl))
+    is_manager = is_report_manager(request)
+    if quarter != '0' and group != 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=workGroup).values()
+    elif quarter !='0' and group == 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter).values()
+    elif quarter == '0' and group != 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,group=workGroup).values()
+    
+    else:
+        matrlApprove = MaterialApprove.objects.filter(year=year).values()
+    if len(matrlApprove) ==0:
+        matrl_pd['qty_request'] = 0
+        matrl_pd['qty'] = 0
+        matrl_pd['total'] = matrl_pd.price * matrl_pd.qty_request
+    else:
+        mAppro_pd = pd.DataFrame(list(matrlApprove),columns=['sno_id','qty','qty_request'])
+        mAppro_pd = mAppro_pd.groupby('sno_id').sum()
+        # data = pd.merge(matrl_pd, mAppro_pd.set_index('sno_id'),left_on='id',right_index=True)
+        matrl_pd = matrl_pd.merge(mAppro_pd,left_on='id',right_on=mAppro_pd.index,right_index=False,how='left')
+        # matrl_pd = matrl_pd.merge(mAppro_pd.set_index('sno_id'),left_on='id',right_index=True)
+        matrl_pd['total'] = matrl_pd.price * matrl_pd.qty_request
     # matrlUse = MeterialUse.objects.filter()
+    mapprove_data = matrl_pd.to_json(orient='records',lines=True)
+    mapprove_data = mapprove_data.split('\n')
+    if quarter == '0':
+        quarter = '全年'
     return render(request, 'report/material_approve.html',{
         'year':year,
         'quarter':quarter,
         'group':group,
+        'matrl':matrl_pd.to_json(orient='records'),
+        # 'mapprove_data':matrl_pd.to_html(index=False),
+        'is_manager':is_manager,
+        'save_message':save_message,
+
     })
 
 # get material
@@ -2189,16 +2223,254 @@ def materialGet(request):
     year = request.GET.get('year')
     quarter = request.GET.get('quarter')
     group = request.GET.get('group')
-    return render(request,'report/material_get.html')
+    if group != 'ALL':
+        workGroup = WorkGroups.objects.get(group_name=group)
+    matrl = Material.objects.all().values()
+    matrl_pd = pd.DataFrame(list(matrl))
+    if quarter != '0' and group != 'ALL':
+        matrlGet = MaterialApprove.objects.filter(year=year,quarter=quarter,group=workGroup).values()
+    elif quarter != '0' and group == 'ALL':
+        matrlGet = MaterialApprove.objects.filter(year=year,quarter=quarter).values()
+    elif quarter == '0' and group != 'ALL':
+        matrlGet = MaterialApprove.objects.filter(year=year,group=workGroup).values()
+    else:
+        matrlGet = MaterialApprove.objects.filter(year=year).values()   
+    if len(matrlGet) ==0:
+        matrl_pd['qty_get'] = 0
+    else:
+        mGet_pd = pd.DataFrame(list(matrlGet),columns=['sno_id','qty_get'])
+        mGet_pd = mGet_pd.groupby('sno_id').sum()
+        matrl_pd = matrl_pd.merge(mGet_pd,left_on='id',right_on=mGet_pd.index,right_index=False,how='left')
+        # matrl_pd = matrl_pd.merge(mGet_pd.set_index('sno_id'),left_on='id',right_index=True)
+    if quarter == '0':
+        quarter = '全年'
+    return render(request,'report/material_get.html',{
+        'matrl':matrl_pd.to_json(orient='records'),
+        'year':year,
+        'quarter':quarter,
+        'group':group,
+        })
 
 # check material
 def materialCheck(request):
     year = request.GET.get('year')
     quarter = request.GET.get('quarter')
     group = request.GET.get('group')
-    return render(request,'report/material_check.html')
+    matrl = Material.objects.all().values()
+    matrl_pd = pd.DataFrame(list(matrl))
+    if group != 'ALL':
+        workGroup = WorkGroups.objects.get(group_name=group)
+    if quarter != '0' and group != 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=workGroup).values()
+        matrlUse = MeterialUse.objects.filter(year=year,quarter=quarter,group=workGroup).values()
+        mSup = MeterialSurplus.objects.filter(group=workGroup).values()
+    elif quarter != '0' and group == 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter).values()
+        matrlUse = MeterialUse.objects.filter(year=year,quarter=quarter).values()
+        mSup = MeterialSurplus.objects.all().values()
+    elif quarter == '0' and group != 'ALL':
+        matrlApprove = MaterialApprove.objects.filter(year=year,group=workGroup).values()
+        matrlUse = MeterialUse.objects.filter(year=year,group=workGroup).values()
+        mSup = MeterialSurplus.objects.filter(group=workGroup).values()
+    else:
+        matrlApprove = MaterialApprove.objects.filter(year=year).values() 
+        matrlUse = MeterialUse.objects.filter(year=year).values()
+        mSup = MeterialSurplus.objects.all().values()
 
+    mSup = MeterialSurplus.objects.all().values()
+    mSup_pd = pd.DataFrame(list(mSup),columns=['sno_id','qty'])
+    mSup_pd = mSup_pd.rename(columns={'qty':'qty_sup'})
+    mSup_pd = mSup_pd.groupby('sno_id').sum()
+    # check if get is empty
+    if len(matrlApprove)==0:
+        matrl_pd['qty'] = 0
+        matrl_pd['qty_request'] = 0
+        matrl_pd['qty_get'] = 0
+        matrl_pd['qty_sup'] = 0
+    else:
+        mApp=pd.DataFrame(list(matrlApprove),columns=['sno_id','qty','qty_request','qty_get'])
+        mApp = mApp.groupby('sno_id').sum()
+        matrl_pd = matrl_pd.merge(mApp, left_on='id', right_on=mApp.index,right_index=False,how='left')
+        matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
 
+    if (len(matrlUse)==0):
+        matrl_pd['qty_use']=0
+    else:
+        matrlUse_pd = pd.DataFrame(list(matrlUse),columns=['sno_id','qty'])
+        matrlUse_pd = matrlUse_pd.rename(columns={'qty':'qty_use'})
+        matrlUse_pd = matrlUse_pd.groupby('sno_id').sum()
+        matrl_pd = matrl_pd.merge(matrlUse_pd, left_on='id',right_on=matrlUse_pd.index,right_index=False,how='left')
 
+    matrl_pd = matrl_pd.fillna(0)
+    matrl_pd['calc_left'] = matrl_pd.qty_get - matrl_pd.qty_use + matrl_pd.qty_sup
+    if quarter=='0':
+        quarter = '全年'
+    return render(request,'report/material_check.html',{
+        'matrl':matrl_pd.to_json(orient='records'),
+        'year':year,
+        'quarter':quarter,
+        'group':group,
+        })
 
-   
+def getMaterialNo(request):
+    msno = request.GET.get('msno')
+    msno = msno.strip()
+    try:
+        name = Material.objects.get(sno__contains=msno).name
+        
+    except:
+        name = '找不到物料'
+    
+    return HttpResponse(json.dumps(name), content_type='application/json')
+
+def saveMaterialUse(request):
+    sno = request.GET.get('msno')
+    qty = request.GET.get('qty')
+    try:
+        f_sno = Material.objects.get(sno=sno)
+        
+        #qty = round(float(qty),2)
+        today = date.today()
+        year = today.year
+        qauter=math.ceil(today.month/3)
+        qauter = 'Q' +str(qauter)
+        group = user_work_group(request)
+        f_group = WorkGroups.objects.get(group_name=group)
+        f_user = User.objects.get(id=request.user.id)
+        query = MeterialUse(sno=f_sno,year=year,quarter=qauter,group=f_group,qty=qty,user=f_user)
+        try:
+            query.save()
+            message = '保存成功'
+        except:
+            message = '保存不成功'
+    except Exception as ex:    
+        template = "保存失败，找不到物料编号"
+        message = template + json.dumps(ex.args)
+        
+    
+    return HttpResponse(json.dumps(message),content_type='application/json')
+
+def saveMaterialApprove(request):
+    ids = request.POST.getlist('ids')
+    qtys = request.POST.getlist('qtys')
+    quarter = request.POST.get('quarter')
+    year = int(request.POST.get('year'))
+    group = request.POST.get('group')
+    is_manager = is_report_manager(request)
+    not_in_list = []
+    message = ''
+    if quarter != '全年' and group != 'ALL':
+        for i in range(len(ids)):
+            f_id = Material.objects.get(sno=ids[i])
+            f_group = WorkGroups.objects.get(group_name=group)
+            user = User.objects.get(id=request.user.id)
+            a = MaterialApprove.objects.filter(year=year,quarter=quarter,group=f_group,sno=f_id)
+            if len(a) == 0:
+                if is_manager and qtys[i] !=0:
+                    query = MaterialApprove(year=year,quarter=quarter,group=f_group,sno=f_id,user=user,qty=qtys[i])
+                    query.save()
+                    message += ids[i] + '审批保存成功'
+                else:
+                    query = MaterialApprove(year=year,quarter=quarter,group=f_group,sno=f_id,user=user,qty_request=qtys[i])
+                    query.save()  
+                    message += ids[i] + '申请保存成功'              
+            else:
+                if is_manager and qtys[i] !=0:
+                    a.update(qty=qtys[i])
+                    message += ids[i] + '审批更新保存成功'
+                else:
+                    a.update(qty_request=qtys[i])
+                    message += ids[i] + '申请更新保存成功'
+    else:
+        message = '请选择年份，季度和班组'
+
+    return HttpResponse(json.dumps(message))
+
+def saveMaterialGet(request):
+    ids = request.POST.getlist('ids')
+    qtys = request.POST.getlist('qtys')
+    quarter = request.POST.get('quarter')
+    year = int(request.POST.get('year'))
+    group = request.POST.get('group')
+    message = ''
+    if quarter != '全年' and group != 'ALL':
+        for i in range(len(ids)):
+            f_id = Material.objects.get(sno=ids[i])
+            f_group = WorkGroups.objects.get(group_name=group)
+            user = User.objects.get(id=request.user.id)
+            a = MaterialApprove.objects.filter(year=year,quarter=quarter,group=f_group,sno=f_id)
+            if len(a) == 0:
+                # query = MaterialGet(year=year,quarter=quarter,group=f_group,sno=f_id,user=user,qty=qtys[i])
+                # query.save()
+                message += ids[i] + '没有申请和审批流程,无法更新！'              
+            else:
+                a.update(qty_get=qtys[i])
+                message += ids[i] + '到货更新保存成功'
+    else:
+        message = '请选择年份，季度和班组'
+    return HttpResponse(json.dumps(message))
+
+def saveMaterialSup(request):
+    ids = request.POST.getlist('ids')
+    qtys = request.POST.getlist('qtys')
+    quarter = request.POST.get('quarter')
+    year = int(request.POST.get('year'))
+    group = request.POST.get('group')
+    message = ''
+    if quarter != '全年' and group != 'ALL':
+        for i in range(len(ids)):
+            f_id = Material.objects.get(sno=ids[i])
+            f_group = WorkGroups.objects.get(group_name=group)
+            user = User.objects.get(id=request.user.id)
+            a = MeterialSurplus.objects.filter(group=f_group,sno=f_id)
+            if len(a) == 0:
+                query = MeterialSurplus(year=year,quarter=quarter,group=f_group,sno=f_id,user=user,qty=qtys[i])
+                query.save()
+                # message += ids[i] + '没有申请和审批流程,无法更新！'              
+            else:
+                a.update(qty=float(qtys[i]))
+                message += ids[i] + '结余更新保存成功'
+    else:
+        message = '请选择年份，季度和班组'
+    return HttpResponse(json.dumps(message))
+
+def uploadMatrlAprv(request):
+    message = []
+    error = []
+    if request.method == 'POST':
+        excel_file = request.FILES["files"]
+        data = pd.read_excel(excel_file)
+        year = int(request.POST.get('year'))
+        quarter = request.POST.get('quarter')
+        group = request.POST.get('group')
+        cols = data.columns[1:]
+        f_user = User.objects.get(id=request.user.id)
+        for i in range(len(data)):
+            
+            f_sno = Material.objects.get(sno=data['ID'][i])
+            for j in range(len(cols)):
+                f_group = WorkGroups.objects.get(group_name=cols[j])
+                a = MaterialApprove.objects.filter(sno=f_sno,year=year,quarter=quarter,group=f_group)
+                if len(a) != 0:
+                    try:
+                        a.update(qty=int(data[cols[j]][i]))
+                        message.append('保存成功')
+                    except Exception as ex:
+                        error.append(json.dumps(ex.args))
+
+                else:
+                    try:
+                        query = MaterialApprove(sno=f_sno,year=year,quarter=quarter,group=f_group,user=f_user,qty=int(data[cols[j]][i]))
+                        query.save()
+                        message.append('保存成功')
+                    except Exception as ex:
+                        error.append(str(data['ID'][i])+',group:' + cols[j] + '没有保存，因为没有申请数据。')
+        # message = list(set(message))
+        if len(error) != 0:
+            messages = str(len(message))+'条保存成功'+str(len(error))+'条保存失败'
+        else:
+            messages = str(len(message))+'条保存成功'
+
+    return HttpResponseRedirect('/report/materialApprove/?year='+str(year)+'&quarter='+quarter+"&group="+group+"&messages= "+str(messages))
+    # return HttpResponse(message)
+

@@ -33,6 +33,12 @@ urlpatterns = [
     path('materialApprove/',views.materialApprove),
     path('materialGet/',views.materialGet),
     path('materialCheck/',views.materialCheck),
+    path('getMaterialNo/',views.getMaterialNo),
+    path('saveMaterialUse/',views.saveMaterialUse),
+    path('saveMaterialApprove/',views.saveMaterialApprove),
+    path('saveMaterialGet/',views.saveMaterialGet),
+    path('saveMaterialSup/',views.saveMaterialSup),
+    path('uploadMatrlAprv/',views.uploadMatrlAprv),
     
     #path('upload_excel/',)
 ]

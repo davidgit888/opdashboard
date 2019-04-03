@@ -1,6 +1,292 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script src="{% static 'js/kendo.all.min.js' %}"></script>
+
+<link href="{% static 'css/kendo.common.min.css' %}" rel="stylesheet"> 
+<link href="{% static 'css/kendo.default.min.css' %}" rel="stylesheet" />
+<script>
+    //var material = '{{matrl|safe}}';
+    var data = '{{matrl|safe}}';
+    var mdata = JSON.parse(data);
+
+    
+    function approveMaterial(data){
+        alert(data);
+    }
+</script>
 
 
-<h1> materialApprove()</h1>
-{{year}}
-{{group}}
-{{quarter}}
+<h1>{{year}} 年
+
+{{quarter}} 
+{{group}} &nbsp 物料申请审批
+
+</h1>
+<p id='save_mess'></p>
+<script type="text/javascript">
+    var ma_save_status = '{{save_message|safe}}';
+    pattern = /失败/
+
+    if(ma_save_status != ''){
+        if(pattern.test(ma_save_status)){
+            $('#save_mess').append('<span style="color:red">'+ma_save_status+'</span>')
+        }else{
+            $('#save_mess').append('<span >'+ma_save_status+'</span>')
+        }
+        
+    }
+    
+
+</script>
+<div id="grid1"></div>
+<!--  all post -->
+{% csrf_token %}
+<script type="text/javascript">
+   
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+    //check quarter and group
+    var rQuarter = '{{quarter}}';
+    var rGroup = '{{group}}';
+
+    function requestMaterial(type){
+        //var rows = document.getElementById("performance_table").rows;
+        var rows = document.getElementsByTagName("table")[1].rows;
+        var ids = [];
+        var qtys = [];
+        
+        if(rQuarter != '全年' && rGroup != 'ALL'){
+           
+       
+            for(j=0;j<rows.length;j++){
+                row = rows[j]
+          
+                var id = row.cells[0].innerText;
+                if(check=='False'){
+                    var qty = row.cells[5].innerText;
+                }
+                else{
+                    var qty = row.cells[8].innerText;
+                }
+                
+                ids.push(id);
+                qtys.push(qty);    
+            }
+        
+
+            '{% csrf_token %}'
+
+            $.ajax({
+                type: "POST",
+                url: "/report/saveMaterialApprove/",
+                dataType: "json",
+                traditional: true,
+                //contentType: 'application/json',
+                data: {
+                    ids:ids,
+                    qtys:qtys,
+                    quarter:'{{quarter}}',
+                    year:'{{year}}',
+                    group:'{{group}}',
+                    type:type,
+
+                    
+                },
+                success : function(res) {
+        　　　　　　alert(res);
+        　　　　 },
+                error: function(res){
+                    alert('error');
+                }
+            });
+         }
+         else{
+            alert('选择合适的季度和班组！');
+         }
+        //alert(qtys);
+    }
+   
+</script>
+
+
+{% if quarter == "全年" or group == "ALL"  %}
+<h3>请选择年份，季度和班组进行审批</h3>
+
+{% elif request.user.username in 'admin,pengpeng,liuxinxin'  %}
+
+ <div id="upload" >
+    <div class="box">
+        <h4>上传资料</h4>
+    </div>
+    
+    <form method="POST" action="/report/uploadMatrlAprv/" enctype="multipart/form-data">
+
+        {% csrf_token %}
+        <div class="demo-section k-content">
+            <input name="files" id="files" type="file" aria-label="files" />
+         </div>
+            <p >
+                <button type="submit" class="k-button k-primary">Submit</button>
+            </p>
+            <input type="hidden" name="year" id='year' value="{{year}}">
+            <input type="hidden" name="quarter" id="quarter" value="{{quarter}}">
+            <input type="hidden" name="group" id="group" value="{{group}}">
+       
+    </form>
+    <script>
+        $(document).ready(function() {
+            $("#files").kendoUpload();
+        });
+    </script>
+</div>
+
+<input type='button' value='批准物料' class="k-button k-primary" onclick="requestMaterial('qty')">
+{% else %}
+<input type='button' class="k-button k-primary" onclick="requestMaterial('qty_request')" value='申请物料'>
+{% endif %}
+        <div id="example">
+        <br/>
+            <div id="grid"></div>
+
+            <script>
+               var check = '{{is_manager}}';
+               
+                $(document).ready(function() {
+                    if(check=='True'){
+
+                    
+                    $("#grid").kendoGrid({
+                        dataSource: {
+                            data: mdata,
+                            batch: true,
+                            schema: {
+                                model: {
+                                    id: "ProductID",
+                                    fields: {sno: { editable: false},
+                                        name: { editable: false},
+                                        unit: { editable: false},
+                                        attribute: { editable: false},
+                                        comments: { editable: false},
+                                        price: { editable: false, nullable: true },
+                                        total: { editable: false, nullable: true },
+                                        qty_request: { type:"number",editable: false, validation: { required: true, min: 0} },
+                                        qty: { type:"number",editable: true, validation: { required: true, min: 0} },
+                                    }
+                                }
+                            },
+                            // group: {
+                            //          field: "sno", aggregates: [
+                                        
+                            //             { field: "total", aggregate: "sum"},
+                            //             { field: "qty_request", aggregate: "sum" },
+                            //              { field: "qty", aggregate: "sum" }
+                                        
+                            //          ]
+                            //        },
+
+                            aggregate: [ { field: "total", aggregate: "sum" },
+                                         { field: "qty_request", aggregate: "sum" },
+                                         { field: "qty", aggregate: "sum" }]
+                                
+                            }, 
+                       
+                                         
+                        height: 750,
+                        scrollable: true,
+                        sortable: true,
+                        filterable: true,
+                        persistSelection: true,
+                        groupable: true,
+                        reorderable: true,
+                       
+                        columns: [
+                            //{ selectable: true, width: "50px" },
+                            { field: "sno", title:"编号",},
+                            { field: "name", title: "名字", format: "{0:c}" },
+                            { field: "unit", title: "单位"},
+                            { field: "attribute",title: "描述" },
+                            { field: "comments",title: "是否是包装材料" },
+                            { field: "qty_request",title: "申请" ,aggregates: ["sum"],groupHeaderColumnTemplate: "申请数量合计: #=sum#" },
+                            { field: "price",title: "单价",format: "{0:c}"  },
+                            { field: "total",title: "总价", aggregates: ["sum"],groupHeaderColumnTemplate: "合计: #=sum#" },
+                            { field: "qty",title: "批准",aggregates: ["sum"],groupHeaderColumnTemplate: "审批数量合计: #=sum#" },
+                        ],
+                        editable: true
+                    });
+                    }
+                    else{
+                         $("#grid").kendoGrid({
+                        dataSource: {
+                            data: mdata,
+                            batch: true,
+                            schema: {
+                                model: {
+                                    id: "ProductID",
+                                    fields: {sno: { editable: false},
+                                        name: { editable: false},
+                                        unit: { editable: false},
+                                        attribute: { editable: false},
+                                        comments: { editable: false},
+                                        qty_request: { editable: true, nullable: true },
+                                        qty: { type:"number",editable: false,validation: { required: true, min: 0} },
+                                    }
+                                }
+                            },
+                            aggregate: [ { field: "total", aggregate: "sum" },
+                                         { field: "qty_request", aggregate: "sum" },
+                                         { field: "qty", aggregate: "sum" }]
+                                
+                            
+                        },
+
+                        height: 750,
+                        scrollable: true,
+                        sortable: true,
+                        filterable: true,
+                        groupable: true,
+                        reorderable: true,
+                       
+                        columns: [
+                            //{ selectable: true, width: "50px" },
+                            { field: "sno", title:"编号",},
+                            { field: "name", title: "名字", format: "{0:c}" },
+                            { field: "unit", title: "单位"},
+                            { field: "attribute",title: "描述" },
+                            { field: "comments",title: "是否是包装材料" },
+                            { field: "qty_request",title: "申请"  },
+                            { field: "qty",title: "批准" },
+                        ],
+                        editable: true
+                    });
+                    }
+                });
+            </script>
+        <!-- upload excel -->

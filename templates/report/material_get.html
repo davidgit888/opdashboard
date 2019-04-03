@@ -1,1 +1,107 @@
-<h1>M Get</h1>
+{% load staticfiles %}
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script src="{% static 'js/kendo.all.min.js' %}"></script>
+<script src="{% static 'js/ajaxpost.js' %}"></script>
+<link href="{% static 'css/kendo.common.min.css' %}" rel="stylesheet"> 
+<link href="{% static 'css/kendo.default.min.css' %}" rel="stylesheet" />
+
+<h1>物料收货</h1>
+<script type="text/javascript">
+	var data = '{{matrl|safe}}';
+	var mdata = JSON.parse(data);
+</script>
+<h1>{{year}}年 {{quarter}} {{group}}数据</h1>
+{% if quarter == "全年" or group == "ALL"  %}
+<h3>请选择年份，季度和班组进行审批</h3>
+{% elif request.user.username in 'admin,liuxinxin,caolong,pengpeng' %}
+<p>请查看收到的物料</p>
+{% else %}
+<input type='button' value='收到物料' onclick="getMaterial()">
+<br/><br/>
+{% endif %}
+
+<script type="text/javascript">
+	var rQuarter = '{{quarter}}';
+    var rGroup = '{{group}}';
+    var check = '{{is_manager}}';
+	function getMaterial(){
+		var rows = document.getElementsByTagName("table")[1].rows;
+        var ids = [];
+        var qtys = [];
+        
+        if(rQuarter != '全年' && rGroup != 'ALL'){
+            for(j=0;j<rows.length;j++){
+                row = rows[j]
+                var id = row.cells[0].innerText;
+                var qty = row.cells[5].innerText;
+                ids.push(id);
+                qtys.push(qty);    
+            }
+            '{% csrf_token %}'
+            $.ajax({
+                type: "POST",
+                url: "/report/saveMaterialGet/",
+                dataType: "json",
+                traditional: true,
+                //contentType: 'application/json',
+                data: {
+                    ids:ids,
+                    qtys:qtys,
+                    quarter:'{{quarter}}',
+                    year:'{{year}}',
+                    group:'{{group}}',    
+                },
+                success : function(res) {
+        　　　　　　alert(res);
+        　　　　 },
+                error: function(res){
+                    alert('error');
+                }
+            });
+         }
+         else{
+            alert('选择合适的季度和班组！');
+         }
+	}
+</script>
+
+<div id="grid"></div>
+<script type="text/javascript">
+	$("#grid").kendoGrid({
+        dataSource: {
+            data: mdata,
+            batch: true,
+            schema: {
+                model: {
+                    id: "ProductID",
+                    fields: {sno: { editable: false},
+                        name: { editable: false},
+                        unit: { editable: false},
+                        attribute: { editable: false},
+                        comments: { editable: false},
+                        qty_get: { editable: true, nullable: true },
+                    }
+                }
+            }
+            
+        },
+            height: 750,
+            scrollable: true,
+            sortable: true,
+            filterable: true,
+            persistSelection: true,
+            groupable: true,
+           
+            columns: [
+                //{ selectable: true, width: "50px" },
+                { field: "sno", title:"编号",},
+                { field: "name", title: "名字", format: "{0:c}" },
+                { field: "unit", title: "单位"},
+                { field: "attribute",title: "描述" },
+                { field: "comments",title: "是否是包装材料" },
+                { field: "qty_get",title: "到货数量" },
+            ],
+            editable: true
+        });
+</script>
