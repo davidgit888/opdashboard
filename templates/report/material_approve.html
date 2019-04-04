@@ -196,7 +196,8 @@
                                         attribute: { editable: false},
                                         comments: { editable: false},
                                         price: { editable: false, nullable: true },
-                                        total: { editable: false, nullable: true },
+                                        total: { type:"number", editable: false, nullable: true },
+                                        qty_sup: { type:"number",editable: false },
                                         qty_request: { type:"number",editable: false, validation: { required: true, min: 0} },
                                         qty: { type:"number",editable: true, validation: { required: true, min: 0} },
                                     }
@@ -234,6 +235,7 @@
                             { field: "unit", title: "单位"},
                             { field: "attribute",title: "描述" },
                             { field: "comments",title: "是否是包装材料" },
+                            { field: "qty_sup",title: "结余调整",aggregates: ["sum"],groupHeaderColumnTemplate: "结余数量合计: #=sum#" },
                             { field: "qty_request",title: "申请" ,aggregates: ["sum"],groupHeaderColumnTemplate: "申请数量合计: #=sum#" },
                             { field: "price",title: "单价",format: "{0:c}"  },
                             { field: "total",title: "总价", aggregates: ["sum"],groupHeaderColumnTemplate: "合计: #=sum#" },
@@ -255,7 +257,8 @@
                                         unit: { editable: false},
                                         attribute: { editable: false},
                                         comments: { editable: false},
-                                        qty_request: { editable: true, nullable: true },
+                                        qty_sup: { type:"number",editable: false },
+                                        qty_request: { type:"number", editable: true},
                                         qty: { type:"number",editable: false,validation: { required: true, min: 0} },
                                     }
                                 }
@@ -281,6 +284,7 @@
                             { field: "unit", title: "单位"},
                             { field: "attribute",title: "描述" },
                             { field: "comments",title: "是否是包装材料" },
+                            { field: "qty_sup",title: "结余调整",aggregates: ["sum"],groupHeaderColumnTemplate: "结余数量合计: #=sum#" },
                             { field: "qty_request",title: "申请"  },
                             { field: "qty",title: "批准" },
                         ],

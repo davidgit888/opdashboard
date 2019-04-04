@@ -27,7 +27,19 @@
     var schedule = '{{schedule_json|safe}}';
     var data = $.parseJSON(schedule);
     var dataLength = Object.keys(data)['length'];
+    for(j=0;j<10;j++){
+    var a = {};
     
+        for(i=0;i<dataLength-3;i++){
+            
+            a[Object.keys(data[0])[i]]='---';
+            a['sfg_id']='---';
+            a['type_name']='---';
+            a['sfg_comments']='---';
+            
+        };
+        data.push(a);
+    };
 
     {% comment %} $(document).ready(function(){ 
        
@@ -299,7 +311,7 @@
         });
 
             //form the schedule table
-        $(document).ready(function(){
+        //$(document).ready(function(){
             for(i=0;i<data.length;i++){
             var allRows = '';
             if(data[i]['sfg_id'] != '---'){
@@ -331,14 +343,14 @@
                 }
                 
             }
-            
+            allRows += '</tr>';
             $('#tblNeedsScrolling tbody ').append(allRows);
             //console.log(i);
        
             
         } 
         //alert(allRows);
-        });
+        //});
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
 
             var comments = $(this).parent('tr').find('td').eq(2).html();
@@ -470,6 +482,7 @@
        
     });
 
+    
     $(document).ready(function(){
         $("#schedule_date_p").html('<strong>开始日期: </strong><u><span style="color:coral">'+'{{from_date}}'+'</u></span>, <strong>结束日期: </strong><u><span style="color:coral">'
         +'{{to_date}}'+'</span></u>');
@@ -630,7 +643,7 @@
                             {% endfor %}
                             
                         </thead>
-                        <tbody>
+                        <tbody id='schedule_tbody'>
 
                         </tr>
 
@@ -842,7 +855,7 @@
 
         {% comment %} 物料损耗 {% endcomment %}
         <div style='display:none'>
-            <h1>Testing</h1>
+            <h1>物料申请，审批，到货，使用信息</h1>
                 <label>年度：</label>
                     <select id='m_year' name='m_year'>
 

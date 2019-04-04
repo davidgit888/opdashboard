@@ -80,7 +80,8 @@
                         unit: { editable: false},
                         attribute: { editable: false},
                         comments: { editable: false},
-                        qty_get: { editable: true, nullable: true },
+                        qty_get: {type:"number", editable: false, nullable: true },
+                        qty: { type:"number", editable: true, nullable: true },
                     }
                 }
             }
@@ -92,6 +93,7 @@
             filterable: true,
             persistSelection: true,
             groupable: true,
+            reorderable: true,
            
             columns: [
                 //{ selectable: true, width: "50px" },
@@ -101,6 +103,7 @@
                 { field: "attribute",title: "描述" },
                 { field: "comments",title: "是否是包装材料" },
                 { field: "qty_get",title: "到货数量" },
+                { field: "qty",title: "审批数量" },
             ],
             editable: true
         });

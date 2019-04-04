@@ -1076,7 +1076,7 @@ def report_analysis(request):
     is_manager = is_report_manager(request)
     if not from_date and is_manager:
         from_date = date.today() - timedelta(days=20)
-    else:
+    if not from_date:
         from_date = date.today() - timedelta(days=60)
     if not to_date:
         to_date = date.today()
@@ -2184,22 +2184,36 @@ def materialApprove(request):
     is_manager = is_report_manager(request)
     if quarter != '0' and group != 'ALL':
         matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter,group=workGroup).values()
+        mSup = MeterialSurplus.objects.filter(group=workGroup).values()
     elif quarter !='0' and group == 'ALL':
         matrlApprove = MaterialApprove.objects.filter(year=year,quarter=quarter).values()
+        mSup = MeterialSurplus.objects.all().values()
     elif quarter == '0' and group != 'ALL':
         matrlApprove = MaterialApprove.objects.filter(year=year,group=workGroup).values()
-    
+        mSup = MeterialSurplus.objects.filter(group=workGroup).values()
     else:
         matrlApprove = MaterialApprove.objects.filter(year=year).values()
-    if len(matrlApprove) ==0:
+        mSup = MeterialSurplus.objects.all().values()
+    if len(mSup) != 0:
+        mSup_pd = pd.DataFrame(list(mSup),columns=['sno_id','qty'])
+        mSup_pd = mSup_pd.rename(columns={'qty':'qty_sup'})
+        mSup_pd = mSup_pd.groupby('sno_id').sum()
+    else:
+        matrl_pd['qty_sup'] = 0
+    if len(matrlApprove) ==0 and len(mSup) != 0:
         matrl_pd['qty_request'] = 0
         matrl_pd['qty'] = 0
         matrl_pd['total'] = matrl_pd.price * matrl_pd.qty_request
+        matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
+    elif len(matrlApprove)==0 and len(mSup) == 0:
+        matrl_pd['qty_sup'] = 0
     else:
         mAppro_pd = pd.DataFrame(list(matrlApprove),columns=['sno_id','qty','qty_request'])
         mAppro_pd = mAppro_pd.groupby('sno_id').sum()
         # data = pd.merge(matrl_pd, mAppro_pd.set_index('sno_id'),left_on='id',right_index=True)
         matrl_pd = matrl_pd.merge(mAppro_pd,left_on='id',right_on=mAppro_pd.index,right_index=False,how='left')
+        if len(mSup) != 0:
+            matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
         # matrl_pd = matrl_pd.merge(mAppro_pd.set_index('sno_id'),left_on='id',right_index=True)
         matrl_pd['total'] = matrl_pd.price * matrl_pd.qty_request
     # matrlUse = MeterialUse.objects.filter()
@@ -2238,7 +2252,7 @@ def materialGet(request):
     if len(matrlGet) ==0:
         matrl_pd['qty_get'] = 0
     else:
-        mGet_pd = pd.DataFrame(list(matrlGet),columns=['sno_id','qty_get'])
+        mGet_pd = pd.DataFrame(list(matrlGet),columns=['sno_id','qty_get','qty'])
         mGet_pd = mGet_pd.groupby('sno_id').sum()
         matrl_pd = matrl_pd.merge(mGet_pd,left_on='id',right_on=mGet_pd.index,right_index=False,how='left')
         # matrl_pd = matrl_pd.merge(mGet_pd.set_index('sno_id'),left_on='id',right_index=True)
@@ -2277,21 +2291,28 @@ def materialCheck(request):
         matrlUse = MeterialUse.objects.filter(year=year).values()
         mSup = MeterialSurplus.objects.all().values()
 
-    mSup = MeterialSurplus.objects.all().values()
-    mSup_pd = pd.DataFrame(list(mSup),columns=['sno_id','qty'])
-    mSup_pd = mSup_pd.rename(columns={'qty':'qty_sup'})
-    mSup_pd = mSup_pd.groupby('sno_id').sum()
+    # mSup = MeterialSurplus.objects.all().values()
+    if len(mSup) != 0:
+        mSup_pd = pd.DataFrame(list(mSup),columns=['sno_id','qty'])
+        mSup_pd = mSup_pd.rename(columns={'qty':'qty_sup'})
+        mSup_pd = mSup_pd.groupby('sno_id').sum()
+    else:
+        matrl_pd['qty_sup'] = 0
     # check if get is empty
-    if len(matrlApprove)==0:
+    if len(matrlApprove)==0 and len(mSup) != 0:
         matrl_pd['qty'] = 0
         matrl_pd['qty_request'] = 0
         matrl_pd['qty_get'] = 0
+        # matrl_pd['qty_sup'] = 0
+        matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
+    elif len(matrlApprove)==0 and len(mSup) == 0:
         matrl_pd['qty_sup'] = 0
     else:
         mApp=pd.DataFrame(list(matrlApprove),columns=['sno_id','qty','qty_request','qty_get'])
         mApp = mApp.groupby('sno_id').sum()
         matrl_pd = matrl_pd.merge(mApp, left_on='id', right_on=mApp.index,right_index=False,how='left')
-        matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
+        if len(mSup) != 0:
+            matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
 
     if (len(matrlUse)==0):
         matrl_pd['qty_use']=0
@@ -2316,12 +2337,13 @@ def getMaterialNo(request):
     msno = request.GET.get('msno')
     msno = msno.strip()
     try:
-        name = Material.objects.get(sno__contains=msno).name
+        name = Material.objects.get(sno__contains=msno)
+        fullName = name.name + ' ' +name.attribute
         
     except:
         name = '找不到物料'
     
-    return HttpResponse(json.dumps(name), content_type='application/json')
+    return HttpResponse(json.dumps(fullName), content_type='application/json')
 
 def saveMaterialUse(request):
     sno = request.GET.get('msno')
