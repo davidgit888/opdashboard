@@ -11,8 +11,8 @@
     var mdata = JSON.parse(data);
 </script>
 <style type="text/css">
-    .k-grid-header .k-grouping-header{
-        background-color: #79aec8;
+    .k-grid-filter.k-state-active {
+        background-color: #ACFF33;
     }
 </style>
 
@@ -36,7 +36,21 @@
 <script type="text/javascript">
     var rQuarter = '{{quarter}}';
     var rGroup = '{{group}}';
+    function getIndex(){
+        var indexes = {};
+        var rows = document.getElementsByTagName("table")[0].rows;
+        row = rows[0]
+        for(j=0;j<row.cells.length;j++){ 
+            if(row.cells[j].innerText=='盘点调整'){
+                indexes['qty_get'] = j;
+            }else if(row.cells[j].innerText=='编号'){
+                indexes['sno'] = j;
+            }
+        }
+        return indexes;
+    }
     function saveSup(){
+        var indexes = getIndex();
         var rows = document.getElementsByTagName("table")[1].rows;
         var ids = [];
         var qtys = [];
@@ -47,8 +61,8 @@
             for(j=0;j<rows.length;j++){
                 row = rows[j]
                 try{
-                    var id = row.cells[0].innerText;
-                    var qty = row.cells[9].innerText;
+                    var id = row.cells[indexes['sno']].innerText;
+                    var qty = row.cells[indexes['qty_get']].innerText;
                 }
                 catch{
                     alert('无法保存,请取消分组！');

@@ -15,6 +15,11 @@
         alert(data);
     }
 </script>
+<style type="text/css">
+    .k-grid-filter.k-state-active {
+        background-color: #ACFF33;
+    }
+</style>
 
 
 <h1>{{year}} 年
@@ -77,8 +82,24 @@
     var rQuarter = '{{quarter}}';
     var rGroup = '{{group}}';
 
+    function getIndex(){
+        var indexes = {};
+        var rows = document.getElementsByTagName("table")[0].rows;
+        row = rows[0]
+        for(j=0;j<row.cells.length;j++){ 
+            if(row.cells[j].innerText=='申请'){
+                indexes['qty_request'] = j;
+            }else if(row.cells[j].innerText=='编号'){
+                indexes['sno'] = j;
+            }else if(row.cells[j].innerText=='批准'){
+                indexes['qty_approve'] = j;
+            }
+        }
+        return indexes;
+    }
     function requestMaterial(type){
         //var rows = document.getElementById("performance_table").rows;
+        var indexes = getIndex();
         var rows = document.getElementsByTagName("table")[1].rows;
         var ids = [];
         var qtys = [];
@@ -89,12 +110,12 @@
             for(j=0;j<rows.length;j++){
                 row = rows[j]
           
-                var id = row.cells[0].innerText;
+                var id = row.cells[indexes['sno']].innerText;
                 if(check=='False'){
-                    var qty = row.cells[5].innerText;
+                    var qty = row.cells[indexes['qty_request']].innerText;
                 }
                 else{
-                    var qty = row.cells[8].innerText;
+                    var qty = row.cells[indexes['qty_approve']].innerText;
                 }
                 
                 ids.push(id);

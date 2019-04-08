@@ -20,21 +20,41 @@
 <input type='button' value='收到物料' onclick="getMaterial()">
 <br/><br/>
 {% endif %}
+<style type="text/css">
+	.k-grid-filter.k-state-active {
+	    background-color: #ACFF33;
+	}
+</style>
 
 <script type="text/javascript">
 	var rQuarter = '{{quarter}}';
     var rGroup = '{{group}}';
     var check = '{{is_manager}}';
+    function getIndex(){
+    	var indexes = {};
+    	var rows = document.getElementsByTagName("table")[0].rows;
+		row = rows[0]
+		for(j=0;j<row.cells.length;j++){ 
+			if(row.cells[j].innerText=='到货数量'){
+				indexes['qty_get'] = j;
+			}else if(row.cells[j].innerText=='编号'){
+				indexes['sno'] = j;
+			}
+		}
+		return indexes;
+    }
 	function getMaterial(){
+		var indexes = getIndex();
 		var rows = document.getElementsByTagName("table")[1].rows;
         var ids = [];
         var qtys = [];
-        
+        // alert(indexes['qty_get']);
+        // alert(indexes['sno']);
         if(rQuarter != '全年' && rGroup != 'ALL'){
             for(j=0;j<rows.length;j++){
                 row = rows[j]
-                var id = row.cells[0].innerText;
-                var qty = row.cells[5].innerText;
+                var id = row.cells[indexes['sno']].innerText;
+                var qty = row.cells[indexes['qty_get']].innerText;
                 ids.push(id);
                 qtys.push(qty);    
             }
@@ -80,8 +100,8 @@
                         unit: { editable: false},
                         attribute: { editable: false},
                         comments: { editable: false},
-                        qty_get: {type:"number", editable: false, nullable: true },
-                        qty: { type:"number", editable: true, nullable: true },
+                        qty_get: {type:"number", editable: true, nullable: true },
+                        qty: { type:"number", editable: false, nullable: true },
                     }
                 }
             }
