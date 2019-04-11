@@ -532,7 +532,7 @@ class MaterialAdmin(admin.ModelAdmin):
 class MaterialApproveAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty','qty_request','qty_sup','qty_get']
     list_display = ('sno','year','quarter','group','user','qty','date','qty_request','qty_sup','qty_get')
-    search_fields = ['sno','year','quarter','group','user','qty','date']
+    search_fields = ['sno__sno','year','quarter','group__group_name','user__username','qty','date']
 
 class MaterialGetAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty']
@@ -542,18 +542,18 @@ class MaterialGetAdmin(admin.ModelAdmin):
 class MeterialUseAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty']
     list_display = ('sno','year','quarter','group','user','qty','date')
-    search_fields = ['sno','year','quarter','group','user','qty','date']
+    search_fields = ['sno__sno','year','quarter','group__group_name','user__username','qty','date']
 
 class MeterialSurplusAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty']
     list_display = ('sno','year','quarter','group','user','qty','date')
-    search_fields = ['sno','year','quarter','group','user','qty','date']
+    search_fields = ['sno__sno','year','quarter','group__group_name','user__username','qty','date']
 
 class UserInfoAdmin(admin.ModelAdmin):
     """docstring for UserInfoAdmin"""
     fields = ['user_id','staff_no','duty','email','work_group','department','mobile']
     list_display = ('user_id','staff_no','duty','email','work_group','department','mobile')
-    search_fields = ['user_id','staff_no','duty','email','work_group','department','mobile']
+    search_fields = ['user_id__username','staff_no','duty','email','work_group__group_name','department','mobile']
 
 
     

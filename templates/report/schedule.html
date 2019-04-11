@@ -25,21 +25,25 @@
     }
 
     var schedule = '{{schedule_json|safe}}';
-    var data = $.parseJSON(schedule);
-    var dataLength = Object.keys(data)['length'];
-    for(j=0;j<10;j++){
-    var a = {};
+    if(schedule){
+        var data = $.parseJSON(schedule);
+
     
-        for(i=0;i<dataLength-3;i++){
-            
-            a[Object.keys(data[0])[i]]='---';
-            a['sfg_id']='---';
-            a['type_name']='---';
-            a['sfg_comments']='---';
-            
+        var dataLength = Object.keys(data)['length'];
+        for(j=0;j<10;j++){
+        var a = {};
+        
+            for(i=0;i<dataLength-3;i++){
+                
+                a[Object.keys(data[0])[i]]='---';
+                a['sfg_id']='---';
+                a['type_name']='---';
+                a['sfg_comments']='---';
+                
+            };
+            data.push(a);
         };
-        data.push(a);
-    };
+    }
 
     {% comment %} $(document).ready(function(){ 
        
@@ -884,8 +888,13 @@
             
             <script>
                  //$(document).ready(function(){
-
-                 
+                    
+                    $(document).ready(function(){
+                        var mQuarter = Math.ceil((today.getMonth()+1)/3);
+                        var mQtoday = ('Q'+mQuarter);
+                        $("#m_quarter").val(mQtoday);
+                    });
+                    
                     var m_year= $('#m_year option:selected').val();
                     var m_quarter = $('#m_quarter option:selected').val();
                     var m_group = $('#m_group option:selected').val();

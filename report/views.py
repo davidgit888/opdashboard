@@ -1250,7 +1250,8 @@ def report_analysis(request):
         comments = 'Failed'
         query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
         query.save()
-        return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        return render(request, 'report/schedule.html')
 
 
 # 业绩表
@@ -2307,6 +2308,7 @@ def materialCheck(request):
         matrl_pd = matrl_pd.merge(mSup_pd,left_on='id',right_on='sno_id',right_index=False,how='left')
     elif len(matrlApprove)==0 and len(mSup) == 0:
         matrl_pd['qty_sup'] = 0
+        matrl_pd['qty_get'] = 0
     else:
         mApp=pd.DataFrame(list(matrlApprove),columns=['sno_id','qty','qty_request','qty_get'])
         mApp = mApp.groupby('sno_id').sum()
