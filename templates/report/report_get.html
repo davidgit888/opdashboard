@@ -958,7 +958,10 @@
                      $.get("/report/saveMaterialUse/",{'msno':msno,'qty':qtyUse}, function(ret){
                 
                         alert(ret);
-                        
+                        $('#material_so').val('');
+                        $('#material_name').val('');
+                        $('#material_qty').val('');
+
                     })
                 }
                

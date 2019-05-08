@@ -528,6 +528,7 @@ def get_data(request):
 
         pass
     sfg = request.GET.get('sfg_id')
+    sfg = str(sfg).strip().upper()
     type = request.GET.get('prod_type')
     op_id = request.GET.get('op_id')
     prob_info = request.GET.get('prob_info')
@@ -856,7 +857,7 @@ def supportive_time(request):
     else:
         test_log_duplication(request.user.id,request.user.get_full_name(),'Support add after submit','Failed, 休息:'+str(rest)+',清洁：'+str(clean)+',组内:'+str(inside_group)+
             ',组外:'+str(outside_group)+',整机：'+str(complete_machine)+',大理石：'+str(granite)+',物流：'+str(prob)+',缺件'+str(shortage)+'计划调整：'+str(plan_change)+
-            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为2：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
+            ',人为：'+str(human_quality_issue_rework)+'，零件：'+str(item_quality_issue),'人为返修：'+str(human_quality_issue_repair)+'，设备：'+str(equipment_mantainence)+
             ',库存：'+str(inventory_check)+',质量：'+str(quality_check)+'，档案：'+str(document)+',会议：'+str(conference)+'，班组：'+str(group_management)+
             ',线性：'+str(vertical)+',外借：'+str(borrow_time)  +'Date: '+date_time)
         return HttpResponse('保存失败！该日期的报工已经被班组长提交，未防止业绩受损，请联系班组长删除该业绩后再进行提交！')

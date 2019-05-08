@@ -68,7 +68,7 @@
         var sfg = $("#d_sfg").val()
         if(sfg){
             url = '/report/search_docinfo/?sfg='+sfg //from_date='+from_date+'&to_date='+to_date
-        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+        newwindow=window.open(url,'_blank');
         if (window.focus) {newwindow.focus()}
         }
         else{
@@ -79,7 +79,7 @@
     //save classified document 
     function classify_doc(){
         url = '/report/create_docinfo/'
-        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+        newwindow=window.open(url,'_blank');
         if (window.focus) {newwindow.focus()}
            
     }
@@ -263,7 +263,7 @@
             var group =$('#a_group option:selected').val();
             var year = $('#a_year option:selected').val();
             url = '/report/group_statistic/?date='+date+'&group='+group+'&year='+year
-            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            newwindow=window.open(url,'_blank');
             if (window.focus) {newwindow.focus()}
         });   
 
@@ -272,7 +272,7 @@
             var date = $('#p_perform_today').val();
             //alert(date);
             url = '/report/perform_pop/?date='+date
-            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            newwindow=window.open(url,'_blank');
             if (window.focus) {newwindow.focus()}
         });   
 
@@ -290,7 +290,7 @@
                 //alert(a);
              {% endcomment %}
             url = '/report/per_get_prod_log/?date='+date+'&username='+username+'&user='+user+'&tab=dKpi'
-            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            newwindow=window.open(url,'_blank');
             if (window.focus) {newwindow.focus()}
            //if(newwindow){data.submit();}
             
@@ -904,7 +904,7 @@
                         var m_group = $('#m_group option:selected').val();
                         //alert(m_year);
                         url = '/report/materialCheck/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group;
-                        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+                        newwindow=window.open(url,'_blank');
                         if (window.focus) {newwindow.focus()}
                     };
 
@@ -913,7 +913,7 @@
                         var m_quarter = $('#m_quarter option:selected').val();
                         var m_group = $('#m_group option:selected').val();
                         url = '/report/materialGet/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group;
-                        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+                        newwindow=window.open(url,'_blank');
                         if (window.focus) {newwindow.focus()}
                     }
 
@@ -922,7 +922,7 @@
                         var m_quarter = $('#m_quarter option:selected').val();
                         var m_group = $('#m_group option:selected').val();
                         url = '/report/materialApprove/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group+'&messages=';
-                        newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+                        newwindow=window.open(url,'_blank');
                         if (window.focus) {newwindow.focus()}
                     }
                  
