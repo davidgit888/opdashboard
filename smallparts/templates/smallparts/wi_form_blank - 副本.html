@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html ng-app="app" lang="en">
+    
+    <head>
+        <title>Blank</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/static/smallparts/vendors/datetimepicker/jquery.datetimepicker.css">
+        <script src="/static/smallparts/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+
+    </head>
+    
+    <body>
+        {% include 'smallparts/wi_form_header.html' %}
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9" id="content">
+
+                      <!-- morris stacked chart -->
+                    <div class="row-fluid">
+                        <!-- block -->
+                        <div class="block">
+                            <div class="navbar navbar-inner block-header">
+                                <div class="muted pull-left">填写数据记录表</div>
+                            </div>
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                     <form class="form-horizontal" name="widata">
+                                      <fieldset>
+                                        <legend>表单：{{title}}(version{{version}}) - 零件：{{part}} - <span class="label label-info" style="font-size: 16px; line-height: 18px;"> 订单号：{{ordernbr}} </span></legend>
+                                          <!-- block of table-->
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                    <input id="operator" name="operator" value="{{request.user.username}}" type="hidden">
+                                    <input id="date" name="date" value="{{date}}" type="hidden">
+                                    <input id="part" name="part" value="{{part}}" type="hidden">
+                                    <input id="machine" name="machine" value="{{machine}}" type="hidden">
+                                    <input id="group" name="group" value="{{group_id}}" type="hidden">
+                                    <input id="title" name="title" value="{{title}}" type="hidden">
+                                    <input id="version" name="version" value="{{version}}" type="hidden">
+                                    <input id="ordernbr" name="ordernbr" value="{{ordernbr}}" type="hidden">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th width="5%">#</th>
+                                          <th width="20%">工序内容</th>
+                                          <th width="30%">技术要求</th>
+                                          <th width="10%">检查结果</th>
+                                          <th width="10%">操作者</th>
+                                          <th width="10%">日期</th>
+                                          <th width="5%">备注</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for k, v in json_config.items %}
+                                        <tr>
+                                          <td><span class="btn">
+                                            {% if v.3 == 'canbeopen' or v.2 == 'canbeopen' %}
+                                            {{k}}*
+                                            {% else %}
+                                            {{k}}
+                                            {% endif %}
+                                          </span></td>
+                                          <td style="font-weight:bold;">{{v.0}}</td>
+                                          <td >{{v.1}}</td>
+                                          <td id="change{{k}}">
+                                            {% if v.2 == 'num' %}
+                                            <input id="result{{k}}" name="result{{k}}" class="input-x focused" type="text" onchange="checknum($(this))">
+                                            {% elif v.2 == 'date' %}
+                                            <input type="text" value="" id="datetimepicker_mask" name="result{{k}}" onclick="datetime($(this))" />
+                                            {% elif v.2 == 'str' %}
+                                            <input id="result{{k}}" name="result{{k}}" class="input-x focused" type="text">
+                                            {% elif v.2 == 'notall' %}
+                                            <select id="result{{k}}" name="result{{k}}" style="border-color: green; color: green;" onchange="change_color($(this))">
+                                                {% if v.3 == 'canbeopen' or v.2 == 'canbeopen' %}
+                                                <option value=""></option>
+                                                {% endif %}
+                                              <option value="OKAY">OKAY</option>
+                                              <option value="NOKAY">NOKAY</option>
+                                              <option value="/">/</option>
+                                            </select>                                            
+                                            {% else %}
+                                            <select id="result{{k}}" name="result{{k}}" style="border-color: green; color: green;" onchange="change_color($(this))">
+                                                {% if v.3 == 'canbeopen' or v.2 == 'canbeopen' %}
+                                                <option value=""></option>
+                                                {% endif %}
+                                              <option value="OKAY">OKAY</option>
+                                              <option value="NOKAY">NOKAY</option>
+                                            </select>                                            
+                                            {% endif %}
+                                          </td>
+                                          <td>{{request.user.username}}</td>                                                                                  
+                                          <td>
+                                            {% if v.3 == 'canbeopen' or v.2 == 'canbeopen' %}
+                                            <input class="input-x focused" id="date{{k}}" type="text" name="date{{k}}" value="">
+                                            {% else %}
+                                            <input class="input-x focused" id="date{{k}}" type="text" name="date{{k}}" value="{{date}}">
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <input class="input-x focused" id="comment{{k}}" type="text" name="comment{{k}}">
+                                        {% if v.3 == 'sntaken' %}
+                                        <input id="sntaken{{k}}" name="sntaken" value="" type="hidden">                                        
+                                        {% endif %} 
+                                        </td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>                                  
+                                    <div class="alert alert-info">
+                                        <button class="close" data-dismiss="alert">×</button>
+                                        <strong>{{part}}:</strong> {{machine}}
+                                    </div>
+                                </div>
+                            </div>
+                                          <!-- end block of content-->
+                                        <div class="form-actions">
+                                          <button type="button" class="btn btn-primary btn-large" id="save" style="width: 25%;">提交</button>
+                                          <button type="button" class="btn btn-large" onclick="location.reload()" style="width: 25%;">清空</button>
+                                          <button type="button" class="btn btn-large" onclick="location.href='/smallpart/search/'" style="width: 25%;">返回</button>
+                                        </div>
+                                      </fieldset>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /block -->
+                    </div>
+                </div>
+            </div>
+            {% include 'smallparts/wi_form_footer.html' %}
+        </div>
+        <!--/.fluid-container-->
+        <link href="/static/smallparts/vendors/datepicker.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/uniform.default.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/chosen.min.css" rel="stylesheet" media="screen">
+
+        <link href="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.css" rel="stylesheet" media="screen">
+
+        <script src="/static/smallparts/vendors/jquery-1.9.1.js"></script>
+        <script src="/static/smallparts/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/smallparts/vendors/jquery.uniform.min.js"></script>
+        <script src="/static/smallparts/vendors/chosen.jquery.min.js"></script>
+        <script src="/static/smallparts/vendors/bootstrap-datepicker.js"></script>
+
+        <script src="/static/smallparts/vendors/wysiwyg/wysihtml5-0.3.0.js"></script>
+        <script src="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.js"></script>
+
+        <script src="/static/smallparts/vendors/wizard/jquery.bootstrap.wizard.min.js"></script>
+
+    	<script type="text/javascript" src="/static/smallparts/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+    	<script src="/static/smallparts/assets/form-validation.js"></script>
+        <script type="text/javascript" src="/static/smallparts/vendors/datetimepicker/jquery.datetimepicker.js"></script>  
+    	<script src="/static/smallparts/assets/scripts.js"></script>
+        <script>
+
+
+    function Appendzero(obj)
+    {
+        if(obj<10) return "0" +""+ obj;
+        else return obj;
+    }
+
+    $("[name^='result']").change(function(){
+        if($(this).val()){
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            day = date.getDate();
+            date_str = year+'-'+Appendzero(month)+'-'+Appendzero(day);
+            dat = $(this).attr('name').replace('result', 'date').replace('.','\\.');
+            $('#'+dat).val(date_str);
+        }else{
+            $('#'+dat).val('');
+        }
+    });
+
+
+    function Post(URL, PARAMTERS) {
+                //创建form表单
+                var temp_form = document.createElement("form");
+                temp_form.action = URL;
+                //如需打开新窗口，form的target属性要设置为'_blank'
+                temp_form.target = "_self";
+                temp_form.method = "post";
+                temp_form.style.display = "none";
+                //添加参数
+                // for (var item in PARAMTERS) {
+                //     var opt = document.createElement("textarea");
+                //     opt.name = item;
+                //     opt.value = PARAMTERS[item];
+                //     temp_form.appendChild(opt);
+                // }
+                var opt = document.createElement("textarea");
+                opt.name = 'json_str';
+                opt.value = PARAMTERS;
+                temp_form.appendChild(opt);
+                var opt_csrf = document.createElement("textarea");
+                opt_csrf.name = 'csrfmiddlewaretoken';
+                opt_csrf.value = '{{ csrf_token }}';
+                temp_form.appendChild(opt_csrf);
+
+                document.body.appendChild(temp_form);
+                //提交数据
+                temp_form.submit();
+            }
+
+	jQuery(document).ready(function() {   
+	   FormValidation.init();
+	});
+	
+
+        $(function() {
+            $(".datepicker").datepicker();
+            $(".uniform_on").uniform();
+            $(".chzn-select").chosen();
+            $('.textarea').wysihtml5();
+
+            $('#rootwizard').bootstrapWizard({onTabShow: function(tab, navigation, index) {
+                var $total = navigation.find('li').length;
+                var $current = index+1;
+                var $percent = ($current/$total) * 100;
+                $('#rootwizard').find('.bar').css({width:$percent+'%'});
+                // If it's the last tab then hide the last button and show the finish instead
+                if($current >= $total) {
+                    $('#rootwizard').find('.pager .next').hide();
+                    $('#rootwizard').find('.pager .finish').show();
+                    $('#rootwizard').find('.pager .finish').removeClass('disabled');
+                } else {
+                    $('#rootwizard').find('.pager .next').show();
+                    $('#rootwizard').find('.pager .finish').hide();
+                }
+            }});
+            $('#rootwizard .finish').click(function() {
+                alert('Finished!, Starting over!');
+                $('#rootwizard').find("a[href*='tab1']").trigger('click');
+            });
+        });
+
+
+        //add by Pierre
+        $(function() {
+          $('#save').click(function() {
+            try{
+                target = $("[name='sntaken']");
+                target_id = target.attr('id').replace('sntaken', 'result').replace('.','\\.');
+                target.val($('#'+target_id).val());
+            }catch(err){
+
+            }
+
+            var d = {};
+            var t = $('form').serializeArray();
+            $.each(t, function() {
+              d[this.name] = this.value;
+            });
+
+            list = {{ item_list|safe }};
+            unmust_list = {{ unmust|safe }};
+            goon = 0;
+            $.each(d, function(key, value){
+                if(key.indexOf('result') != -1 &&(value == 'NOKAY' || value == '' || value == '____/__/__ __:__') && unmust_list.indexOf(key) == -1){
+                    alert('没有填写完整或者有NOKAY，请检查！');
+                    goon +=1;
+                    return false;
+                }
+            })
+            //to save the data
+            // goon = 0;
+            if (goon > 0){
+                return false;
+            }else{
+                d['result'] =1;
+                for (i=0; i<list.length; i++){
+                position = 'result'+list[i];
+                resultval = d[position];
+                if(!resultval || resultval == 'NOKAY'){
+                    d['result'] = 2;
+                }
+            }
+            };
+
+            //pass data to web
+            Post("{% url 'smallparts:post' %}", JSON.stringify(d));
+          });
+        });
+
+        function change_color(result){
+            if(result.val() =='OKAY'){
+                result.css({'color':'green', 'border-color':'green'});
+            }else if(result.val() =='NOKAY'){
+                result.css({'color':'red', 'border-color':'red'});
+            }else{
+                result.css({'color':'black', 'border-color':'black'});
+            }
+        }
+
+        function change_input(id){
+            trim_id = id.replace('.', '\\.');
+            trim_str = '#change'+trim_id
+            target = $(trim_str);
+            if (target.html().indexOf('select id=')!= -1){
+                target.html('<input id="result'+id+'" name="result'+id+'" class="input-x focused" type="text">');
+            }else{
+                target.html('<select id="result'+id+'" name="result'+id+'" style="width: 90px; border-color: red; color: red;" onchange="change_color($(this))"><option value="NOKAY">NOKAY</option><option value="OKAY">OKAY</option></select>');
+            }
+        }
+
+        // function change_result(id){
+        //     trim_id = id.replace('.', '\\.');
+        //     trim_str = '#change'+trim_id
+        //     target = $(trim_str);
+        //     target.val('OKAY');
+        //     alert(target.val());
+        // }
+
+        // $('#datetimepicker_mask').datetimepicker({
+        //     mask:'9999/19/39 29:59'
+        // });
+
+        function datetime(obj){
+            obj.datetimepicker({
+                mask:'9999/19/39 29:59'
+            });
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            day = date.getDate();
+            date_str = year+'-'+Appendzero(month)+'-'+Appendzero(day);
+            dat = obj.attr('name').replace('result', 'date').replace('.','\\.');
+            $('#'+dat).val(date_str);
+        }
+
+        function checknum(v) {
+        var reg = /^\d+(\.\d+)?$/;
+        if (!reg.test(v.val())) {
+        alert("只接受数字格式");
+        v.val('');
+        return false;
+        }
+        }
+
+
+        </script>
+
+
+    </body>
+
+</html>

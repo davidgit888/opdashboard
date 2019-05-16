@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'op.apps.OpConfig',
     'shortageConf.apps.ShortageconfConfig',
     'report.apps.ReportConfig',
+    'smallparts.apps.SmallpartsConfig',
     # 'django_crontab',
     #'OpReport.apps.OpreportConfig',
 

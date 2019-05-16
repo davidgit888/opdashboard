@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>Saved</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <script src="/static/smallparts/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    
+    <body>
+        {% include 'smallparts/wi_form_header.html' %}
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9" id="content">
+                    <!-- barcode start -->
+                    <div class="row-fluid">
+                        <!-- block -->
+                        <div class="block">
+                            <div class="navbar navbar-inner block-header">
+                                <div class="muted pull-left">成功生成二维码和PDF存档！  <span class="label label-info" style="font-size: 16px; line-height: 16px;">订单号：{{ordernbr}}</span></div>
+                            </div>
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th width="50%">二维码</th>
+                                          <th width="50%">PDF存档</th>
+                                         </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr>
+                                          <td>
+                                            <div id="printArea" align="center">
+                                                <table class="table-bordered">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><img src="/static/smallparts/temp/{{qrcode}}" id="btnPrint" width="250" height="250"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="text-align: center;">{{ serial_no }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                          <td align="center">
+                                            <div align="center">
+                                                <table class="table-bordered">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <a href="/static/smallparts/reports/{{serial_no}}.pdf" target="_blank">
+                                                                    <img src="/static/smallparts/images/pdf.JPG" id="btnPrint"  width="250" height="250">
+                                                                </a></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="text-align: center;">{{ serial_no }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /block -->
+                    </div>
+                    <!-- barcode end -->
+                    <!-- back start-->
+                    <div class="well" style="margin-top:30px;">
+                        <table width="100%">
+                            <th>
+                                <button type="button" class="btn btn-large btn-block" onclick="location.href='/smallpart/search/'">返回查询页</button>
+                            </th>
+                            <th>
+                                <button type="button" class="btn btn-large btn-block" onclick="location.href='/smallpart/blank/{{json_dic.part}}/{{ordernbr}}/'">再填一个同样的零部件</button>
+                            </th>
+                        </table>                      
+                    </div>
+                    <!-- back end-->
+                      <!-- morris stacked chart -->
+                    <div class="row-fluid">
+                        <!-- block -->
+                        <div class="block">
+                            <div class="navbar navbar-inner block-header">
+                                <div class="muted pull-left">成功存档数据到数据库！</div>
+                            </div>
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                     <form class="form-horizontal" name="widata">
+                                      <fieldset>
+                                        <legend>{{ json_dic.title }}(Version{{version}}) - {{json_dic.part }}</legend>
+                                          <!-- block of table-->
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                    <input id="operator" name="operator" value="{{request.user.username}}" type="hidden">
+                                    <input id="date" name="date" value="{{date}}" type="hidden">
+                                    <input id="part" name="part" value="{{part}}" type="hidden">
+                                    <input id="machine" name="machine" value="{{machine}}" type="hidden">
+                                    <input id="group" name="group" value="{{group_id}}" type="hidden">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th width="5%">#</th>
+                                          <th width="20%">工序内容</th>
+                                          <th width="30%">技术要求</th>
+                                          <th width="10%">检查结果</th>
+                                          <th width="10%">操作者</th>
+                                          <th width="10%">日期</th>
+                                          <th width="5%">备注</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for result in result_list %}
+                                        <tr>
+                                          <td>{{result}}</td>
+                                          <td style="font-weight:bold;">{{ config_dic |key:result }}</td>
+                                          <td>{{ config_dic |key1:result }}</td>
+                                          <td>{{ json_dic |res:result }}</td>
+                                          <td>{{ json_dic.operator }}</td>
+                                          <td>{{ json_dic.date }}</td>
+                                          <td>{{ json_dic |com:result }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                    <div class="alert alert-info">
+                                        <button class="close" data-dismiss="alert">×</button>
+                                        <strong>{{json_dic.part}}:</strong> {{json_dic.machine}}
+                                    </div>
+                                </div>
+                            </div>
+                                          <!-- end block of content-->
+                                        </div>
+                                      </fieldset>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /block -->
+                    </div>
+                </div>
+            </div>
+            {% include 'smallparts/wi_form_footer.html' %}
+        </div>
+        <!--/.fluid-container-->
+        <link href="/static/smallparts/vendors/datepicker.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/uniform.default.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/chosen.min.css" rel="stylesheet" media="screen">
+
+        <link href="vendors/wysiwyg/bootstrap-wysihtml5.css" rel="stylesheet" media="screen">
+
+        <script src="/static/smallparts/vendors/jquery-1.9.1.js"></script>
+        <script src="/static/smallparts/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/smallparts/vendors/jquery.uniform.min.js"></script>
+        <script src="/static/smallparts/vendors/chosen.jquery.min.js"></script>
+        <script src="/static/smallparts/vendors/bootstrap-datepicker.js"></script>
+
+        <script src="/static/smallparts/vendors/wysiwyg/wysihtml5-0.3.0.js"></script>
+        <script src="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.js"></script>
+
+        <script src="/static/smallparts/vendors/wizard/jquery.bootstrap.wizard.min.js"></script>
+
+    	<script type="text/javascript" src="/static/smallparts/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+    	<script src="/static/smallparts/assets/form-validation.js"></script>
+        <script src="/static/smallparts/assets/jquery.PrintArea.min.js"></script>
+    	<script src="/static/smallparts/assets/scripts.js"></script>
+        <script> 
+          $("#btnPrint").click(function(){  
+            $("#printArea").printArea();
+            // window.location.href="http://www.baidu.com";
+          }); 
+         
+          $("#btnPrintFull").click(function(){  
+            $("body").printArea(); 
+          }); 
+           
+        </script>
+        <script>
+
+    function Post(URL, PARAMTERS) {
+                //创建form表单
+                var temp_form = document.createElement("form");
+                temp_form.action = URL;
+                //如需打开新窗口，form的target属性要设置为'_blank'
+                temp_form.target = "_self";
+                temp_form.method = "post";
+                temp_form.style.display = "none";
+                //添加参数
+                // for (var item in PARAMTERS) {
+                //     var opt = document.createElement("textarea");
+                //     opt.name = item;
+                //     opt.value = PARAMTERS[item];
+                //     temp_form.appendChild(opt);
+                // }
+                var opt = document.createElement("textarea");
+                opt.name = 'json_str';
+                opt.value = PARAMTERS;
+                temp_form.appendChild(opt);
+                var opt_csrf = document.createElement("textarea");
+                opt_csrf.name = 'csrfmiddlewaretoken';
+                opt_csrf.value = '{{ csrf_token }}';
+                temp_form.appendChild(opt_csrf);
+
+                document.body.appendChild(temp_form);
+                //提交数据
+                temp_form.submit();
+            }
+
+	jQuery(document).ready(function() {   
+	   FormValidation.init();
+	});
+	
+
+        $(function() {
+            $(".datepicker").datepicker();
+            $(".uniform_on").uniform();
+            $(".chzn-select").chosen();
+            $('.textarea').wysihtml5();
+
+            $('#rootwizard').bootstrapWizard({onTabShow: function(tab, navigation, index) {
+                var $total = navigation.find('li').length;
+                var $current = index+1;
+                var $percent = ($current/$total) * 100;
+                $('#rootwizard').find('.bar').css({width:$percent+'%'});
+                // If it's the last tab then hide the last button and show the finish instead
+                if($current >= $total) {
+                    $('#rootwizard').find('.pager .next').hide();
+                    $('#rootwizard').find('.pager .finish').show();
+                    $('#rootwizard').find('.pager .finish').removeClass('disabled');
+                } else {
+                    $('#rootwizard').find('.pager .next').show();
+                    $('#rootwizard').find('.pager .finish').hide();
+                }
+            }});
+            $('#rootwizard .finish').click(function() {
+                alert('Finished!, Starting over!');
+                $('#rootwizard').find("a[href*='tab1']").trigger('click');
+            });
+        });
+
+
+        //add by Pierre
+        $(function() {
+          $('#save').click(function() {
+            var d = {};
+            var t = $('form').serializeArray();
+            $.each(t, function() {
+              d[this.name] = this.value;
+            });
+
+            list = {{ item_list|safe }};
+            goon = 0;
+            $.each(list, function(index, item){
+                result_item = '#result'+item.replace('.','\\\.');
+                result_item = $(result_item).val();
+                if(!result_item || result_item == '0'){
+                    alert('没有填写完整或者有NOKAY，请检查！');
+                    goon +=1;
+                    return false;
+                }
+            })
+            //to save the data
+            goon = 0;
+            if (goon > 0){
+                return false;
+            }else{
+                d['result'] =1;
+            }
+            alert(JSON.stringify(d));
+
+            //pass data to web
+            Post("/smallpart/post/", JSON.stringify(d));
+          });
+        });
+
+        </script>
+    </body>
+
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html ng-app="app" lang="en">
+    
+    <head>
+        <title>Change</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/static/smallparts/vendors/datetimepicker/jquery.datetimepicker.css">
+        <script src="/static/smallparts/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+
+    </head>
+    
+    <body style="padding-top: 3px;">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9" id="content">
+
+                      <!-- morris stacked chart -->
+                    <div class="row-fluid">
+                        <!-- block -->
+                        <div class="block">
+                            <div class="navbar navbar-inner block-header">
+                                <div class="muted pull-left">填写数据记录表</div>
+                            </div>
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                     <form class="form-horizontal" name="widata">
+                                      <fieldset>
+                                        <legend>表单：{{json_dic.title}}(version{{version}}) - 零件序列号：{{ serial_no }}</legend>
+                                          <!-- block of table-->
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th width="5%">#</th>
+                                          <th width="15%">工序内容</th>
+                                          <th width="30%">技术要求</th>
+                                          <th width="15%">检查结果</th>
+                                          <th width="5%">操作者</th>
+                                          <th width="15%">日期</th>
+                                          <th width="25%">备注</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for k, v in config_dic.items %}
+                                        <tr style="background-color: #B7B7B7{{json_dic |res:k}}">
+                                          <td><span class="btn">
+                                            {% if v.3 == 'canbeopen' or v.2 == 'canbeopen' %}
+                                            {{k}}*
+                                            {% else %}
+                                            {{k}}
+                                            {% endif %}
+                                          </span></td>
+                                          <td style="font-weight:bold;">{{v.0}}</td>
+                                          <td >{{v.1}}</td>
+                                          <td id="change{{k}}">
+                                            {% if v.2 == 'num' %}
+                                            <input id="result{{k}}" name="result{{k}}" class="input-x focused" value="{{json_dic |res:k}}" type="text" onchange="checknum($(this))">
+                                            {% elif v.2 == 'date' %}
+                                            <input type="text" value="{{json_dic |res:k}}" id="datetimepicker_mask" value="{{json_dic |res:k}}" name="result{{k}}" onclick="datetime($(this))" />
+                                            {% elif v.2 == 'str' %}
+                                            {% if v.3 == 'sntaken' %}
+                                            <input class="input-x focused" value="{{json_dic |res:k}}" type="text" disabled="true">
+                                            <input id="result{{k}}" name="result{{k}}" class="input-x focused" value="{{json_dic |res:k}}" type="hidden">
+                                            {% else %}
+                                            <input id="result{{k}}" name="result{{k}}" class="input-x focused" value="{{json_dic |res:k}}" type="text">
+                                            {% endif %}
+                                            {% elif v.2 == 'notall' %}
+                                            <select id="result{{k}}" name="result{{k}}" value="{{json_dic |res:k}}" onchange="change_color($(this))">
+                                                <script>
+                                                    one = '{{json_dic | res:k }}';
+                                                    if (one == 'OKAY'){
+                                                        two = 'NOKAY';
+                                                        three = '/';
+                                                    }else if (one == 'NOKAY'){
+                                                        two = 'OKAY';
+                                                        three = '/';
+                                                    }else if (!one){
+                                                        one = 'OKAY';
+                                                        two ='NOKAY';
+                                                        three = '/';
+                                                    }else if (one == '/'){
+                                                        two = 'OKAY';
+                                                        three = 'NOKAY';
+                                                    }
+                                                    document.write('<option value="'+one+'">'+one+'</option><option value="'+two+'">'+two+'</option>'+'<option value="'+three+'">'+three+'</option>')
+                                                </script>
+                                            </select>                                             
+                                            {% else %}
+                                            <select id="result{{k}}" name="result{{k}}" value="{{json_dic |res:k}}" onchange="change_color($(this))">
+                                                <script>
+                                                    one = '{{json_dic | res:k }}';
+                                                    if (one == 'OKAY'){
+                                                        two = 'NOKAY';
+                                                    }else if (one == 'NOKAY'){
+                                                        two = 'OKAY';
+                                                    }else if (!one){
+                                                        one = 'OKAY';
+                                                        two ='NOKAY';
+                                                    }
+                                                    document.write('<option value="'+one+'">'+one+'</option><option value="'+two+'">'+two+'</option>')
+                                                </script>
+                                            </select>                                            
+                                            {% endif %}
+                                          </td>
+                                          <td>{{ json_dic.operator }}</td>
+                                          <td><input class="input-x focused" id="date{{k}}" type="text" name="date{{k}}" value="{{ json_dic |dat:k }}"></td>
+                                          <td><input class="input-x focused" id="comment{{k}}" type="text" name="comment{{k}}" value="{{ json_dic |com:k }}"></td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                    <table class="table table-bordered">                                      
+                                      <tbody>                                
+                                        <tr>
+                                          <th>Update By: {{ request.user }} 
+                                            <input class="input-x focused" id="updater" type="hidden" name="updater" value="{{ request.user }}">
+                                            <input class="input-x focused" id="recordid" type="hidden" name="recordid" value="{{ record_id }}">
+                                          </th>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    <div class="alert alert-info">
+                                        <button class="close" data-dismiss="alert">×</button>
+                                        <strong>{{ json_dic.part }}:</strong> {{ json_dic.machine }}
+                                    </div>
+                                </div>
+                            </div>
+                                          <!-- end block of content-->
+                                        <div class="form-actions">
+                                          <button type="button" class="btn btn-primary btn-large" id="save" style="width: 75%;">更新</button>
+                                        </div>
+                                      </fieldset>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /block -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--/.fluid-container-->
+        <link href="/static/smallparts/vendors/datepicker.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/uniform.default.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/chosen.min.css" rel="stylesheet" media="screen">
+
+        <link href="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.css" rel="stylesheet" media="screen">
+
+        <script src="/static/smallparts/vendors/jquery-1.9.1.js"></script>
+        <script src="/static/smallparts/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/smallparts/vendors/jquery.uniform.min.js"></script>
+        <script src="/static/smallparts/vendors/chosen.jquery.min.js"></script>
+        <script src="/static/smallparts/vendors/bootstrap-datepicker.js"></script>
+
+        <script src="/static/smallparts/vendors/wysiwyg/wysihtml5-0.3.0.js"></script>
+        <script src="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.js"></script>
+
+        <script src="/static/smallparts/vendors/wizard/jquery.bootstrap.wizard.min.js"></script>
+
+    	<script type="text/javascript" src="/static/smallparts/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+    	<script src="/static/smallparts/assets/form-validation.js"></script>
+        <script type="text/javascript" src="/static/smallparts/vendors/datetimepicker/jquery.datetimepicker.js"></script>  
+    	<script src="/static/smallparts/assets/scripts.js"></script>
+        <script>
+
+            $('select').each(function(){
+                if ($(this).val()=='OKAY'){
+                    $(this).css({"border-color":"green", "color": "green"});
+                }else{
+                    $(this).css({"border-color":"red", "color": "red"});
+                }
+            });
+
+        function Appendzero(obj)
+    {
+        if(obj<10) return "0" +""+ obj;
+        else return obj;
+    }
+
+    $("[name^='result']").change(function(){
+        if($(this).val()){
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            day = date.getDate();
+            date_str = year+'-'+Appendzero(month)+'-'+Appendzero(day);
+            dat = $(this).attr('name').replace('result', 'date').replace('.','\\.');
+            $('#'+dat).val(date_str);
+        }else{
+            $('#'+dat).val('');
+        }
+    });
+
+    $("[name^='date']").each(function(){
+        if(!$(this).val()){
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            day = date.getDate();
+            date_str = year+'-'+Appendzero(month)+'-'+Appendzero(day);
+            $(this).val(date_str);
+        };
+    })
+
+    function Post(URL, PARAMTERS) {
+                //创建form表单
+                var temp_form = document.createElement("form");
+                temp_form.action = URL;
+                //如需打开新窗口，form的target属性要设置为'_blank'
+                temp_form.target = "_self";
+                temp_form.method = "post";
+                temp_form.style.display = "none";
+                //添加参数
+                // for (var item in PARAMTERS) {
+                //     var opt = document.createElement("textarea");
+                //     opt.name = item;
+                //     opt.value = PARAMTERS[item];
+                //     temp_form.appendChild(opt);
+                // }
+                var opt = document.createElement("textarea");
+                opt.name = 'target';
+                opt.value = PARAMTERS;
+                temp_form.appendChild(opt);
+                var opt_csrf = document.createElement("textarea");
+                opt_csrf.name = 'csrfmiddlewaretoken';
+                opt_csrf.value = '{{ csrf_token }}';
+                temp_form.appendChild(opt_csrf);
+                document.body.appendChild(temp_form);
+                //提交数据
+                temp_form.submit();
+            }
+
+	jQuery(document).ready(function() {   
+	   FormValidation.init();
+	});
+	
+
+        $(function() {
+            $(".datepicker").datepicker();
+            $(".uniform_on").uniform();
+            $(".chzn-select").chosen();
+            $('.textarea').wysihtml5();
+
+            $('#rootwizard').bootstrapWizard({onTabShow: function(tab, navigation, index) {
+                var $total = navigation.find('li').length;
+                var $current = index+1;
+                var $percent = ($current/$total) * 100;
+                $('#rootwizard').find('.bar').css({width:$percent+'%'});
+                // If it's the last tab then hide the last button and show the finish instead
+                if($current >= $total) {
+                    $('#rootwizard').find('.pager .next').hide();
+                    $('#rootwizard').find('.pager .finish').show();
+                    $('#rootwizard').find('.pager .finish').removeClass('disabled');
+                } else {
+                    $('#rootwizard').find('.pager .next').show();
+                    $('#rootwizard').find('.pager .finish').hide();
+                }
+            }});
+            $('#rootwizard .finish').click(function() {
+                alert('Finished!, Starting over!');
+                $('#rootwizard').find("a[href*='tab1']").trigger('click');
+            });
+        });
+
+
+        //add by Pierre
+        $(function() {
+          $('#save').click(function() {
+            var d = {};
+            var t = $('form').serializeArray();
+            $.each(t, function() {
+              d[this.name] = this.value;
+            });
+
+            list = {{ item_list|safe }};
+            unmust_list = {{ unmust|safe }};
+            goon = 0;
+            $.each(d, function(key, value){
+                // if(key.indexOf('result') != -1 && 
+                //     (value == 'NOKAY' || value == '' || value == '____/__/__ __:__') 
+                //     && unmust_list.indexOf(key) == -1){
+                //     alert('必填项没有填写完整或者有NOKAY，请检查！');
+                //     goon +=1;
+                //     return false;
+                // }
+
+                if(key.indexOf('result') != -1 && 
+                    (value == 'NOKAY' || value == '' || value == '____/__/__ __:__')){
+                    alert('全部表单必须填写完整');
+                    goon +=1;
+                    return false;
+                }
+
+            })
+            //to save the data
+            // goon = 0;
+            if (goon > 0){
+                return false;
+            }else{
+                d['result'] =1;
+                for (i=0; i<list.length; i++){
+                position = 'result'+list[i];
+                resultval = d[position];
+                if(!resultval || resultval == 'NOKAY'){
+                    d['result'] = 2;
+                }
+            }
+            };
+
+            //pass data to web
+            Post("{% url 'smallparts:update' %}", JSON.stringify(d));
+          });
+        });
+
+        function change_color(result){
+            if(result.val() =='OKAY'){
+                result.css({'color':'green', 'border-color':'green'})
+            }else if(result.val() =='NOKAY'){
+                result.css({'color':'red', 'border-color':'red'})
+            }else{
+                result.css({'color':'black', 'border-color':'black'});
+            }
+        }
+
+        function change_input(id){
+            trim_id = id.replace('.', '\\.');
+            trim_str = '#change'+trim_id
+            target = $(trim_str);
+            if (target.html().indexOf('select id=')!= -1){
+                target.html('<input id="result'+id+'" name="result'+id+'" class="input-x focused" type="text">');
+            }else{
+                target.html('<select id="result'+id+'" name="result'+id+'" style="width: 90px; border-color: red; color: red;" onchange="change_color($(this))"><option value="NOKAY">NOKAY</option><option value="OKAY">OKAY</option></select>');
+            }
+        }
+
+        function datetime(obj){
+            obj.datetimepicker({
+                mask:'9999/19/39 29:59'
+            });
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            day = date.getDate();
+            date_str = year+'-'+Appendzero(month)+'-'+Appendzero(day);
+            dat = obj.attr('name').replace('result', 'date').replace('.','\\.');
+            $('#'+dat).val(date_str);
+        }
+
+        function checknum(v) {
+        var reg = /^\d+(\.\d+)?$/;
+        if (!reg.test(v.val())) {
+        alert("只接受数字格式");
+        v.val('');
+        return false;
+        }
+        }
+
+
+        </script>
+
+
+    </body>
+
+</html>

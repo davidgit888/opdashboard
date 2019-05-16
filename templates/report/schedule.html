@@ -582,7 +582,13 @@
         <li class='notselected' id='litotal' >统计表</li>
         <li class='notselected' id='ldoc'>归档信息</li>
         <li class='notselected' id='lmat'>物料损耗</li>
-         
+        <li class='notselected' id='tijiao'>SFM计划提交</li>
+        <li class='notselected' id='tiaozheng'>SFM计划调整</li>
+      <!--   <script type="text/javascript">
+            $('#tiaozheng').click(function(){
+
+            })
+        </script> -->
 
         <div id = 'dSchedule'  width=100% >
 
@@ -927,5 +933,32 @@
                     }
                  
             </script>
+        </div>
+        <div style='display:none'>
+            <br/> <br/> <br/>
+            <!-- <a href="/smallpart/pbm/">SFM调整提交</a> -->
+            <iframe width="100%" height="100%" src="/smallpart/pbm/"></iframe>
+            <br/>
+            <!-- <a href="/smallpart/sfmchart/">SFM调整记录</a> -->
+        </div>
+        <div style='display:none' id='dTiaozheng'>
+            <div>
+                <br/><br/>
+                <!-- <iframe width="100%" height="100%" src="/smallpart/sfmchart/"></iframe> -->
+                <iframe id="iframe_tiaozheng" width="100%" height="100%"></iframe>
+            </div>
+            <script type="text/javascript">
+                $('#tiaozheng').click(function(){
+                    // url='/smallpart/sfmchart/';
+                    // newwindow=window.open(url,'_blank');
+                    // if (window.focus) {newwindow.focus()}
+                    // $('#dTiaozheng').load('http://www.baidu.com');
+                    $("#iframe_tiaozheng").attr("src", "/smallpart/sfmchart/");
+                    
+
+                })
+            </script>
+            
+
         </div>
     </div>

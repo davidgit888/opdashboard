@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>History</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/DT_bootstrap.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <script src="/static/smallparts/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    
+    <body>
+        {% include 'smallparts/wi_form_header.html' %}
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <!--/span-->
+                <div class="span9" id="content">
+                     <div class="row-fluid">
+                        <!-- block -->
+                        <div class="block">
+                            <div class="navbar navbar-inner block-header">
+                                <div class="muted pull-left">历史记录  <span class="badge badge-success" title="已完成">{{finish}}</span>   <span class="badge badge-warning" title="未完待续">{{ongoing}}</span>   <span class="badge badge-important" title="已删除">{{deleted}}</span></div>
+                            </div>
+                            <div class="block-content collapse in">
+                                <div class="span12">
+                                   <div class="table-toolbar">
+                                      <div class="btn-group">
+                                      </div>
+                                      <div class="btn-group pull-right">
+                                         <button data-toggle="dropdown" class="btn dropdown-toggle">Tools <span class="caret"></span></button>
+                                         <ul class="dropdown-menu">
+                                            <li><a href="#" onclick="alert('暂未启用')">Export to Excel</a></li>
+                                         </ul>
+                                      </div>
+                                   </div>                                    
+                                    <table cellpadding="0" cellspacing="0" border="0" class="table table-bordered" id="example2">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Part</th>
+                                                <th>Serial No</th>
+                                                <th>WI-Version</th>
+                                                <th>Operator</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for res in result %}
+                                            <tr>
+                                                <td>{{res.id}}</td>
+                                                <td>{{res.part}}</td>
+                                                <td>{{res.serial_no}}</td>
+                                                <td><i class="icon-folder-open"></i>V{{ res.record_string | tem_version }}</td>
+                                                <td class="center"><i class="icon-user"></i>{{res.operator}}</td>
+                                                <td class="center">{{res.input_date}}</td>
+                                                <td>
+                                                    {% if request.user|has_group %}
+                                                    {% if res.result == 0 %}
+                                                    <i class="icon-remove"></i> 已经删除
+                                                    {% elif res.result == 2 %}
+                                                    <i class="icon-time"></i> 未完成
+                                                    {% else %}
+                                                    <button class="btn btn-mini" onclick="showpdf('{{res.serial_no}}')"><i class="icon-eye-open"></i> PDF</button>
+                                                    <button class="btn btn-mini" onclick="showqr('{{res.serial_no}}')"><i class="icon-print"></i> 二维码</button>
+                                                    <button class="btn btn-mini" onclick="showchange('{{res.id}}')"><i class="icon-edit"></i> 修改</button>
+                                                    <button class="btn btn-mini" onclick="todelete('{{res.id}}')"><i class="icon-edit"></i> 删除</button>
+                                                    {% endif %}
+                                                    {% else %}
+                                                    {% if res.result == 0 %}
+                                                    <i class="icon-remove"></i> 已经删除
+                                                    {% elif res.result == 2 %}
+                                                    <button class="btn btn-mini btn-warning" onclick="showchange('{{res.id}}')"><i class="icon-forward"></i> 未完待续</button>
+                                                    {% else %}
+                                                    <i class="icon-ok"></i> 已完成
+                                                    {% endif %}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /block -->
+                    </div>
+                </div>
+            </div>
+            {% include 'smallparts/wi_form_footer.html' %}
+        <!--/.fluid-container-->
+
+        <script src="/static/smallparts/vendors/jquery-1.9.1.js"></script>
+        <script src="/static/smallparts/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/smallparts/vendors/datatables/js/jquery.dataTables.min.js"></script>
+        <script src="/static/smallparts/layer/layer.js"></script>
+        <script src="/static/smallparts/assets/scripts.js"></script>
+        <script src="/static/smallparts/assets/DT_bootstrap.js"></script>
+        <script>
+        $(function() {
+            
+        });
+        </script>
+
+        <script>
+        function showpdf(serial_no){
+            layer.ready(function(){
+                layer.open({
+                type: 2,
+                title: 'PDF预览',
+                maxmin: true,
+                shadeClose: true,
+                shade: 0.8,
+                area: ['80%', '90%'],
+                // content: '/static/smallparts/reports/'+serial_no+'.pdf?id='+Math.random(),
+                content: '/static/smallparts/reports/'+serial_no+'.pdf',
+                });
+            });
+        }
+
+        function showqr(serial_no){
+            layer.ready(function(){
+                layer.open({
+                type: 2,
+                title: 'PDF预览',
+                maxmin: true,
+                shadeClose: true,
+                shade: 0.8,
+                area: ['50%', '50%'],
+                content: '/smallpart/qrcode/'+serial_no+'/',
+                });
+            });
+        }
+
+        function showchange(id){
+            layer.ready(function(){
+                layer.open({
+                type: 2,
+                title: '修改',
+                maxmin: true,
+                shadeClose: true,
+                shade: 0.8,
+                area: ['100%', '90%'],
+                content: '/smallpart/change/'+id+'/',
+                });
+            });
+        }
+
+        function todelete(id){
+            //询问框
+            layer.confirm('确定删除？删除后只有管理员可恢复！', {
+              btn: ['确定删除','先不删除'] //按钮
+            }, function(){
+                $.ajax({
+                    url:'/smallpart/del/'+id+'/',
+                    success:function(data){
+                        if (data=='success!'){
+                            layer.msg('成功删除！', {icon: 1});
+                            window.location.reload();
+                        }else{
+                           layer.msg('删除失败:'+data, {icon: 0}) 
+                        }
+                    },
+
+                });              
+            }, function(){
+              layer.msg('删除取消！', {icon: 0});
+            });
+        }
+        </script>        
+    </body>
+
+</html>

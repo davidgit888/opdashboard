@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
+        <title>Print</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/DT_bootstrap.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+    </head>
+    
+    <body style="background-color: white">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <!--/span-->
+                <div id="content"> 
+                                <div class="span12">
+                                    <table class="table table-bordered">                                      
+                                      <tbody>                                
+                                        <tr>
+                                          <th style="text-align: center; font-size: 22px;">{{ json_dic.title }}(Version{{version}}) @ {{ serial_no }}</th>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th width="5%">#</th>
+                                          <th width="20%">工序内容</th>
+                                          <th width="30%">技术要求</th>
+                                          <th width="10%">检查结果</th>
+                                          <th width="10%">操作者</th>
+                                          <th width="10%">日期</th>
+                                          <th width="5%">备注</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for result in result_list %}
+                                        <tr>
+                                          <td>{{result}}</td>
+                                          <td>{{config_dic |key:result}}</td>
+                                          <td>{{config_dic |key1:result}}</td>
+                                          <td>{{json_dic |res:result}}</td>
+                                          <td>{{ json_dic.operator }}</td>
+                                          <td>{{ json_dic |dat:result }}</td>
+                                          <td>{{ json_dic |com:result }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                    <table class="table table-bordered">                                      
+                                      <tbody>                                
+                                        <tr>
+                                          <th>{{ json_dic.part }} - {{ json_dic.machine }}</th>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                </div>
+
+
+                </div>
+            </div>
+
+        </div>
+        <!--/.fluid-container-->
+
+
+    </body>
+
+</html>

@@ -24,4 +24,5 @@ urlpatterns = [
     path('accounts/login/', views.index),
     path('logout/', views.loggedout),
     path('report/', include('report.urls')),
+    path('smallpart/', include('smallparts.urls')),
 ]

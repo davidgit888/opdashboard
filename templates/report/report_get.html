@@ -482,6 +482,7 @@
         <li class='notselected' id='lireport'>辅助工时</li>
         <li class='notselected' id='lidash'>月度统计图</li>
         <li class='notselected' id='limaterial'>物耗使用</li>
+        <li class='notselected' id='xiaobujian'>小部件</li>
         
         <div id='dproduce' style='display:block;'>
             {% comment %} 制造工时表 {% endcomment %}
@@ -967,6 +968,12 @@
                
             }
         </script>
+        <div id='xiaobujian' style='display:none'>
+            <br/><br/><br/>
+            <!-- <a href="/smallpart/">小部件</a> -->
+            <iframe width="100%" height="100%" src="/smallpart/"></iframe>
+            
+        </div>
     </div>
 </body>
 </html>

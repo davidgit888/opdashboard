@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>Search</title>
+        <!-- Bootstrap -->
+        <link href="/static/smallparts/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/assets/styles.css" rel="stylesheet" media="screen">
+        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="vendors/flot/excanvas.min.js"></script><![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <script src="/static/smallparts/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    
+    <body>
+        {% include 'smallparts/wi_form_header.html' %}
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9" id="content">
+                      <!-- morris stacked chart -->
+                     <div class="row-fluid" style="margin-top: 150px;">
+                        <form class="form-horizontal">
+                          <fieldset>
+                            <div class="control-group">
+                              <label class="control-label" for="select01" style="font-size: 16px;">请选择</label>
+                              <div class="controls">
+                                <select id="select01" class="chzn-select">
+                                  <option style="font-size: 20px;">请选择零件号</option>
+                                  {% for part in parts %}
+                                  <option style="font-size: 20px;">{{part}}</option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                            </div>
+                          </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% include 'smallparts/wi_form_footer.html' %}
+        </div>
+        <!--/.fluid-container-->
+        <link href="/static/smallparts/vendors/datepicker.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/uniform.default.css" rel="stylesheet" media="screen">
+        <link href="/static/smallparts/vendors/chosen.min.css" rel="stylesheet" media="screen">
+
+        <link href="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.css" rel="stylesheet" media="screen">
+
+        <script src="/static/smallparts/vendors/jquery-1.9.1.js"></script>
+        <script src="/static/smallparts/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/smallparts/vendors/jquery.uniform.min.js"></script>
+        <script src="/static/smallparts/vendors/chosen.jquery.min.js"></script>
+        <script src="/static/smallparts/vendors/bootstrap-datepicker.js"></script>
+
+        <script src="/static/smallparts/vendors/wysiwyg/wysihtml5-0.3.0.js"></script>
+        <script src="/static/smallparts/vendors/wysiwyg/bootstrap-wysihtml5.js"></script>
+
+        <script src="/static/smallparts/vendors/wizard/jquery.bootstrap.wizard.min.js"></script>
+
+    	<script type="text/javascript" src="/static/smallparts/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+    	<script src="/static/smallparts/assets/form-validation.js"></script>
+        <script src="/static/smallparts/layer/layer.js"></script>        
+    	<script src="/static/smallparts/assets/scripts.js"></script>
+        <script>
+
+	jQuery(document).ready(function() {   
+	   FormValidation.init();
+	});
+	
+
+        $(function() {
+            $(".datepicker").datepicker();
+            $(".uniform_on").uniform();
+            $(".chzn-select").chosen();
+            $('.textarea').wysihtml5();
+
+            $('#rootwizard').bootstrapWizard({onTabShow: function(tab, navigation, index) {
+                var $total = navigation.find('li').length;
+                var $current = index+1;
+                var $percent = ($current/$total) * 100;
+                $('#rootwizard').find('.bar').css({width:$percent+'%'});
+                // If it's the last tab then hide the last button and show the finish instead
+                if($current >= $total) {
+                    $('#rootwizard').find('.pager .next').hide();
+                    $('#rootwizard').find('.pager .finish').show();
+                    $('#rootwizard').find('.pager .finish').removeClass('disabled');
+                } else {
+                    $('#rootwizard').find('.pager .next').show();
+                    $('#rootwizard').find('.pager .finish').hide();
+                }
+            }});
+            $('#rootwizard .finish').click(function() {
+                alert('Finished!, Starting over!');
+                $('#rootwizard').find("a[href*='tab1']").trigger('click');
+            });
+            $('#select01').change(function(){
+            	part = $(this).val();
+            	if (part =='请选择零件号'){
+            		return false;
+            	}                       	
+                //prompt层                
+                layer.prompt({order_no: '输请输入订单号', title:'请输入订单号'}, function(order_no, index){
+                  layer.close(index);
+                  relink = "/smallpart/blank/"+part+'/'+order_no+'/';                  
+
+                  if(!/^\d+$/.test(order_no))
+                  {
+                    layer.msg('错误：订单号必须为数字：'+ order_no, {time:1200}, function(){
+                        window.location.reload();
+                    });
+                } else{
+                    layer.msg('正在转向订单号：'+ order_no, {time:1200}, function(){
+                        window.location.href = relink;
+                    });                       
+                }                  // });
+                });
+            	// window.location.href = relink;
+            })
+        });
+
+        </script>
+    </body>
+
+</html>
