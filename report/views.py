@@ -2344,7 +2344,7 @@ def getMaterialNo(request):
         fullName = name.name + ' ' +name.attribute
         
     except:
-        name = '找不到物料'
+        fullName = '找不到物料'
     
     return HttpResponse(json.dumps(fullName), content_type='application/json')
 

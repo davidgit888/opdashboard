@@ -11,7 +11,7 @@ import unicodecsv as csv
 from operator import or_
 from django.db.models import Q
 from functools import reduce
-
+from .views import is_report_manager
 
 # Register your models here.
 class UploadExcel(forms.Form):
@@ -543,7 +543,18 @@ class MeterialUseAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty']
     list_display = ('sno','year','quarter','group','user','qty','date')
     search_fields = ['sno__sno','year','quarter','group__group_name','user__username','qty','date']
-
+    def get_queryset(self, request):
+        check = is_report_manager(request)
+        query = super(MeterialUseAdmin, self).get_queryset(request)
+        if not check:
+            
+            user_all_permissions = []
+            user = User.objects.get(id=request.user.id)
+            group = UserGroups.objects.get(user=user).work_group
+            filtered_query = query.filter(group=group)
+            return filtered_query  
+        else:
+            return query
 class MeterialSurplusAdmin(admin.ModelAdmin):
     fields = ['sno','year','quarter','group','user','qty']
     list_display = ('sno','year','quarter','group','user','qty','date')
