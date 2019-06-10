@@ -315,7 +315,10 @@
         });
 
             //form the schedule table
-        //$(document).ready(function(){
+        if(data){
+
+
+
             for(i=0;i<data.length;i++){
             var allRows = '';
             if(data[i]['sfg_id'] != '---'){
@@ -352,7 +355,8 @@
             //console.log(i);
        
             
-        } 
+            } 
+        }
         //alert(allRows);
         //});
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
@@ -575,106 +579,30 @@
     }  {% endcomment %}
     
 </style>
-{% comment %} ###########Schedule ################################## {% endcomment %}
+{% comment %} ###########信息应用模块 ################################## {% endcomment %}
     <div id='main_content'>
-        <li class='notselected' id='liSchedule' style='background:orange'>生产进度</li>
-        <li class='notselected' id='liKpi' >报工确认</li>
-        <li class='notselected' id='litotal' >业绩数据</li>
-        <li class='notselected' id='ldoc'>归档信息</li>
+        <li class='notselected' id='liKpi' style='background:orange' >工时审核</li>
+        <li class='notselected' id='litotal' >工时分析</li>
+        <li class='notselected' id='liSchedule' >生产状态</li>
+        <li class='notselected' id='ldoc'>归档状态</li>
         <li class='notselected' id='lmat'>物料损耗</li>
-        <li class='notselected' id='tijiao'>调整记录</li>
-        <li class='notselected' id='tiaozheng'>调整图表</li>
+        <li class='notselected' id='tijiao'>生产变更</li>
+
+        <!-- <li class='notselected' id='tiaozheng'>任务统计变更</li> -->
       <!--   <script type="text/javascript">
             $('#tiaozheng').click(function(){
 
             })
         </script> -->
 
-        <div id = 'dSchedule'  width=100% >
 
-            {% if message %}
-                {{message}}
-            {% endif %}
-            <br/>
-             
-
-            <div style='position:relative;left:30%;text-align:center;align:center;width:100%'>
-                <br/>
-                <fieldset style = 'width:600px'>
-                    <legend>查询</legend>
-                    <form onsubmit='support_time_log()' action="/report/" method="post" >
-                            {% csrf_token %}
-                            <p>开始日期: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
-                            &nbsp&nbsp
-                            结束日期: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
-                            &nbsp&nbsp
-                            <input type='submit' value='查询'></p>
-                            </p>
-                            <span>数据筛选：</span><input type="text" id="filterName">
-                            
-                    </form>
-                </fieldset>
-            </div>
-            
-            <div style="align:center;text-align:center;position:relative;" >
-                <br/><br/>
-                <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
-                <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
-                <a>导出表格</a>
-                &nbsp&nbsp&nbsp&nbsp
-                <p id="schedule_date_p"></p>
-                
-                <br/>
-                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px;align:center;width:100%'> 
-                
-                    <thead>
-                        <tr class = 'parent' style='text-align:center;font-size:14px'>
-                            <th class = 'tableHead'  >SFG</th>
-                            <th class = 'tableHead'  >机型</th>
-                            <th class = 'tableHead'  >备注</th>
-                            {% for i in op_list  %}
-                                <th  colspan='2' >{{i}}</th>
-
-                            {% endfor %}
-                            
-                    
-                        </tr>
-                    
-                        <tr class = 'parent'>
-                            <td >SFG</td>
-                            <td>机型</td>
-                            <td>备注</td>
-                            
-                            {% for i in op_list  %}
-                                <td class = 'tableHead' >员工</td>
-                                <td class = 'tableHead'  >日期</td>
-                                
-
-                            {% endfor %}
-                            
-                        </thead>
-                        <tbody id='schedule_tbody'>
-
-                        </tr>
-
-                            
-                        
-                        </tr>
-                    </tbody>
-                        
-                </table>
-                
-            </div>
-    
-                            
-        
-        </div>
         {% comment %} 
         ############################################################
          {% endcomment %}
-        {% comment %} 业绩表 {% endcomment %}
-        <div id='dKpi' width="100%" style='display:none'>
-            
+        {% comment %} 工时审核 {% endcomment %}
+        <div id='dKpi' width="100%" >
+            <br/><br/>
+   
             <div style='position:relative;left:30%;'>
                 <fieldset style = 'width:500px' style='position:relative;left:30%;'>
                     <legend>查询</legend>
@@ -772,7 +700,7 @@
             </div>
         </div>
 
-        {% comment %} 统计表 {% endcomment %}
+        <!-- 工时分析 -->
         <div style='display:none'>
                 <br/><br/>
                 <div>
@@ -852,7 +780,87 @@
              
                 
         </div>
-        {% comment %} 归档信息 {% endcomment %}
+
+        <!-- 生产状态 -->
+        <div id = 'dSchedule'  width=100% style='display:none'>
+
+            {% if message %}
+                {{message}}
+            {% endif %}
+            <br/>
+             
+
+            <div style='position:relative;left:30%;text-align:center;align:center;width:100%'>
+                <br/>
+                <fieldset style = 'width:600px'>
+                    <legend>查询</legend>
+                    <form onsubmit='support_time_log()' action="/report/" method="post" >
+                            {% csrf_token %}
+                            <p>开始日期: <input id='schedule_from_date' name='schedule_from_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            &nbsp&nbsp
+                            结束日期: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
+                            &nbsp&nbsp
+                            <input type='submit' value='查询'></p>
+                            </p>
+                            <span>数据筛选：</span><input type="text" id="filterName">
+                            
+                    </form>
+                </fieldset>
+            </div>
+            
+            <div style="align:center;text-align:center;position:relative;" >
+                <br/><br/>
+                <label style='background:#00EC00'>&nbsp&nbsp&nbsp&nbsp    </label>&nbsp&nbsp<label >全部完成</label>&nbsp&nbsp&nbsp&nbsp
+                <label style='background:yellow'>&nbsp&nbsp&nbsp&nbsp      </label>&nbsp&nbsp<label>部分完成</label>&nbsp&nbsp&nbsp&nbsp
+                <a>导出表格</a>
+                &nbsp&nbsp&nbsp&nbsp
+                <p id="schedule_date_p"></p>
+                
+                <br/>
+                <table id='tblNeedsScrolling' border=1 cellspacing=0.1 style='text-align:center;font-size:14px;align:center;width:100%'> 
+                
+                    <thead>
+                        <tr class = 'parent' style='text-align:center;font-size:14px'>
+                            <th class = 'tableHead'  >SFG</th>
+                            <th class = 'tableHead'  >机型</th>
+                            <th class = 'tableHead'  >备注</th>
+                            {% for i in op_list  %}
+                                <th  colspan='2' >{{i}}</th>
+
+                            {% endfor %}
+                            
+                    
+                        </tr>
+                    
+                        <tr class = 'parent'>
+                            <td >SFG</td>
+                            <td>机型</td>
+                            <td>备注</td>
+                            
+                            {% for i in op_list  %}
+                                <td class = 'tableHead' >员工</td>
+                                <td class = 'tableHead'  >日期</td>
+                                
+
+                            {% endfor %}
+                            
+                        </thead>
+                        <tbody id='schedule_tbody'>
+
+                        </tr>
+
+                            
+                        
+                        </tr>
+                    </tbody>
+                        
+                </table>
+                
+            </div>
+
+        </div>
+
+        <!-- 归档状态 --> 
         <div style='display:none'>
             <h1>归档信息</h1>
             <input type='button' value='新建' onclick='classify_doc()'>
@@ -863,7 +871,7 @@
             <p><input type='button' onclick='search_docinfo()' value='查询'></p>
         </div>
 
-        {% comment %} 物料损耗 {% endcomment %}
+        <!-- 物耗状态 --> 
         <div style='display:none'>
             <h1>物料申请，审批，到货，使用信息</h1>
                 <label>年度：</label>
@@ -934,6 +942,8 @@
                  
             </script>
         </div>
+        <!-- 生产变更 --> 
+
         <div style='display:none'>
             <br/> <br/> <br/>
             <!-- <a href="/smallpart/pbm/">SFM调整提交</a> -->
@@ -941,10 +951,12 @@
             <br/>
             <!-- <a href="/smallpart/sfmchart/">SFM调整记录</a> -->
         </div>
-        <div style='display:none' id='dTiaozheng'>
+
+        <!-- 任务统计变更 --> 
+       <!--  <div style='display:none' id='dTiaozheng'>
             <div>
                 <br/><br/>
-                <!-- <iframe width="100%" height="100%" src="/smallpart/sfmchart/"></iframe> -->
+               
                 <iframe id="iframe_tiaozheng" width="100%" height="100%"></iframe>
             </div>
             <script type="text/javascript">
@@ -960,5 +972,5 @@
             </script>
             
 
-        </div>
+        </div> -->
     </div>

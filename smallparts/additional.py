@@ -17,6 +17,7 @@ TEMP_URL = os.path.join(CWD, 'static', 'smallparts', 'temp')
 REPORT = os.path.join(CWD, 'static', 'smallparts', 'reports')
 PATH_WK = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 ADM_GROUPS = ['报工平台-主管', '报工平台-班组长']
+DIANJI_GROUP_ID = 7
 
 
 def parse_str(group_id):

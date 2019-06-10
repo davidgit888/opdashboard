@@ -478,12 +478,13 @@
 </head>
 <body>
     <div id='main_content'>
-        <li class='notselected' id='liproduce' style='background:orange'>制造工时报工</li>
-        <li class='notselected' id='lireport'>辅助工时报工</li>
-        <li class='notselected' id='lidash'>月度统计图</li>
-        <li class='notselected' id='limaterial'>物耗使用</li>
-        <li class='notselected' id='xiaobujian'>小部件记录</li>
+        <li class='notselected' id='liproduce' style='background:orange'>工时采集（一）</li>
+        <li class='notselected' id='lireport'>工时采集（二）</li>
+        <li class='notselected' id='lidash'>采集工时统计</li>
+        <li class='notselected' id='limaterial'>物耗信息采集</li>
+        <li class='notselected' id='xiaobujian'>装配信息采集</li>
         
+        <!-- 工时采集（1）-->
         <div id='dproduce' style='display:block;'>
             {% comment %} 制造工时表 {% endcomment %}
             <div class='div1'>
@@ -691,12 +692,7 @@
                 </fieldset> 
             </div>
         </div>
-
-        {% comment %} <div style="width:100%">
-            <br/><br/><br/>
-            <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=3)" width="100%" color='blue' SIZE=3>
-            <br/>
-        </div> {% endcomment %}
+        <!-- 工时采集（二））-->
         <div id='dreport' style='display:none'>
             <div style='width:28%;float:left'>
                 <form onsubmit='valid_support()' action='/report/' method='post' >
@@ -906,12 +902,12 @@
             
             </div>
         </div>
-
+        <!-- 采集工时统计-->
         <div id='ddash' style='display:none'>
             {% include 'echarts/individul_kpi.html' %}
             <p>{{user_groups}}</p>
         </div>
-
+        <!-- 物耗信息采集-->
         <div id='dmaterial' style='display:none'>
             <br/><br/>
             <div>
@@ -941,9 +937,9 @@
                 
                         $('#material_name').val(ret);
                         
-                })
+                    })
 
-            });
+                });
             });
             function saveUsage(){
                 var msno = $('#material_so').val();
@@ -968,6 +964,7 @@
                
             }
         </script>
+        <!-- 装配信息采集-->
         <div id='xiaobujian' style='display:none'>
             <br/><br/><br/>
             <!-- <a href="/smallpart/">小部件</a> -->

@@ -18,8 +18,8 @@ class UploadExcel(forms.Form):
     file = forms.FileField()
 
 class ReportAdmin(admin.ModelAdmin):
-    fields = ['sfg_id','type_name','op_id','qty','prob','user','standard_tiem','real_time', 'date','groups']
-    list_display = ('sfg_id','type_name','op_id','prob','qty','user','full_name','standard_tiem','real_time','date','groups')
+    fields = ['sfg_id','type_name','op_id','qty','prob','user','standard_tiem','real_time', 'date','groups','date_time']
+    list_display = ('sfg_id','type_name','op_id','prob','qty','user','full_name','standard_tiem','real_time','date','groups','date_time')
     search_fields = ['sfg_id','type_name','op_id__op_id','qty','user__username','standard_tiem','real_time','date','prob','groups']
     date_hierarchy = 'date'
     # def get_actions(self, request):
@@ -58,8 +58,8 @@ class ReportAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-
-        writer.writerow(field_names[1:])
+        field_verbose_names = [field.verbose_name for field in meta.fields]
+        writer.writerow(field_verbose_names[1:])
         for obj in queryset:
             row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
            
@@ -125,8 +125,8 @@ class SupportiveTimeAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-
-        writer.writerow(field_names[1:])
+        field_verbose_names = [field.verbose_name for field in meta.fields]
+        writer.writerow(field_verbose_names[1:])
 
 
         for obj in queryset:
@@ -166,8 +166,8 @@ class TypeStandarAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='utf-8')
-
-        writer.writerow(field_names[1:])
+        field_verbose_names = [field.verbose_name for field in meta.fields]
+        writer.writerow(field_verbose_names[1:])
 
 
         for obj in queryset:
@@ -333,8 +333,8 @@ class GroupPerformAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-
-        writer.writerow(field_names[1:])
+        field_verbose_names = [field.verbose_name for field in meta.fields]
+        writer.writerow(field_verbose_names[1:])
 
 
         for obj in queryset:
@@ -397,8 +397,8 @@ class OverTimeAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-
-        writer.writerow(field_names[1:])
+        field_verbose_names = [field.verbose_name for field in meta.fields]
+        writer.writerow(field_verbose_names[1:])
 
 
         for obj in queryset:

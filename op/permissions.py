@@ -6,12 +6,14 @@ def get_user_permissions(data):
     for i in range(len(data)):
         if "生产" in data[i]:
             navList.append('produced')
-        if '配置缺件' in data[i]:
-            navList.append('plans')
+        # if '配置缺件' in data[i]:
+        #     navList.append('plans')
         if '报工平台' in data[i]:
             navList.append('report')
         if '班组长' in data[i]:
             navList.append('reporAnalysis')
+            navList.append('onsiteDash')
+            navList.append('produced')
 
     navList = list(set(navList))
     navList.sort(reverse=True)

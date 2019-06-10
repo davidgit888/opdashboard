@@ -23,6 +23,18 @@ from op.models import InstalledCmm, DeliveredCmm
 from time import sleep
 import time
 import math
+from django.template.defaulttags import register
+
+@register.filter(name = 'filter_is_manager')
+def filter_is_manager(request):
+    groups = ['报工平台-主管']
+    return request.user.groups.filter(name__in = groups).exists()
+
+@register.filter(name = 'filter_is_foreman')
+def filter_is_foreman(request):
+    groups = ['报工平台-班组长']
+    manager = ['报工平台-主管']
+    return request.user.groups.filter(name__in = groups).exists()
 
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
@@ -1064,7 +1076,7 @@ def is_report_manager(request):
     return check
     
 
-# produce schedule, performance and analyze table
+# produce schedule, performance and analyze table信息应用模块
 def report_analysis(request):
     from_date = request.POST.get('schedule_from_date')
     to_date = request.POST.get('schedule_to_date')
@@ -1747,6 +1759,12 @@ def group_statistic(request):
         
         
         supp_bar = support_bar(support_list,month)
+        # 王虎军
+        if 11 in all_user_ids:
+            all_user_ids.remove(11)
+        # 王龙
+        if 9 in all_user_ids:
+            all_user_ids.remove(9)
         data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
         employee_bar = eply_kpi_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))
         employee_eff_bar = eply_eff_bar(anls_result.drop(anls_result.index[len(anls_result)-1]))

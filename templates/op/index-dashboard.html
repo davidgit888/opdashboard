@@ -22,19 +22,19 @@
             for (var i = 0; i < lc.length; i++) {
                 if (lc[i] == 'produced')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("produced")'+"><a onclick='active(this)' href='#'>" + "生产报表" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("produced")'+"><a onclick='active(this)' href='#'>" + "生产仪表板" + "</a></li>");
                 }
-                if (lc[i] == 'plans')
+                if (lc[i] == 'onsiteDash')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("plans")'+"><a onclick='active(this)' href='#'>" + "配置缺件" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("onsiteDash")'+"><a onclick='active(this)' href='#'>" + "生产现场展示板" + "</a></li>");
                 }
                 if (lc[i] == 'report')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("report")'+"><a onclick='active(this)' href='#'>" + "员工平台" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("report")'+"><a onclick='active(this)' href='#'>" + "信息采集模块" + "</a></li>");
                 }
                 if (lc[i] == 'reporAnalysis')
                 {
-                    $("#nav").append("<li onclick="+'cutlist("reporAnalysis")'+"><a onclick='active(this)' href='#'>" + "班组平台" + "</a></li>");
+                    $("#nav").append("<li onclick="+'cutlist("reporAnalysis")'+"><a onclick='active(this)' href='#'>" + "信息应用模块" + "</a></li>");
                 }
                //$("#nav").append("<li onclick='cutlist(this)'><a  href='#'>" + lc[i] + "</a></li>");
             }; 
@@ -43,7 +43,7 @@
 
             '{% if admin == "Admin" %}'
             //var jadmin = '{{admin|safe}}'
-            $("#nav").append("<li onclick="+'cutlist("Admin")'+"><a onclick='active(this)' href='#'>"+"管理页面"+"</a></li>");
+            $("#nav").append("<li onclick="+'cutlist("Admin")'+"><a onclick='active(this)' href='#'>"+"基础信息模块"+"</a></li>");
             '{% endif %}'
 
             '{% if update == "update" %}'

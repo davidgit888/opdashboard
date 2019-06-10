@@ -5,6 +5,7 @@ from .productionUpdate import updateProduction
 from report.views import dashBoard,updateEchartOp,opCompletTable
 from .models import InstalledCmm, DeliveredCmm
 from datetime import date
+from django.http import HttpResponseRedirect
 import calendar
 
 @login_required
@@ -49,3 +50,7 @@ def produced(rquest):
 @login_required
 def plan(request):
     return render(request, 'op/配置缺件.html')
+
+@login_required
+def onsiteDash(request):
+    return HttpResponseRedirect("http://10.135.4.5:8081/WebReport/ReportServer?op=fs")

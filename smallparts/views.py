@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse
-from .additional import Additional, TEMP_URL, REPORT, ADM_GROUPS
+from .additional import Additional, TEMP_URL, REPORT, ADM_GROUPS, DIANJI_GROUP_ID
 import json
 import datetime
 from .models import SheetConfig, Partlist, Specification, Record, SfmAjd
@@ -160,6 +160,10 @@ def treatStr(request):
 				json_dic = json.loads(json_str)
 				result_list = [re.match('comment(.+)', l).group(1).replace('.', '_') for l in json_dic.keys() if re.match('comment.+', l)]
 				group_id = int(json_dic['group'])
+				if group_id == DIANJI_GROUP_ID:
+					mark='[电机]'
+				else:
+					mark = ''
 				version = int(json_dic['version'])
 				ordernbr = int(json_dic['ordernbr'])
 				result = int(json_dic['result'])
@@ -184,7 +188,8 @@ def treatStr(request):
 				pdf = ad.export_pdf(request.get_host(), serial_no)
 				request.session['posted'] = 'yes'
 				return render(request, 'smallparts/wi_form_success.html', {'json_dic':treat_dic(json_dic), 
-					'config_dic':config_dic, 'result_list': result_list, 'qrcode':link, 'serial_no':serial_no, 'pdf':pdf, 'version':version, 'ordernbr':ordernbr})
+					'config_dic':config_dic, 'result_list': result_list, 'qrcode':link, 'serial_no':serial_no, 
+					'pdf':pdf, 'version':version, 'ordernbr':ordernbr,'mark':mark})
 		else:
 			return HttpResponse('禁止刷新重复提交，请前往搜索页</br><a href = "%s">点击转到搜索页</a>' % reverse('smallparts:search'))
 	except Exception as e:
@@ -290,10 +295,10 @@ def update(request):
 		ad = Additional()
 		ad.export_pdf(request.get_host(), serial_no)
 		return HttpResponse('''<div style='font-size:48px; color:green; text-align:center; vertical-align: middle; padding-top:20%; '>
-			更新成功！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 1500);</script>''')
+			更新成功！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 300);</script>''')
 	except Exception as e:
 		return HttpResponse('''<div style='font-size:48px; color:red; text-align:center; vertical-align: middle; padding-top:20%; '>
-			更新失败！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 1500);</script>''')
+			更新失败！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 300);</script>''')
 #checked
 @login_required
 @user_passes_test(in_group)
