@@ -283,6 +283,7 @@
             if (goon > 0){
                 return false;
             }else{
+                $(this).attr('disabled', 'true');
                 d['result'] =1;
                 for (i=0; i<list.length; i++){
                 position = 'result'+list[i];

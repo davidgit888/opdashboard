@@ -36,6 +36,11 @@ def filter_is_foreman(request):
     manager = ['报工平台-主管']
     return request.user.groups.filter(name__in = groups).exists()
 
+@register.filter(name='filter_is_sczz_manager')
+def filter_is_sczz_manager(request):
+    groups = ['生产制造-主管']
+    return request.user.groups.filter(name__in = groups).exists()
+
 # get standard and real time
 @login_required(login_url='/accounts/login/')  
 def get_current_date_data(request, result):

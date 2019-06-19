@@ -34,9 +34,10 @@
                                       <div class="btn-group">
                                       </div>
                                       <div class="btn-group pull-right">
-                                         <button data-toggle="dropdown" class="btn dropdown-toggle">Tools <span class="caret"></span></button>
+                                         <button data-toggle="dropdown" class="btn dropdown-toggle"><span id ='ongoing'>筛选</span> <span class="caret"></span></button>
                                          <ul class="dropdown-menu">
-                                            <li><a href="#" onclick="alert('暂未启用')">Export to Excel</a></li>
+                                            <li><a href="#" onclick='window.open("/smallpart/?filter=ongoing", "_self")'>仅未完成</a></li>
+                                            <li><a href="#" onclick='window.open("/smallpart/", "_self")'>所有</a></li>
                                          </ul>
                                       </div>
                                    </div>                                    
@@ -173,6 +174,35 @@
             }, function(){
               layer.msg('删除取消！', {icon: 0});
             });
+        }
+        
+        function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return r[2]; return null;
+        }
+
+
+        function gotopage(){
+            if (getQueryString('passpage')){
+                page = parseInt(getQueryString('passpage'));
+                var table = $('#example2').DataTable();
+                table.fnPageChange(page);
+            }
+        }
+        gotopage();
+
+        function ref(){
+        var table = $('#example2').DataTable();
+        var tableSetings=table.fnSettings();
+        var paging_length=tableSetings._iDisplayLength;
+        var page_start=tableSetings._iDisplayStart;
+        var page=(page_start / paging_length); 
+        if (getQueryString('filter')){
+            window.location.href = '{{request.path}}'+'?filter=ongoing&passpage='+page;
+        }else{
+        window.location.href = '{{request.path}}'+'?passpage='+page;
+        };
         }
         </script>        
     </body>

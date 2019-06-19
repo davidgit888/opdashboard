@@ -220,6 +220,7 @@ def search(request):
 
 @login_required
 def history(request, nbr = 2000, ongoing = None):
+	filters = request.GET.get('filter', None) #add filter
 	groups = get_groups(request)
 	# return HttpResponse(groups)
 	group_list =[]
@@ -242,6 +243,8 @@ def history(request, nbr = 2000, ongoing = None):
 	ongoing = result.filter(result = 2).count()
 	finish = result.filter(result = 1).count()
 	deleted = result.filter(result = 0).count()
+	if filters and filters == 'ongoing': #add filter
+		result = result.filter(result = 2) #add filter
 	return render(request, 'smallparts/wi_form_history.html', {'result':result, 'ongoing':ongoing, 'finish':finish, 'deleted':deleted})
 
 
@@ -295,10 +298,10 @@ def update(request):
 		ad = Additional()
 		ad.export_pdf(request.get_host(), serial_no)
 		return HttpResponse('''<div style='font-size:48px; color:green; text-align:center; vertical-align: middle; padding-top:20%; '>
-			更新成功！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 300);</script>''')
+			更新成功！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.ref();", 200);</script>''')
 	except Exception as e:
 		return HttpResponse('''<div style='font-size:48px; color:red; text-align:center; vertical-align: middle; padding-top:20%; '>
-			更新失败！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 300);</script>''')
+			更新失败！</div><script>setTimeout("var index = parent.layer.getFrameIndex(window.name); parent.layer.close(index);parent.location.reload();", 1000);</script>''')
 #checked
 @login_required
 @user_passes_test(in_group)

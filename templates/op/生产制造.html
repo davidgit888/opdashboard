@@ -45,7 +45,7 @@
     </head>
     <body>
         <div id='navTabContainer'>
-            {% if  request|filter_is_manager %}
+            {% if  request|filter_is_manager or request|filter_is_sczz_manager%}
                 <li class='notselected' id='liSchedule' style='background:orange'>生产计划</li>
                 <li class='notselected' id='liQbz' >发货缺件</li>
             {% endif %}
@@ -56,7 +56,7 @@
         </div>
         <div id='bodyContainer'>
             <!-- 生产计划 -->
-            {% if  request|filter_is_manager %}
+            {% if  request|filter_is_manager or request|filter_is_sczz_manager %}
                 <div id='nvaSection'>
 
                     <div id='first' style="width:83%;height:600px">
@@ -92,7 +92,7 @@
                             // newwindow=window.open(url,'_blank');
                             // if (window.focus) {newwindow.focus()}
                             // $('#dTiaozheng').load('http://www.baidu.com');
-                            $("#iQbz").attr("src", "http://10.136.6.87:8888/op/dashboard/plans/");
+                            $("#iQbz").attr("src", "/op/dashboard/plans/");
                             
 
                         })
@@ -101,13 +101,13 @@
             {% endif %}
             {% if request|filter_is_foreman %}
                 <!-- 生产任务变更 -->
-                <div>
+                <div style='display:none'>
                     <br/>
 
                     <script type="text/javascript">
                         
                         $(function(){
-                            $('#d_tiaozheng').load("http://10.136.6.87:8888/smallpart/sfmchart/");
+                            $('#d_tiaozheng').load("/smallpart/sfmchart/");
                         });
                     </script>
                     <div id = "d_tiaozheng" style="width:'83%';height:600px">
