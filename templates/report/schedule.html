@@ -146,14 +146,14 @@
                         'group':group,'work_group':work_group,'validate':validate}, function(ret){
                             if(ret.includes('失败')){
                                 //alert(ret);
-                                $('#p_save_message').append('<span style="color:red">'+ret+', </span>')
+                                $('#p_save_message').append('<span style="color:red">'+rFet+', </span>')
                             }else{
                                 $('#p_save_message').append('<span>'+ret+', </span>')
                             }
                     
                         
                    
-                    //var result = ret;
+                    //var result = ret;fFf
                     //validateQty(ret);
                         })
                 }
@@ -207,9 +207,15 @@
     var activeLi = '{{li}}';
     $(document).ready(function(){
 
-        if(tab && activeLi){
-            $('#'+tab).css('display','inline-block');
-            $('#'+activeLi).css('background','orange');
+        if(tab && activeLi ){
+            if(tab == 'None' && activeLi == 'None'){
+                $('#liKpi').css('background','orange');
+                $('#dKpi').css('display','inline-block');
+            }else{
+                $('#'+tab).css('display','inline-block');
+                $('#'+activeLi).css('background','orange');
+            }
+
         }else{
             $('#liKpi').css('background','orange');
             $('#dKpi').css('display','inline-block');
