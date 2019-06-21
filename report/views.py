@@ -1086,7 +1086,8 @@ def report_analysis(request):
     from_date = request.POST.get('schedule_from_date')
     to_date = request.POST.get('schedule_to_date')
     p_today = request.POST.get('p_perform_today')
-    tab = request.GET.get('tab')
+    tab = request.POST.get('tab')
+    li = request.POST.get('li')
     today = date.today()
     a_month = request.POST.get('a_month')
     a_year = date.today().year
@@ -1151,7 +1152,7 @@ def report_analysis(request):
         data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
         if len(data) != 0:
             # data = data.drop_duplicates()
-            data.index = range(len(data))
+            # data.index = range(len(data))
             schedule_list = []
             # data['op_id'] = 0
             
@@ -1242,6 +1243,7 @@ def report_analysis(request):
                 'p_perform_list':p_perform_list,
                 'p_date':p_get_date,
                 'tab':tab,
+                'li':li,
                 'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
                 'data_group':data_group,
                 'test_a_month':a_month,

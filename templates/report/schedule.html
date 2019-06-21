@@ -23,7 +23,7 @@
         document.getElementById(id).innerHTML = data.toString();
         document.getElementById(id).style.background = 'yellow';
     }
-
+    // form schedule data
     var schedule = '{{schedule_json|safe}}';
     if(schedule){
         var data = $.parseJSON(schedule);
@@ -54,12 +54,14 @@
     
     var today = new Date();
     var today_year = today.getFullYear();
+    // schedule
     function support_time_log(){
-        document.forms[0].action = '/report/report_analysis/';
+        document.forms[1].action = '/report/report_analysis/';
         
     }
+    // performance check
     function performance_total(){
-        document.forms[1].action = '/report/report_analysis/?tab=dKpi';
+        document.forms[0].action = '/report/report_analysis/';
     }
     // search doc info by date
     function search_docinfo(){
@@ -107,6 +109,7 @@
         });
      });
 
+    // save performance data
     function save_all_perform(){
         var cd_time=6;
         if(p_save_status=='No'){
@@ -196,8 +199,22 @@
         
         
     }
+
+    // get parameters from view
     var p_date='{{p_date}}';
-    var p_save_status = '{{p_save_status}}'
+    var p_save_status = '{{p_save_status}}';
+    var tab='{{tab}}';
+    var activeLi = '{{li}}';
+    $(document).ready(function(){
+
+        if(tab && activeLi){
+            $('#'+tab).css('display','inline-block');
+            $('#'+activeLi).css('background','orange');
+        }else{
+            $('#liKpi').css('background','orange');
+            $('#dKpi').css('display','inline-block');
+        }
+    })
     //var produce_log = new Array();
     
     window.onload = function (){
@@ -206,7 +223,7 @@
         //var today = '{{p_date}}';
         //var p_date = document.getElementById('p_perform_today');
         //var p_date='{{p_date}}';
-        var tab='{{tab}}'
+        
         $("#p_perform_today").attr('value',p_date);
         
         //alert(p_date);
@@ -581,7 +598,8 @@
 </style>
 {% comment %} ###########信息应用模块 ################################## {% endcomment %}
     <div id='main_content'>
-        <li class='notselected' id='liKpi' style='background:orange' >工时审核</li>
+        <!-- <li class='notselected' id='liKpi' style='background:orange' >工时审核</li> -->
+        <li class='notselected' id='liKpi' >工时审核</li>
         <li class='notselected' id='litotal' >工时分析</li>
         <li class='notselected' id='liSchedule' >生产状态</li>
         <li class='notselected' id='ldoc'>归档状态</li>
@@ -600,7 +618,8 @@
         ############################################################
          {% endcomment %}
         {% comment %} 工时审核 {% endcomment %}
-        <div id='dKpi' width="100%" >
+        <!-- <div id='dKpi' width="100%" > -->
+        <div id='dKpi' width="100%" style="display: none" >
             <br/><br/>
    
             <div style='position:relative;left:30%;'>
@@ -801,6 +820,8 @@
                             结束日期: <input id='schedule_to_date' name='schedule_to_date' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             &nbsp&nbsp
                             <input type='submit' value='查询'></p>
+                            <input type="hidden" name="tab" value="dSchedule">
+                            <input type="hidden" name="li" value="liSchedule">
                             </p>
                             <span>数据筛选：</span><input type="text" id="filterName">
                             
