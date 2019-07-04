@@ -24,26 +24,26 @@
         document.getElementById(id).style.background = 'yellow';
     }
     // form schedule data
-    var schedule = '{{schedule_json|safe}}';
-    if(schedule){
-        var data = $.parseJSON(schedule);
+    // var schedule = '{{schedule_json|safe}}';
+    // if(schedule){
+    //     var data = $.parseJSON(schedule);
 
     
-        var dataLength = Object.keys(data)['length'];
-        for(j=0;j<10;j++){
-        var a = {};
+    //     var dataLength = Object.keys(data)['length'];
+    //     for(j=0;j<10;j++){
+    //     var a = {};
         
-            for(i=0;i<dataLength-3;i++){
+    //         for(i=0;i<dataLength-3;i++){
                 
-                a[Object.keys(data[0])[i]]='---';
-                a['sfg_id']='---';
-                a['type_name']='---';
-                a['sfg_comments']='---';
+    //             a[Object.keys(data[0])[i]]='---';
+    //             a['sfg_id']='---';
+    //             a['type_name']='---';
+    //             a['sfg_comments']='---';
                 
-            };
-            data.push(a);
-        };
-    }
+    //         };
+    //         data.push(a);
+    //     };
+    // }
 
     {% comment %} $(document).ready(function(){ 
        
@@ -200,11 +200,74 @@
         
     }
 
-    // get parameters from view
+    // get all parameters from view
     var p_date='{{p_date}}';
     var p_save_status = '{{p_save_status}}';
     var tab='{{tab}}';
     var activeLi = '{{li}}';
+    var data2_date = '{{data2_date|safe}}';
+    var sche_date = $.parseJSON(data2_date);
+    var data2_users = '{{data2_users|safe}}';
+    var sche_users = $.parseJSON(data2_users);
+    var data2_qty = '{{data2_qty|safe}}';
+    var sche_qty = $.parseJSON(data2_qty);
+    // var op_list = '{{op_list|safe}}';
+    var op_list =[];
+    '{% for i in op_list %}'
+        op_list.push('{{i.op_name}}');
+    '{% endfor %}'
+
+    var sfg_list = '{{sfg_list|safe}}';
+    var sfg_list = $.parseJSON(sfg_list);
+    var sfg_list_length = Object.keys(sfg_list["sfg_id"])['length']
+    var sfgs = '{{sfgs|safe}}';
+
+    // form schedule data
+    var sfgall = []
+    if(sfgs){
+        for(i=0;i<sfg_list_length;i++){
+
+            var sfg_items = {};
+            sfg_items['sfg_id']=sfg_list['sfg_id'][i]
+            if(sfg_list['comments'][i]==null){
+                sfg_items['sfg_comments']='N';
+            }else{
+                sfg_items['sfg_comments']=sfg_list['comments'][i];
+            }
+            sfg_items['type_name']=sfg_list['type_name'][i];
+            for(k=0;k<op_list.length;k++){
+                try{
+                    sfg_items[k+10]=sche_users[op_list[k]][sfg_items['sfg_id']];
+                    sfg_items[k+100]=sche_date[op_list[k]][sfg_items['sfg_id']];
+                    sfg_items[k+1000]=sche_qty[op_list[k]][sfg_items['sfg_id']];
+                }
+                catch(err){
+                    sfg_items[k+10]='---';
+                    sfg_items[k+100]='---';
+                    sfg_items[k+1000]=0;
+                }
+            }
+            sfgall.push(sfg_items);
+        };
+
+        var data=sfgall;
+        for(j=0;j<10;j++){
+        var a = {};
+        
+            for(i=0;i<Object.keys(data)['length']-3;i++){
+                
+                a[Object.keys(data[0])[i]]='---';
+                a['sfg_id']='---';
+                a['type_name']='---';
+                a['sfg_comments']='---';
+                
+            };
+            data.push(a);
+        };
+    }
+
+    
+
     $(document).ready(function(){
 
         if(tab && activeLi ){
@@ -337,7 +400,7 @@
 
         });
 
-            //form the schedule table
+            //form schedule table
         if(data){
 
 

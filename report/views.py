@@ -577,6 +577,9 @@ def get_data(request):
         except:
             return HttpResponse('标准工时不存在，请刷新网页！')
     #load data
+    if request.user.id == 11 or request.user.id == 9:
+        standard_time = 0
+        real_time = 0
     
     if prob_info== 'None':
         prob_info=''
@@ -1050,6 +1053,7 @@ def analysis_op_user(request):
     for i in range(len(op_id_ids)):
         a = Op.objects.get(op_id=op_id_ids[i])
         op_id_sorted.append(a)
+    # op_id_sorted = Op.objects.filter(op_id__contains=op_id_ids).order_by('op_id')
 
     # get Op name
     if user_manager_group:
@@ -1079,8 +1083,13 @@ def is_report_manager(request):
                 check = True
                 break
     return check
-    
-
+# change date to numbers
+def changeDateToString(number):
+    try:
+        number=number.strftime('%Y-%m-%d')
+    except:
+        number = '---'
+    return number
 # produce schedule, performance and analyze table信息应用模块
 def report_analysis(request):
     from_date = request.POST.get('schedule_from_date')
@@ -1148,8 +1157,45 @@ def report_analysis(request):
             # data['user'][0].first_name
         
         ##### start schedule #######
-        
+
         data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
+
+        ### new schedule V3 #####
+        op_full = Op.objects.all().values()
+        user_full = User.objects.all().values()
+        op_full_pd = pd.DataFrame(list(op_full), columns=['id','op_id','op_name'])
+        user_full_pd = pd.DataFrame(list(user_full),columns=['id','last_name','first_name'])
+        user_full_pd['full_name'] = user_full_pd['last_name'] + user_full_pd['first_name']
+        comments_full = SfgComments.objects.all().values()
+        comments_full_pd = pd.DataFrame(list(comments_full),columns=['sfg','comments'])
+
+        data1 = pd.merge(data, op_full_pd, left_on='op_id_id', right_on='id', how='left')
+        data2 = pd.merge(data1, user_full_pd, left_on='user_id', right_on='id', how='left')
+        # data2 = pd.merge(data2, comments_full_pd, left_on='sfg_id', right_on='sfg', how='left')
+        data2_pivot = data2.pivot_table(index='sfg_id', columns='op_name', 
+            values=['full_name','date','qty'],
+            aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
+        # data2_pivot.fillna('---')
+        data2_date = data2_pivot['date'].fillna('---')
+        for i in range(len(data2_date.columns)):
+            data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
+        data2_users = data2_pivot['full_name'].fillna('---')
+        data2_qty = data2_pivot['qty'].fillna(0)
+        sfgs = pd.DataFrame()
+        # sfgs['sfg_id']=data2_pivot.index
+        sfgall = data.drop_duplicates(['sfg_id'])
+        sfgs['sfg_id']=sfgall['sfg_id']
+        sfgs['type_name']=sfgall['type_name']
+        sfg_list = pd.merge(sfgs, comments_full_pd, left_on='sfg_id',right_on='sfg',how='left')
+        sfg_list.fillna('n')
+        # sfg_type_name = data2_pivot['type_name']
+        # sfg_comments = data2_pivot['comments']
+        # df = pd.DataFrame()
+        # for i in range(len(all_op_id)):
+
+
+
+        ### end new schedule v3####
         if len(data) != 0:
             # data = data.drop_duplicates()
             # data.index = range(len(data))
@@ -1159,58 +1205,58 @@ def report_analysis(request):
             #change op from object to number (op_id)
             # for i in range(len(data)):
             #     data['op_id'][i] = data['op'][i].op_id
-            sfg_list = data['sfg_id'].unique()
-            data_total = data.pivot_table(index=['sfg_id'],columns=['op_id_id'],values=['qty'],aggfunc=np.sum)
-            data_total.columns=data_total.columns.droplevel()
-            data_total = data_total.fillna(0)
-            data_total = round(data_total,2)
-            for i in range(len(sfg_list)):
-                # a = []
-                # a.append(sfg_list[i])
-                # a.append(data[data['sfg']==sfg_list[i]]['type'])
-                # for j in range(len(all_op_id)):
+            # sfg_list = data['sfg_id'].unique()
+            # data_total = data.pivot_table(index=['sfg_id'],columns=['op_id_id'],values=['qty'],aggfunc=np.sum)
+            # data_total.columns=data_total.columns.droplevel()
+            # data_total = data_total.fillna(0)
+            # data_total = round(data_total,2)
+            # for i in range(len(sfg_list)):
+            #     # a = []
+            #     # a.append(sfg_list[i])
+            #     # a.append(data[data['sfg']==sfg_list[i]]['type'])
+            #     # for j in range(len(all_op_id)):
                     
-                #     user = data[(data['sfg']==sfg_list[i]) & (data['op_id']==all_op_id[j].op_id)]
-                #     if not user.empty:
-                #         a.append(user['user'][user.index[0]].last_name + user['user'][user.index[0]].first_name)
-                #         a.append(user['date'][user.index[0]].strftime('%Y-%m-%d'))
-                #     else:
-                #         a.append('---')
-                #         a.append('---')
-                a={}
-                a['sfg_id']= sfg_list[i]
-                type = data[data['sfg_id']==sfg_list[i]]['type_name']
-                a['type_name'] = type[type.index[0]]
-                try:
-                    sfg_comments = SfgComments.objects.get(sfg=a['sfg_id']).comments
+            #     #     user = data[(data['sfg']==sfg_list[i]) & (data['op_id']==all_op_id[j].op_id)]
+            #     #     if not user.empty:
+            #     #         a.append(user['user'][user.index[0]].last_name + user['user'][user.index[0]].first_name)
+            #     #         a.append(user['date'][user.index[0]].strftime('%Y-%m-%d'))
+            #     #     else:
+            #     #         a.append('---')
+            #     #         a.append('---')
+            #     a={}
+            #     a['sfg_id']= sfg_list[i]
+            #     type = data[data['sfg_id']==sfg_list[i]]['type_name']
+            #     a['type_name'] = type[type.index[0]]
+            #     try:
+            #         sfg_comments = SfgComments.objects.get(sfg=a['sfg_id']).comments
                 
-                    a['sfg_comments'] = sfg_comments
-                except:
-                    a['sfg_comments'] = 'N'
+            #         a['sfg_comments'] = sfg_comments
+            #     except:
+            #         a['sfg_comments'] = 'N'
                 
-                ####  test ########
-                for j in range(len(all_op_id)):
-                    user=  data[(data['sfg_id']==sfg_list[i]) & (data['op_id_id']==all_op_id[j].id)]
+            #     ####  test ########
+            #     for j in range(len(all_op_id)):
+            #         user=  data[(data['sfg_id']==sfg_list[i]) & (data['op_id_id']==all_op_id[j].id)]
                     
-                    if not user.empty:
-                        username = User.objects.get(id=user['user_id'][user.index[0]]).get_full_name()
-                        ###### get total qty
-                        qty = data_total[data_total.index==sfg_list[i]][all_op_id[j].id]
-                        # a[all_op_id[j].op_id] = username#user['user_id'][user.index[0]] + user['user_id'][user.index[0]]
-                        # a[all_op_id[j].op_name] = user['date'][user.index[0]].strftime('%Y-%m-%d')
-                        a[j+10] = username
-                        a[j+100] =  user['date'][user.index[0]].strftime('%Y-%m-%d')
-                        a[j+1000] = qty[0]
+            #         if not user.empty:
+            #             username = User.objects.get(id=user['user_id'][user.index[0]]).get_full_name()
+            #             ###### get total qty
+            #             qty = data_total[data_total.index==sfg_list[i]][all_op_id[j].id]
+            #             # a[all_op_id[j].op_id] = username#user['user_id'][user.index[0]] + user['user_id'][user.index[0]]
+            #             # a[all_op_id[j].op_name] = user['date'][user.index[0]].strftime('%Y-%m-%d')
+            #             a[j+10] = username
+            #             a[j+100] =  user['date'][user.index[0]].strftime('%Y-%m-%d')
+            #             a[j+1000] = qty[0]
                        
-                    else:
-                        # a[all_op_id[j].op_id] = '---'
-                        # a[all_op_id[j].op_name] = '---'
-                        a[j+10] = '---'
-                        a[j+100] = '---'
-                        a[j+1000] = 0
+            #         else:
+            #             # a[all_op_id[j].op_id] = '---'
+            #             # a[all_op_id[j].op_name] = '---'
+            #             a[j+10] = '---'
+            #             a[j+100] = '---'
+            #             a[j+1000] = 0
                         
 
-                schedule_list.append(a)
+            #     schedule_list.append(a)
             # group = user_work_group(request)
             # all_user_ids = user_work_group_ids(group,date.today())
 
@@ -1257,6 +1303,16 @@ def report_analysis(request):
                 'sup_bor_total':sup_bor_total.to_html(),
                 'over_time_total':over_time_total.to_html(),
                 'user_groups':user_groups,  
+                ### new schedule v3 ####
+                'data2_date':data2_date.to_json(),
+                'data2_users':data2_users.to_json(),
+                'data2_qty':data2_qty.to_json(),
+                # 'data2':data2.to_json(),
+                'sfg_list':sfg_list.to_json(),
+                'sfgs':sfgs.to_json(),
+                # 'sfg_type_name':sfg_type_name.to_json(),
+                # 'sfg_comments':sfg_comments.to_json(),
+                ### end new schedule v3 ###
             })
         else:
             return render(request, 'report/schedule.html',{
@@ -1374,7 +1430,7 @@ def getOpDetails(from_date,to_date,user_groups,all_op_id):
     df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
     table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
     table = table.round(2)
-    data_opcounts = table[table==1]
+    data_opcounts = table[table>0.5]
     
    
     op_count_total = []
@@ -1712,7 +1768,7 @@ def workTimeAnalysis(group,month,year):
         
     return data
 
-# get popup window in 统计表
+# get popup window in 工时分析
 def group_statistic(request):
     year = request.GET.get('year')
     month = request.GET.get('date')
@@ -1754,8 +1810,8 @@ def group_statistic(request):
             work_time_anls_table = work_time_anls.to_html(index=None)
         else:
             all_user_ids, all_op_id, user_group,all_work_groups = analysis_op_user(request)
-            a = {'数据':[0,0]}
-            work_time_anls_table = pd.DataFrame(data=a).to_html(index=None)
+        #     a = {'数据':[0,0]}
+        #     work_time_anls_table = pd.DataFrame(data=a).to_html(index=None)
              
             # return HttpResponse(all_user_ids)
         
@@ -1784,6 +1840,13 @@ def group_statistic(request):
         else:
             trans_time=None
         oper_bar = op_bar(anls_opcounts)
+        # group is ALL to get work time table 
+        if groups == 'ALL':
+            all_user_ids.append(11)
+            all_user_ids.append(9)
+            data_group, work_time_anls,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_group,month,all_user_ids,all_op_id,year)
+            # work_time_anls = anls_result
+            work_time_anls_table = work_time_anls.to_html(index=None)
         if month ==0:
             month = '全年'
         else:

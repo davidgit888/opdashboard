@@ -53,4 +53,4 @@ def plan(request):
 
 @login_required
 def onsiteDash(request):
-    return HttpResponseRedirect("http://10.135.4.5:8081/WebReport/ReportServer?op=fs")
+    return HttpResponseRedirect("http://dataanalysis.hexagonmetrology.cn/HMQReports/ReportServer?op=fs")
