@@ -511,9 +511,13 @@ def user_work_group(request):
 def user_work_group_ids(group,date):
     all_user_ids = []
     if group:
-
-        users = Report.objects.filter(groups=group,date=date)
-        users2= SupportiveTime.objects.filter(groups=group,date=date)
+        ## if group is list, only for electric work group user ids
+        if isinstance(group,list):
+            users = Report.objects.filter(groups__in=group,date=date)
+            users2= SupportiveTime.objects.filter(groups__in=group,date=date)
+        else:
+            users = Report.objects.filter(groups=group,date=date)
+            users2= SupportiveTime.objects.filter(groups=group,date=date)
         for i in range(len(users)):
             all_user_ids.append(users[i].user.id)
         for i in range(len(users2)):
@@ -522,6 +526,8 @@ def user_work_group_ids(group,date):
         return all_user_ids
     else:
         return None
+
+
 
 #### get usr's ids accroding to work group
 def workGroupId(group):
@@ -577,9 +583,9 @@ def get_data(request):
         except:
             return HttpResponse('标准工时不存在，请刷新网页！')
     #load data
-    if request.user.id == 11 or request.user.id == 9:
-        standard_time = 0
-        real_time = 0
+    # if request.user.id == 11 or request.user.id == 9:
+    #     standard_time = 0
+    #     real_time = 0
     
     if prob_info== 'None':
         prob_info=''
@@ -1129,6 +1135,7 @@ def report_analysis(request):
     work_group = user_work_group(request)
     is_electronic = False
     orginal_group = get_groups(request)
+    # check if is electronic foreman
     if any('班组长' and '电气' in word for word in orginal_group):
         is_electronic = True
     
@@ -1144,8 +1151,10 @@ def report_analysis(request):
         ####+++++++++++++++
         
         ##++++++++According to Work Group to filter the schedule results++++++
-        if is_manager or is_electronic:
+        if is_manager:
             items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        elif is_electronic:
+            items = Report.objects.filter(groups__in=['数据-电气','数据-检验'],date__range=(from_date,to_date)).order_by('-date').values()
         else:
             items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
         #data = pd.DataFrame(list(items), columns=['sfg_id','type_name','op_id_id','user_id','date'])
@@ -1176,6 +1185,7 @@ def report_analysis(request):
             values=['full_name','date','qty'],
             aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
         # data2_pivot.fillna('---')
+        # if data2_pivot['date']:
         data2_date = data2_pivot['date'].fillna('---')
         for i in range(len(data2_date.columns)):
             data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
@@ -1406,14 +1416,19 @@ def perform_pop(request):
     orginal_group = get_groups(request)
     if any('班组长' and '电气' in word for word in orginal_group):
         is_electronic = True
-    if is_manager or is_electronic:
+    if is_manager:
         # manager can see all members
         all_user_ids, all_op_id,user_groups,all_work_groups = analysis_op_user(request)
+    elif is_electronic:
+        # if electric manager, group is a list and get all user id in that date
+        group = ['数据-电气','数据-检验']
+        all_user_ids = user_work_group_ids(group,date)
+     
     else:
         # forman can see only work group
         group = user_work_group(request)
         all_user_ids = user_work_group_ids(group,date)
-    
+    # get perform list for all users
     p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, date)
 
     return render(request, 'report/perform_pop.html', {
@@ -1423,6 +1438,17 @@ def perform_pop(request):
         'all_user_ids':all_user_ids,
     })
 
+
+
+# def updateOpNum(number):
+#     """
+#     if op quantity greater than 0.5, change it to 1
+#     """
+#     if number > 0.5:
+#         return 1
+#     else:
+#         return 0
+
 ###### return all op details and op count total
 def getOpDetails(from_date,to_date,user_groups,all_op_id):
     
@@ -1430,7 +1456,10 @@ def getOpDetails(from_date,to_date,user_groups,all_op_id):
     df = pd.DataFrame(list(results), columns=['op_id_id','sfg_id','qty'])
     table = pd.pivot_table(df, index=['sfg_id'], columns=['op_id_id'], aggfunc=np.sum)
     table = table.round(2)
-    data_opcounts = table[table>0.5]
+    # table.columns = table.columns.droplevel()
+    # for i in table.columns:
+    #     table.
+    data_opcounts = table[table>=0.5]
     
    
     op_count_total = []
@@ -1442,7 +1471,7 @@ def getOpDetails(from_date,to_date,user_groups,all_op_id):
         a['op_name'] = op_name
         a['qty'] = qty
         op_count_total.append(a)
-        data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
+        # data_opcounts = data_opcounts.rename(columns={data_opcounts.columns[i][1]:op_name})
     # data_opcounts = table.fillna(0)
     # data_opcounts=data_opcounts.fillna(0)
     # data_opcounts.columns = data_opcounts.columns.droplevel()

@@ -12,6 +12,7 @@ from operator import or_
 from django.db.models import Q
 from functools import reduce
 from .views import is_report_manager
+from .views import get_groups, is_report_manager
 
 # Register your models here.
 class UploadExcel(forms.Form):
@@ -31,22 +32,34 @@ class ReportAdmin(admin.ModelAdmin):
         return obj.user.last_name + obj.user.first_name
     full_name.short_description = "姓名" 
     actions = ["export_as_excel"]
-    # filter the data according to group
+    # filter the data according to work group of users and work group of Foreman
     def get_queryset(self, request):
         query = super(ReportAdmin, self).get_queryset(request)
-        user_all_permissions = []
-        user = User.objects.get(id=request.user.id)
-        groups = user.groups
-        for i in groups.select_related():
-            if '数据' in i.name:
-                user_all_permissions.append(i.name)
-        all_user_ids = []
-        for i in range(len(user_all_permissions)):
-            users = User.objects.filter(groups__name=user_all_permissions[i])
-            for j in users:
-                all_user_ids.append(j.id)
-        all_user_ids=list(set(all_user_ids))
-        filtered_query = query.filter(user__in=all_user_ids)
+        # user_all_permissions = []
+        # user = User.objects.get(id=request.user.id)
+        # groups = user.groups
+        # for i in groups.select_related():
+        #     if '数据' in i.name:
+        #         user_all_permissions.append(i.name)
+        # all_user_ids = []
+        # for i in range(len(user_all_permissions)):
+        #     users = User.objects.filter(groups__name=user_all_permissions[i])
+        #     for j in users:
+        #         all_user_ids.append(j.id)
+        # all_user_ids=list(set(all_user_ids))
+        # filtered_query = query.filter(user__in=all_user_ids)
+        orginal_group = get_groups(request)
+        is_electric = any('班组长' and '电气' in word for word in orginal_group)
+        is_manager = is_report_manager(request)
+        if request.user.id != 1 and not is_electric:
+            group = UserGroups.objects.get(user_id=request.user.id)
+            group = group.work_group.group_name
+            filtered_query = query.filter(groups=group)
+        elif request.user.id != 1 and is_electric and not is_manager:
+            groups = ['数据-电气','数据-检验']
+            filtered_query = query.filter(groups__in=groups)
+        else:
+            filtered_query = query
         return filtered_query  
     # Export csv file
     
@@ -101,19 +114,31 @@ class SupportiveTimeAdmin(admin.ModelAdmin):
     # filter the data
     def get_queryset(self, request):
         query = super(SupportiveTimeAdmin, self).get_queryset(request)
-        user_all_permissions = []
-        user = User.objects.get(id=request.user.id)
-        groups = user.groups
-        for i in groups.select_related():
-            if '数据' in i.name:
-                user_all_permissions.append(i.name)
-        all_user_ids = []
-        for i in range(len(user_all_permissions)):
-            users = User.objects.filter(groups__name=user_all_permissions[i])
-            for j in users:
-                all_user_ids.append(j.id)
-        all_user_ids=list(set(all_user_ids))
-        filtered_query = query.filter(user__in=all_user_ids)
+        # user_all_permissions = []
+        # user = User.objects.get(id=request.user.id)
+        # groups = user.groups
+        # for i in groups.select_related():
+        #     if '数据' in i.name:
+        #         user_all_permissions.append(i.name)
+        # all_user_ids = []
+        # for i in range(len(user_all_permissions)):
+        #     users = User.objects.filter(groups__name=user_all_permissions[i])
+        #     for j in users:
+        #         all_user_ids.append(j.id)
+        # all_user_ids=list(set(all_user_ids))
+        # filtered_query = query.filter(user__in=all_user_ids)
+        orginal_group = get_groups(request)
+        is_electric = any('班组长' and '电气' in word for word in orginal_group)
+        is_manager = is_report_manager(request)
+        if request.user.id != 1 and not is_electric:
+            group = UserGroups.objects.get(user_id=request.user.id)
+            group = group.work_group.group_name
+            filtered_query = query.filter(groups=group)
+        elif request.user.id != 1 and is_electric and not is_manager:
+            groups = ['数据-电气','数据-检验']
+            filtered_query = query.filter(groups__in=groups)
+        else:
+            filtered_query = query
         return filtered_query  
         
     # Export csv
@@ -348,17 +373,27 @@ class GroupPerformAdmin(admin.ModelAdmin):
         user_all_permissions = []
         user = User.objects.get(id=request.user.id)
         groups = user.groups
-        for i in groups.select_related():
-            if '数据' in i.name:
-                user_all_permissions.append(i.name)
-        # all_user_ids = []
-        # for i in range(len(user_all_permissions)):
-        #     users = GroupPerform.objects.filter(groups__name=user_all_permissions[i])
-        #     for j in users:
-        #         all_user_ids.append(j.id)
-        # all_user_ids=list(set(all_user_ids))
-        
-        filtered_query = query.filter(group__in=user_all_permissions)
+        orginal_group = get_groups(request)
+        is_electric = any('班组长' and '电气' in word for word in orginal_group)
+        is_manager = is_report_manager(request)
+        if request.user.id !=1 and not is_electric:
+            for i in groups.select_related():
+                if '数据' in i.name:
+                    user_all_permissions.append(i.name)
+            # all_user_ids = []
+            # for i in range(len(user_all_permissions)):
+            #     users = GroupPerform.objects.filter(groups__name=user_all_permissions[i])
+            #     for j in users:
+            #         all_user_ids.append(j.id)
+            # all_user_ids=list(set(all_user_ids))
+            
+            filtered_query = query.filter(group__in=user_all_permissions)
+        elif request.user.id != 1 and is_electric and not is_manager:
+            groups = ['数据-电气','数据-检验']
+            filtered_query = query.filter(group__in=groups)
+        else:
+            filtered_query = query
+
         return filtered_query  
 class SfgCommentsAdmin(admin.ModelAdmin):
     fields = ['sfg','comments']
@@ -372,19 +407,31 @@ class OverTimeAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     def get_queryset(self, request):
         query = super(OverTimeAdmin, self).get_queryset(request)
-        user_all_permissions = []
-        user = User.objects.get(id=request.user.id)
-        groups = user.groups
-        for i in groups.select_related():
-            if '数据' in i.name:
-                user_all_permissions.append(i.name)
-        all_user_ids = []
-        for i in range(len(user_all_permissions)):
-            users = User.objects.filter(groups__name=user_all_permissions[i])
-            for j in users:
-                all_user_ids.append(j.id)
-        all_user_ids=list(set(all_user_ids))
-        filtered_query = query.filter(user__in=all_user_ids)
+        # user_all_permissions = []
+        # user = User.objects.get(id=request.user.id)
+        # groups = user.groups
+        # for i in groups.select_related():
+        #     if '数据' in i.name:
+        #         user_all_permissions.append(i.name)
+        # all_user_ids = []
+        # for i in range(len(user_all_permissions)):
+        #     users = User.objects.filter(groups__name=user_all_permissions[i])
+        #     for j in users:
+        #         all_user_ids.append(j.id)
+        # all_user_ids=list(set(all_user_ids))
+        # filtered_query = query.filter(user__in=all_user_ids)
+        orginal_group = get_groups(request)
+        is_electric = any('班组长' and '电气' in word for word in orginal_group)
+        is_manager = is_report_manager(request)
+        if request.user.id != 1 and not is_electric:
+            group = UserGroups.objects.get(user_id=request.user.id)
+            group = group.work_group.group_name
+            filtered_query = query.filter(groups=group)
+        elif request.user.id != 1 and is_electric and not is_manager:
+            groups = ['数据-电气','数据-检验']
+            filtered_query = query.filter(groups__in=groups)
+        else:
+            filtered_query = query
         return filtered_query  
     def full_name(self, obj):
             return obj.user.last_name + obj.user.first_name

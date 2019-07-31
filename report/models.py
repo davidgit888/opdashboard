@@ -95,7 +95,7 @@ class SupportiveTime(models.Model):
     borrow_name = models.CharField(max_length=15, verbose_name='外借分类',default=' ',null=True, blank=True)
     comments = models.CharField(max_length=250,verbose_name='备注',default=' ',null=True, blank=True)
     date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
-    groups = models.CharField(max_length=20,default='',verbose_name='班组')
+    groups = models.CharField(max_length=20,default='',verbose_name='工作班组')
     vertical = models.FloatField(verbose_name='线性/垂直度修正',max_length=10,null=True, default=0, blank=True)
     date_create = models.DateTimeField(auto_created=True,verbose_name='创建时间',default=now())
     
