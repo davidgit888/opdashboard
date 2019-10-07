@@ -923,7 +923,7 @@ def get_standard_time(request):
     if prob == 'None':
         prob = None
         try:
-            standart_time = TypeStandard.objects.get(op_id=op,type_name=type,prob_info=prob).standard_time 
+            standart_time = TypeStandard.objects.get(op_id=op,type_name=type).standard_time 
             standart_time = float(standart_time) * float(qty)
             result = {'result':round(standart_time,2)}
         except:
@@ -940,6 +940,7 @@ def get_standard_time(request):
         except:
             result = {'result':'无标准工时'}
         return HttpResponse(json.dumps(result), content_type='application/json')
+    
 
 # get login user's all original groups
 def get_groups(request):
@@ -1339,6 +1340,567 @@ def report_analysis(request):
         # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
         return render(request, 'report/schedule.html')
 
+
+def getScheduleTable(request):
+    from_date = request.POST.get('schedule_from_date')
+    to_date = request.POST.get('schedule_to_date')
+    p_today = request.POST.get('p_perform_today')
+    tab = request.POST.get('tab')
+    li = request.POST.get('li')
+    today = date.today()
+    a_month = request.POST.get('a_month')
+    a_year = date.today().year
+    
+    is_manager = is_report_manager(request)
+    if not from_date and is_manager:
+        from_date = date.today() - timedelta(days=20)
+    if not from_date:
+        from_date = date.today() - timedelta(days=60)
+    if not to_date:
+        to_date = date.today()
+    if not a_month:
+        a_month=today.month
+    else:
+        a_month = int(a_month)
+
+ 
+    all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
+    
+
+    work_group = user_work_group(request)
+    is_electronic = False
+    orginal_group = get_groups(request)
+    # check if is electronic foreman
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
+    
+    if len(all_user_ids) != 0 and len(all_op_id) != 0:
+        if is_manager:
+            items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        elif is_electronic:
+            items = Report.objects.filter(groups__in=['数据-电气','数据-检验'],date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+
+        data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
+
+        ### new schedule V3 #####
+        op_full = Op.objects.all().values()
+        user_full = User.objects.all().values()
+        op_full_pd = pd.DataFrame(list(op_full), columns=['id','op_id','op_name'])
+        user_full_pd = pd.DataFrame(list(user_full),columns=['id','last_name','first_name'])
+        user_full_pd['full_name'] = user_full_pd['last_name'] + user_full_pd['first_name']
+        comments_full = SfgComments.objects.all().values()
+        comments_full_pd = pd.DataFrame(list(comments_full),columns=['sfg','comments'])
+
+        data1 = pd.merge(data, op_full_pd, left_on='op_id_id', right_on='id', how='left')
+        data2 = pd.merge(data1, user_full_pd, left_on='user_id', right_on='id', how='left')
+        # data2 = pd.merge(data2, comments_full_pd, left_on='sfg_id', right_on='sfg', how='left')
+        data2_pivot = data2.pivot_table(index='sfg_id', columns='op_name', 
+            values=['full_name','date','qty'],
+            aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
+        # data2_pivot.fillna('---')
+        # if data2_pivot['date']:
+        data2_date = data2_pivot['date'].fillna('---')
+        for i in range(len(data2_date.columns)):
+            data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
+        data2_users = data2_pivot['full_name'].fillna('---')
+        data2_qty = data2_pivot['qty'].fillna(0)
+        sfgs = pd.DataFrame()
+        # sfgs['sfg_id']=data2_pivot.index
+        sfgall = data.drop_duplicates(['sfg_id'])
+        sfgs['sfg_id']=sfgall['sfg_id']
+        sfgs['type_name']=sfgall['type_name']
+        sfg_list = pd.merge(sfgs, comments_full_pd, left_on='sfg_id',right_on='sfg',how='left')
+        sfg_list.fillna('n')
+
+        ### end new schedule v3####
+        if len(data) != 0:
+            # data = data.drop_duplicates()
+            # data.index = range(len(data))
+            schedule_list = []
+            #####数据组
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
+            if data_group:
+                anls_group = data_group[0]
+            else:
+                anls_group = ''
+            
+
+            # end_time = time.time()
+
+            if not is_manager and not is_electronic:
+                group = user_work_group(request)
+                all_user_ids = user_work_group_ids(group,today)
+            
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+            return render(request, 'jzgs/schedule_gatt.html', {
+                
+                'schedule_list':schedule_list,
+                'schedule_json':json.dumps(schedule_list),
+                'op_list':all_op_id,
+                
+                'p_perform_list':p_perform_list,
+                'p_date':p_get_date,
+                'tab':tab,
+                'li':li,
+                'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
+                'data_group':data_group,
+                'test_a_month':a_month,
+                'from_date':from_date,
+                'to_date':to_date,
+                'anls_result':anls_result.to_html(index=None),
+                'p_save_status':p_save_status,
+                # 'user_manager_group':user_manager_group,
+                'anls_opcounts':anls_opcounts,
+                'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
+                'sup_bor_total':sup_bor_total.to_html(),
+                'over_time_total':over_time_total.to_html(),
+                'user_groups':user_groups,  
+                ### new schedule v3 ####
+                'data2_date':data2_date.to_json(),
+                'data2_users':data2_users.to_json(),
+                'data2_qty':data2_qty.to_json(),
+                # 'data2':data2.to_json(),
+                'sfg_list':sfg_list.to_json(),
+                'sfgs':sfgs.to_json(),
+
+            })
+        else:
+            return render(request, 'jzgs/schedule_gatt.html',{
+                'message':'It looks like no data between the select date'+work_group
+            })
+    else:
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '访问'
+        detail_message = '试图访问生产进度表'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
+        # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        return render(request, 'jzgs/schedule_gatt.html')
+
+def getScheduleMaterial(request):
+    from_date = request.POST.get('schedule_from_date')
+    to_date = request.POST.get('schedule_to_date')
+    p_today = request.POST.get('p_perform_today')
+    tab = request.POST.get('tab')
+    li = request.POST.get('li')
+    today = date.today()
+    a_month = request.POST.get('a_month')
+    a_year = date.today().year
+    
+    is_manager = is_report_manager(request)
+    if not from_date and is_manager:
+        from_date = date.today() - timedelta(days=20)
+    if not from_date:
+        from_date = date.today() - timedelta(days=60)
+    if not to_date:
+        to_date = date.today()
+    if not a_month:
+        a_month=today.month
+    else:
+        a_month = int(a_month)
+
+ 
+    all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
+    
+
+    work_group = user_work_group(request)
+    is_electronic = False
+    orginal_group = get_groups(request)
+    # check if is electronic foreman
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
+    
+    if len(all_user_ids) != 0 and len(all_op_id) != 0:
+        if is_manager:
+            items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        elif is_electronic:
+            items = Report.objects.filter(groups__in=['数据-电气','数据-检验'],date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+
+        data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
+
+        ### new schedule V3 #####
+        op_full = Op.objects.all().values()
+        user_full = User.objects.all().values()
+        op_full_pd = pd.DataFrame(list(op_full), columns=['id','op_id','op_name'])
+        user_full_pd = pd.DataFrame(list(user_full),columns=['id','last_name','first_name'])
+        user_full_pd['full_name'] = user_full_pd['last_name'] + user_full_pd['first_name']
+        comments_full = SfgComments.objects.all().values()
+        comments_full_pd = pd.DataFrame(list(comments_full),columns=['sfg','comments'])
+
+        data1 = pd.merge(data, op_full_pd, left_on='op_id_id', right_on='id', how='left')
+        data2 = pd.merge(data1, user_full_pd, left_on='user_id', right_on='id', how='left')
+        # data2 = pd.merge(data2, comments_full_pd, left_on='sfg_id', right_on='sfg', how='left')
+        data2_pivot = data2.pivot_table(index='sfg_id', columns='op_name', 
+            values=['full_name','date','qty'],
+            aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
+        # data2_pivot.fillna('---')
+        # if data2_pivot['date']:
+        data2_date = data2_pivot['date'].fillna('---')
+        for i in range(len(data2_date.columns)):
+            data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
+        data2_users = data2_pivot['full_name'].fillna('---')
+        data2_qty = data2_pivot['qty'].fillna(0)
+        sfgs = pd.DataFrame()
+        # sfgs['sfg_id']=data2_pivot.index
+        sfgall = data.drop_duplicates(['sfg_id'])
+        sfgs['sfg_id']=sfgall['sfg_id']
+        sfgs['type_name']=sfgall['type_name']
+        sfg_list = pd.merge(sfgs, comments_full_pd, left_on='sfg_id',right_on='sfg',how='left')
+        sfg_list.fillna('n')
+
+        ### end new schedule v3####
+        if len(data) != 0:
+            # data = data.drop_duplicates()
+            # data.index = range(len(data))
+            schedule_list = []
+            #####数据组
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
+            if data_group:
+                anls_group = data_group[0]
+            else:
+                anls_group = ''
+            
+
+            # end_time = time.time()
+
+            if not is_manager and not is_electronic:
+                group = user_work_group(request)
+                all_user_ids = user_work_group_ids(group,today)
+            
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+            return render(request, 'jzgs/schedule_material2.html', {
+                
+                'schedule_list':schedule_list,
+                'schedule_json':json.dumps(schedule_list),
+                'op_list':all_op_id,
+                
+                'p_perform_list':p_perform_list,
+                'p_date':p_get_date,
+                'tab':tab,
+                'li':li,
+                'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
+                'data_group':data_group,
+                'test_a_month':a_month,
+                'from_date':from_date,
+                'to_date':to_date,
+                'anls_result':anls_result.to_html(index=None),
+                'p_save_status':p_save_status,
+                # 'user_manager_group':user_manager_group,
+                'anls_opcounts':anls_opcounts,
+                'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
+                'sup_bor_total':sup_bor_total.to_html(),
+                'over_time_total':over_time_total.to_html(),
+                'user_groups':user_groups,  
+                ### new schedule v3 ####
+                'data2_date':data2_date.to_json(),
+                'data2_users':data2_users.to_json(),
+                'data2_qty':data2_qty.to_json(),
+                # 'data2':data2.to_json(),
+                'sfg_list':sfg_list.to_json(),
+                'sfgs':sfgs.to_json(),
+
+            })
+        else:
+            return render(request, 'jzgs/schedule_material2.html',{
+                'message':'It looks like no data between the select date'+work_group
+            })
+    else:
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '访问'
+        detail_message = '试图访问生产进度表'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
+        # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        return render(request, 'jzgs/schedule_material2.html')
+
+def getSchedulePerform(request):
+    from_date = request.POST.get('schedule_from_date')
+    to_date = request.POST.get('schedule_to_date')
+    p_today = request.POST.get('p_perform_today')
+    tab = request.POST.get('tab')
+    li = request.POST.get('li')
+    today = date.today()
+    a_month = request.POST.get('a_month')
+    a_year = date.today().year
+    
+    is_manager = is_report_manager(request)
+    if not from_date and is_manager:
+        from_date = date.today() - timedelta(days=20)
+    if not from_date:
+        from_date = date.today() - timedelta(days=60)
+    if not to_date:
+        to_date = date.today()
+    if not a_month:
+        a_month=today.month
+    else:
+        a_month = int(a_month)
+
+ 
+    all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
+    
+
+    work_group = user_work_group(request)
+    is_electronic = False
+    orginal_group = get_groups(request)
+    # check if is electronic foreman
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
+    
+    if len(all_user_ids) != 0 and len(all_op_id) != 0:
+        if is_manager:
+            items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        elif is_electronic:
+            items = Report.objects.filter(groups__in=['数据-电气','数据-检验'],date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+
+        data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
+
+        ### new schedule V3 #####
+        op_full = Op.objects.all().values()
+        user_full = User.objects.all().values()
+        op_full_pd = pd.DataFrame(list(op_full), columns=['id','op_id','op_name'])
+        user_full_pd = pd.DataFrame(list(user_full),columns=['id','last_name','first_name'])
+        user_full_pd['full_name'] = user_full_pd['last_name'] + user_full_pd['first_name']
+        comments_full = SfgComments.objects.all().values()
+        comments_full_pd = pd.DataFrame(list(comments_full),columns=['sfg','comments'])
+
+        data1 = pd.merge(data, op_full_pd, left_on='op_id_id', right_on='id', how='left')
+        data2 = pd.merge(data1, user_full_pd, left_on='user_id', right_on='id', how='left')
+        # data2 = pd.merge(data2, comments_full_pd, left_on='sfg_id', right_on='sfg', how='left')
+        data2_pivot = data2.pivot_table(index='sfg_id', columns='op_name', 
+            values=['full_name','date','qty'],
+            aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
+        # data2_pivot.fillna('---')
+        # if data2_pivot['date']:
+        data2_date = data2_pivot['date'].fillna('---')
+        for i in range(len(data2_date.columns)):
+            data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
+        data2_users = data2_pivot['full_name'].fillna('---')
+        data2_qty = data2_pivot['qty'].fillna(0)
+        sfgs = pd.DataFrame()
+        # sfgs['sfg_id']=data2_pivot.index
+        sfgall = data.drop_duplicates(['sfg_id'])
+        sfgs['sfg_id']=sfgall['sfg_id']
+        sfgs['type_name']=sfgall['type_name']
+        sfg_list = pd.merge(sfgs, comments_full_pd, left_on='sfg_id',right_on='sfg',how='left')
+        sfg_list.fillna('n')
+
+        ### end new schedule v3####
+        if len(data) != 0:
+            # data = data.drop_duplicates()
+            # data.index = range(len(data))
+            schedule_list = []
+            #####数据组
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
+            if data_group:
+                anls_group = data_group[0]
+            else:
+                anls_group = ''
+            
+
+            # end_time = time.time()
+
+            if not is_manager and not is_electronic:
+                group = user_work_group(request)
+                all_user_ids = user_work_group_ids(group,today)
+            
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+            return render(request, 'jzgs/schedule_performance.html', {
+                
+                'schedule_list':schedule_list,
+                'schedule_json':json.dumps(schedule_list),
+                'op_list':all_op_id,
+                
+                'p_perform_list':p_perform_list,
+                'p_date':p_get_date,
+                'tab':tab,
+                'li':li,
+                'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
+                'data_group':data_group,
+                'test_a_month':a_month,
+                'from_date':from_date,
+                'to_date':to_date,
+                'anls_result':anls_result.to_html(index=None),
+                'p_save_status':p_save_status,
+                # 'user_manager_group':user_manager_group,
+                'anls_opcounts':anls_opcounts,
+                'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
+                'sup_bor_total':sup_bor_total.to_html(),
+                'over_time_total':over_time_total.to_html(),
+                'user_groups':user_groups,  
+                ### new schedule v3 ####
+                'data2_date':data2_date.to_json(),
+                'data2_users':data2_users.to_json(),
+                'data2_qty':data2_qty.to_json(),
+                # 'data2':data2.to_json(),
+                'sfg_list':sfg_list.to_json(),
+                'sfgs':sfgs.to_json(),
+
+            })
+        else:
+            return render(request, 'jzgs/schedule_performance.html',{
+                'message':'It looks like no data between the select date'+work_group
+            })
+    else:
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '访问'
+        detail_message = '试图访问生产进度表'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
+        # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        return render(request, 'jzgs/schedule_performance.html')
+
+
+def getScheduleAnalysis(request):
+    from_date = request.POST.get('schedule_from_date')
+    to_date = request.POST.get('schedule_to_date')
+    p_today = request.POST.get('p_perform_today')
+    tab = request.POST.get('tab')
+    li = request.POST.get('li')
+    today = date.today()
+    a_month = request.POST.get('a_month')
+    a_year = date.today().year
+    
+    is_manager = is_report_manager(request)
+    if not from_date and is_manager:
+        from_date = date.today() - timedelta(days=20)
+    if not from_date:
+        from_date = date.today() - timedelta(days=60)
+    if not to_date:
+        to_date = date.today()
+    if not a_month:
+        a_month=today.month
+    else:
+        a_month = int(a_month)
+
+ 
+    all_user_ids, all_op_id, user_groups,all_work_groups = analysis_op_user(request)
+    
+
+    work_group = user_work_group(request)
+    is_electronic = False
+    orginal_group = get_groups(request)
+    # check if is electronic foreman
+    if any('班组长' and '电气' in word for word in orginal_group):
+        is_electronic = True
+    
+    if len(all_user_ids) != 0 and len(all_op_id) != 0:
+        if is_manager:
+            items = Report.objects.filter(groups__in=user_groups,date__range=(from_date,to_date)).order_by('-date').values()
+        elif is_electronic:
+            items = Report.objects.filter(groups__in=['数据-电气','数据-检验'],date__range=(from_date,to_date)).order_by('-date').values()
+        else:
+            items = Report.objects.filter(groups=work_group,date__range=(from_date,to_date)).order_by('-date').values()
+
+        data = pd.DataFrame(list(items),columns=['sfg_id','type_name','op_id_id','user_id','qty','date'])
+
+        ### new schedule V3 #####
+        op_full = Op.objects.all().values()
+        user_full = User.objects.all().values()
+        op_full_pd = pd.DataFrame(list(op_full), columns=['id','op_id','op_name'])
+        user_full_pd = pd.DataFrame(list(user_full),columns=['id','last_name','first_name'])
+        user_full_pd['full_name'] = user_full_pd['last_name'] + user_full_pd['first_name']
+        comments_full = SfgComments.objects.all().values()
+        comments_full_pd = pd.DataFrame(list(comments_full),columns=['sfg','comments'])
+
+        data1 = pd.merge(data, op_full_pd, left_on='op_id_id', right_on='id', how='left')
+        data2 = pd.merge(data1, user_full_pd, left_on='user_id', right_on='id', how='left')
+        # data2 = pd.merge(data2, comments_full_pd, left_on='sfg_id', right_on='sfg', how='left')
+        data2_pivot = data2.pivot_table(index='sfg_id', columns='op_name', 
+            values=['full_name','date','qty'],
+            aggfunc={'full_name':np.max, 'date':np.max, 'qty':np.sum})
+        # data2_pivot.fillna('---')
+        # if data2_pivot['date']:
+        data2_date = data2_pivot['date'].fillna('---')
+        for i in range(len(data2_date.columns)):
+            data2_date[data2_date.columns[i]] = data2_date[data2_date.columns[i]].apply(lambda x:changeDateToString(x))
+        data2_users = data2_pivot['full_name'].fillna('---')
+        data2_qty = data2_pivot['qty'].fillna(0)
+        sfgs = pd.DataFrame()
+        # sfgs['sfg_id']=data2_pivot.index
+        sfgall = data.drop_duplicates(['sfg_id'])
+        sfgs['sfg_id']=sfgall['sfg_id']
+        sfgs['type_name']=sfgall['type_name']
+        sfg_list = pd.merge(sfgs, comments_full_pd, left_on='sfg_id',right_on='sfg',how='left')
+        sfg_list.fillna('n')
+
+        ### end new schedule v3####
+        if len(data) != 0:
+            # data = data.drop_duplicates()
+            # data.index = range(len(data))
+            schedule_list = []
+            #####数据组
+            data_group, anls_result,anls_opcounts,sup_not_bor_total,sup_bor_total,over_time_total,data_opcounts = perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year)
+            if data_group:
+                anls_group = data_group[0]
+            else:
+                anls_group = ''
+            
+
+            # end_time = time.time()
+
+            if not is_manager and not is_electronic:
+                group = user_work_group(request)
+                all_user_ids = user_work_group_ids(group,today)
+            
+            p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, p_today)
+            return render(request, 'jzgs/schedule_analysis.html', {
+                
+                'schedule_list':schedule_list,
+                'schedule_json':json.dumps(schedule_list),
+                'op_list':all_op_id,
+                
+                'p_perform_list':p_perform_list,
+                'p_date':p_get_date,
+                'tab':tab,
+                'li':li,
+                'anls_title':str(a_month)+'月份'+anls_group+'数据统计',
+                'data_group':data_group,
+                'test_a_month':a_month,
+                'from_date':from_date,
+                'to_date':to_date,
+                'anls_result':anls_result.to_html(index=None),
+                'p_save_status':p_save_status,
+                # 'user_manager_group':user_manager_group,
+                'anls_opcounts':anls_opcounts,
+                'sup_not_bor_total':sup_not_bor_total.to_html(index=None),
+                'sup_bor_total':sup_bor_total.to_html(),
+                'over_time_total':over_time_total.to_html(),
+                'user_groups':user_groups,  
+                ### new schedule v3 ####
+                'data2_date':data2_date.to_json(),
+                'data2_users':data2_users.to_json(),
+                'data2_qty':data2_qty.to_json(),
+                # 'data2':data2.to_json(),
+                'sfg_list':sfg_list.to_json(),
+                'sfgs':sfgs.to_json(),
+
+            })
+        else:
+            return render(request, 'jzgs/schedule_analysis.html',{
+                'message':'It looks like no data between the select date'+work_group
+            })
+    else:
+        f_user = User.objects.get(id=request.user.id)
+        username = request.user.get_full_name()
+        action_log = '访问'
+        detail_message = '试图访问生产进度表'
+        comments = 'Failed'
+        query = TraceLog(user=f_user,username=username,action_log=action_log,detail_message=detail_message,comments=comments)
+        query.save()
+        # return HttpResponse('It looks like no group assigned for you or there are no users under your groups. Pleas contact admin')
+        return render(request, 'jzgs/schedule_analysis.html')
 
 # 业绩表
 def get_performance(request,all_users_id, today):

@@ -61,7 +61,7 @@ class Report(models.Model):
     standard_tiem = models.FloatField(max_length=4,verbose_name='标准工时')
     real_time = models.FloatField(verbose_name='实际工时',max_length=4,default='')
 
-    date = models.DateField(auto_now=False,default=date.today())
+    date = models.DateField(auto_now=False)
     date_time = models.DateTimeField(auto_created=True,verbose_name='提交时间',default=now())
     groups = models.CharField(max_length=20,default='',verbose_name='工作组组')
     def __str__(self):
@@ -94,7 +94,7 @@ class SupportiveTime(models.Model):
     borrow_time = models.FloatField(verbose_name='外借时间',max_length=10, default=0)
     borrow_name = models.CharField(max_length=15, verbose_name='外借分类',default=' ',null=True, blank=True)
     comments = models.CharField(max_length=250,verbose_name='备注',default=' ',null=True, blank=True)
-    date = models.DateField(auto_now=False,verbose_name='日期',default=date.today())
+    date = models.DateField(auto_now=False,verbose_name='日期')
     groups = models.CharField(max_length=20,default='',verbose_name='工作班组')
     vertical = models.FloatField(verbose_name='线性/垂直度修正',max_length=10,null=True, default=0, blank=True)
     date_create = models.DateTimeField(auto_created=True,verbose_name='创建时间',default=now())
@@ -303,7 +303,7 @@ class MaterialGet(models.Model):
 
 class MeterialUse(models.Model):
     sno = models.ForeignKey(Material, on_delete=models.CASCADE, default='',verbose_name='物料编号')
-    year = models.IntegerField(max_length=4,verbose_name='年份')
+    year = models.IntegerField(verbose_name='年份')
     quarter = models.CharField(max_length=10,verbose_name='季度')
     group = models.ForeignKey(WorkGroups, on_delete=models.CASCADE, default='',verbose_name='班组')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
@@ -335,10 +335,13 @@ class UserInfo(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
     staff_no = models.CharField(max_length=10,verbose_name='工号',default='')
     duty = models.CharField(max_length=10,verbose_name='职位',default='')
-    email = models.CharField(max_length=50,verbose_name='邮箱',default='')
+    email = models.CharField(max_length=50,verbose_name='邮箱',default='',blank=True)
     work_group = models.ForeignKey(WorkGroups, db_column='group_name',on_delete=models.CASCADE,verbose_name='工作组',default='')
     department = models.CharField(max_length=30,verbose_name='部门',default='')
-    mobile = models.IntegerField(verbose_name='电话')
+    mobile = models.IntegerField(verbose_name='电话',blank=True)
+    cost_rate = models.FloatField(max_length=4,verbose_name='费率',default=0)
+    quote = models.FloatField(max_length=4,verbose_name='报价',default=0)
+    
 
 
     def __str__(self):
@@ -346,3 +349,4 @@ class UserInfo(models.Model):
     class Meta:
         verbose_name = '用户信息'
         verbose_name_plural = '用户信息'
+

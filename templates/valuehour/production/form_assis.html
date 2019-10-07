@@ -1,0 +1,367 @@
+{% extends 'valuehour/production/submit.html' %}
+{% block title %}提交辅助外借工时{% endblock %}
+{% block content %}
+<div class="x_panel">
+  <div class="x_content">
+      <br />
+      <form id="assistance_outprod" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">日期</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="input_date" name="date" class="date-picker form-control col-md-7 col-xs-12" required="required" type="text">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">类别</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+		  <p style="margin-top:10px;">
+			其他辅助:
+			<input type="radio" class="flat" name="a_type" id="chuwai" value='其他辅助工时' checked ="" required /> &nbsp;&nbsp;&nbsp;&nbsp;
+			计提:
+			<input type="radio" class="flat" name="a_type" id="jiti" value='计提工时' required /> &nbsp;&nbsp;&nbsp;&nbsp;
+			质量:
+			<input type="radio" class="flat" name="a_type" id="zhiliang" value='质量工时' required /> &nbsp;&nbsp;&nbsp;&nbsp;
+			外部:
+			<input type="radio" class="flat" name="a_type" id="extra" value='外部工时' required />
+		  </p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">科目</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+			  <select class="select2_group form-control" id="sub_types" name="a_subject" required="required">
+			  </select>
+          </div>
+        </div>
+        <!--begin adding-->
+        <div id="adding">
+        </div>
+        <div id="adding2">
+        </div>
+        <!--end adding -->
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">价值工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="standard_hour" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" name="standard"  readonly="readonly">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">实际工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="real_time" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" name="real_time" onchange="calculate()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">备注</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <textarea id="message" class="form-control" name="comments" data-parsley-trigger="keyup" data-parsley-maxlength="1000" data-parsley-minlength-message="不能多于1000个字"
+                            data-parsley-validation-threshold="10"></textarea>
+          </div>
+        </div>
+
+<!--         <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">附件上传</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+			 <div class="input-group">
+				<input type="file" class="form-control" name="attach">
+				<span class="input-group-btn">
+				<button type="button" class="btn btn-primary">Go!</button>
+				</span>
+			  </div>
+          </div>
+        </div> -->
+        <div class="ln_solid"></div>
+        <div class="form-group">
+          <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
+            <button type="submit" class="btn btn-success">提交</button>
+          </div>
+        </div>
+        {% csrf_token %}
+        <input type="text" id="contract" name="contract" hidden="hidden" value="内部订单">
+        <input type="text" id="cost_rate" name="cost_rate" hidden="hidden">
+        <input type="text" id="quote" name="quote" hidden="hidden">
+        <input type="text" id="original_group" name="original_group" hidden="hidden">
+        <input type="text" id="work_group" name="work_group" hidden="hidden">
+        <input type="text" id="a_category" name="a_category" hidden="hidden">
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block js %}
+    <!-- jQuery -->
+    <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/valuehour/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="/static/valuehour/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="/static/valuehour/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+	<script>
+	window.icheck = {
+	  tap: false
+	}
+	</script>
+    <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
+    <script src="/static/valuehour/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap-wysiwyg -->
+    <script src="/static/valuehour/vendors/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js"></script>
+    <script src="/static/valuehour/vendors/jquery.hotkeys/jquery.hotkeys.js"></script>
+    <script src="/static/valuehour/vendors/google-code-prettify/src/prettify.js"></script>
+    <!-- jQuery Tags Input -->
+    <script src="/static/valuehour/vendors/jquery.tagsinput/src/jquery.tagsinput.js"></script>
+    <!-- Switchery -->
+    <script src="/static/valuehour/vendors/switchery/dist/switchery.min.js"></script>
+    <!-- Select2 -->
+    <script src="/static/valuehour/vendors/select2/dist/js/select2.full.min.js"></script>
+    <!-- Parsley -->
+    <script src="/static/valuehour/vendors/parsleyjs/dist/parsley.min.js"></script>
+    <!-- Autosize -->
+    <script src="/static/valuehour/vendors/autosize/dist/autosize.min.js"></script>
+    <!-- jQuery autocomplete -->
+    <script src="/static/valuehour/vendors/devbridge-autocomplete/dist/jquery.autocomplete.min.js"></script>
+    <!-- starrr -->
+    <script src="/static/valuehour/vendors/starrr/dist/starrr.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="/static/valuehour/build/js/custom.min.js"></script>
+	<script src="/static/valuehour/vendors/layer/layer.js"></script>
+	<script src="/static/valuehour/vendors/pierre/commonjs.js"></script>
+	<script>
+
+	//获取基本信息	
+	function get_basic_info(){
+		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
+		var index = layer.load(1, {shade: [0.1,'#fff']});
+		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
+			checkUser(data);
+			// if(data.user){				
+			// 	try{
+			// 		$('#original_group').val(data.user[0].original_group);
+			// 		$('#work_group').val(data.user[0].work_group);
+			// 		$('#cost_rate').val(data.user[0].cost_rate);
+			// 		$('#quote').val(JSON.parse(data.user[0].flexible).cost);
+			// 		if(data.user[0].cost_rate == 0){
+			// 			throw "你的费率设置不完整，无法报工"
+			// 		}
+			// 	}catch(e){
+			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
+			// 		layer.load(2, {shade: [0.1,'#fff']});					
+			// 	}
+			// }else{
+			// 	layer.msg('没有读取到你的身份信息，请确认！', {icon: 2, time:2000});
+			// }
+			layer.close(index);
+		});
+	};	
+
+	// function get_cat(name){
+	// 	$.getJSON("/jzgs/getBorrowType/", function(data){
+	// 		target = data['category'];
+	// 		result = '';
+	// 		$.each(target, function(i, v){
+	// 			if(v['a_subject'] == name){
+	// 				result = v['a_category'];
+	// 			}
+	// 		})
+	// 		console.log(name);
+	// 		return name;
+	// 	});
+	// }
+
+	function get_info(a, b){
+	$.getJSON("/jzgs/getBorrowType/", function(data){
+		services = [];
+		project1 = [];
+		project2 = [];
+		choices = ['事业部','具体项目1','具体项目2']
+		$.each(data.borrow, function(i, v){
+			if(v.b_category =='事业部'){
+				services.push(v.b_subject);
+			}else if(v.b_category == '具体项目1'){
+				project1.push(v.b_subject);
+			}else if(v.b_category == '具体项目2'){
+				project2.push(v.b_subject);
+			};
+		});
+		cat = '';
+		$.each(choices, function(i,v){
+			cat = cat + '<option>'+v+'</option>';
+		})
+		$("#category").html('<option value="">请选择</option>'+cat);
+		});
+	};
+
+	// function calculate(){
+	// 	$("#standard_hour").val("");
+	// 	real = $("#real_time").val();
+	// 	quote = $("#quote").val();
+	// 	cost_rate = $("#cost_rate").val();
+	// 	result = real * quote / cost_rate;
+	// 	$("#standard_hour").val(result.toFixed(2));
+	// }	
+	
+		//获取url参数
+	// function getQueryVariable(variable)
+	// {
+	// 	   var query = window.location.search.substring(1);
+	// 	   var vars = query.split("&");
+	// 	   for (var i=0;i<vars.length;i++) {
+	// 			   var pair = vars[i].split("=");
+	// 			   if(pair[0] == variable){return pair[1];}
+	// 	   }
+	// 	   return('');
+	// }
+	
+	function get_types(){
+	//type 的radio button切换
+	_checkbox = $("[type='radio']").not("[disabled]");
+	var activated_id;
+	_checkbox.each(function () {
+    // 判断是否选中
+	   var delFlag = $(this).is(":checked");
+	   if (delFlag) {
+		   activated_id  = $(this).val();
+	   }
+	});
+	//获取api数据
+	$.getJSON("/jzgs/getBorrowType/", function(data){
+		target = data['category'];
+		select_string = "";
+		a_type = '';
+		$.each(target, function(i,v){
+			a_type = activated_id;
+			if(v['a_type'] == activated_id){
+				select_string = select_string + '<option>'+v['a_subject']+'</option>';				
+			}
+		});
+		$("#sub_types").html('<option value="">请选择</option>'+select_string);
+		if(a_type=='外部工时'){
+			TextNode ='<div class="form-group"> <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">大类</label> <div class="col-md-6 col-sm-6 col-xs-12"> <select class="form-control" id="category" name="b_category" onchange="change_choice($(this).val())"></select> </div> </div><div class="form-group"> <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">小类</label>  <div class="col-md-6 col-sm-6 col-xs-12">  <select class="form-control" id="sub_category" name="b_subject"> </select> </div> </div> <div class="form-group">    <label class="control-label col-md-3 col-sm-3 col-xs-12">期间费用</label>      <div class="col-md-6 col-sm-6 col-xs-12">        <input id="expense" class="date-picker form-control col-md-7 col-xs-12" type="number" step = "0.01" name="expense">       </div>     </div>';
+			$("#adding").html(TextNode);
+			get_info();
+		}else{
+			$("#adding").html('<input type="text" name="b_category" hidden="hidden" value=""><input type="text" name="b_subject" hidden="hidden" value="">');
+		}
+		if(a_type == '质量工时'){
+			TextNode1 = '<div class="form-group"> <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name" >质量报告单号</label>    <div class="col-md-6 col-sm-6 col-xs-12">    <input type="text" id="machine" name="quality_no" required="required" class="form-control col-md-7 col-xs-12">   </div>  </div>';
+			$("#adding2").html(TextNode1);
+		}else{
+			$("#adding2").html('<input type="text" name="quality_no" hidden="hidden" value="">');
+		}
+	});			
+	};
+	
+	$(':radio').on('ifChecked', function(event){
+	  get_types();
+	  get_basic_info();
+	  $("#standard_hour").val("");
+	  $("#real_time").val("");
+	});	
+	
+	// function makep(){
+	// 	window.parent.getmachine();
+	// 	var index = parent.layer.getFrameIndex(window.name);
+	// 	setTimeout(function(){
+	// 	  parent.layer.close(index);
+	// 	}, 1000);		
+	// }
+
+	function change_choice(vv){	
+		$.getJSON("/jzgs/getBorrowType/", function(data){
+			services = [];
+			project1 = [];
+			project2 = [];
+			choices = ['事业部','具体项目1','具体项目2'];			
+			// console.log(JSON.stringify(data.borrow));
+			$.each(data.borrow, function(i, v){
+				// alert(v.b_category);
+				// alert(v.b_subject);
+				if(v.b_category =='事业部'){
+					services.push(v.b_subject);
+				}else if(v.b_category == '具体项目1'){
+					project1.push(v.b_subject);
+				}else if(v.b_category == '具体项目2'){
+					project2.push(v.b_subject);
+				};
+			});	
+			//alert(services);
+		});
+
+		if (vv=='事业部'){
+			target =  services;
+		}else if(vv=='具体项目1'){
+			target = project1;
+		}else if (vv=='具体项目2'){
+			target = project2;
+		}
+		choice_string = '';
+		$.each(target, function(i,v){
+			choice_string = '<option>'+v+'</option>' + choice_string;
+		});
+		$("#sub_category").html('<option value="">请选择</option>'+choice_string);
+	};
+	
+	$(document).ready(function(){
+	     get_types();
+	     get_basic_info();
+	     // get_info();
+		//get date from url parameter
+		$("#input_date").val(getQueryVariable("date"));
+		$("#input_date").attr("readonly", "readonly");
+		//validation before submit
+		$("#assistance_outprod").submit(function(e){
+			e.preventDefault();
+			t = $(this).serializeArray();
+			datas = {};
+			$.each(t, function(){
+				datas[this.name] = this.value;
+			})
+
+			if (!datas['expense']){
+				datas['expense'] =0;
+			}else{
+				datas['expense_hour'] = (datas['expense'] / datas['cost_rate']).toFixed(2);
+			}
+
+			if(!datas['b_category']){
+				datas['b_category'] = '';
+				datas['b_subject'] = '';
+			}
+
+
+			var form = $(this);
+
+			if (form.parsley( 'isValid' )){
+				//ajax提交Form数据
+				// console.log(JSON.stringify(datas));
+				// alert("正在抢修BUG,稍后再试！！！");
+				// return false;
+				$.ajax({
+						type:'post',
+						url:"/jzgs/saveAssistance/",
+						data:{'data':JSON.stringify(datas)},
+						//dataType:'text',
+						error:function(response){
+							console.log(response);
+							alert('提交失败！');
+						},
+						success:function(response){
+							if(response == '"success"'){
+								layer.msg('提交成功！', {icon: 1});
+								// alert("提交数据为："+JSON.stringify(datas));
+								makep();
+							}else{
+								layer.msg('接收失败，错误代码:'+response, {icon: 2});
+								makep();								
+							}
+						}
+					});//end
+			};
+		});
+	});
+	</script>
+{% endblock %}

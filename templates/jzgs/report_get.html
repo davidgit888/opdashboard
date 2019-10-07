@@ -1,0 +1,976 @@
+<html>
+<head>
+{% load staticfiles %}
+<script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
+<script src="{% static 'js/Calendar.js' %}"></script>   
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script src="{% static 'js/kendo.all.min.js' %}"></script>
+
+<link href="{% static 'css/kendo.common.min.css' %}" rel="stylesheet"> 
+<link href="{% static 'css/kendo.default.min.css' %}" rel="stylesheet" /> 
+<script>
+    var totalHour = parseFloat('{{g_today_real_time_total}}') + parseFloat('{{g_today_supportive_total_without_coef}}');
+    // validate produce time and save data
+    function valid_report(){
+        var sfg_id = document.getElementById('sfg_id').value;
+        var type = document.getElementById('prod_type').value;
+        var prob_info = document.getElementById('prob_info').value;
+        var real_time = document.getElementById('real_time').value;
+        //var prod_type = document.getElementById('prod_type').value;
+        var standard_time = document.getElementById('standard_time').value;
+        var qty_check = document.getElementById('qty_check').value;
+        var qty = document.getElementById('qty').value;
+        var op = document.getElementById('op_id').value;
+        var date_time = document.getElementById('prodate').value;
+        
+        totalHour = (parseFloat(real_time) + parseFloat(totalHour)).toFixed(2);
+        totalHour = parseFloat(totalHour).toFixed(2);
+        //alert(qty_check);
+        var retVal = confirm("本日总工时为： "+parseFloat(totalHour).toFixed(2)+" , 是否确定？");
+
+        if( retVal == true ) {
+            //document.write ("User wants to continue!");
+            //return true;
+            if (qty > qty_check && op !=11){
+                alert('数量累计不能超过1, 总数量现剩余：'+qty_check +', 填报为：'+qty);
+                return false;
+            }
+            else if(qty <= 0){
+                alert('数量不能为负数');
+            }
+            else if (sfg_id== ''){
+                alert("SFG 必须不为空");
+                return false;
+            }else if (isNaN(real_time) || real_time == '' || real_time <= 0){
+                alert("制造工时必须是大于0的数字且不为空");
+                return false;
+            }else if (prod_type == '找不到SFG ID'){
+                alert("找不到SFG ID");
+                return false;
+                
+            }else if (isNaN(standard_time)){
+                alert("标准工时找不到");
+                return false;
+                
+            }
+            
+            else{
+                //document.forms[0].action = '/report/get_data/';
+                $.get("/report/get_data/",{'sfg_id':sfg_id,'real_time':real_time,'prod_type':type,'prodate':date_time,'op_id':op,'prob_info':prob_info,'qty':qty}, function(ret){
+                        //$('#prod_type').val(ret.result)
+                        //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                        
+                        //if(ret=='Y'){
+                            
+                            //var message = document.getElementById('over_save_message');
+                        // message.style.color='black';
+                            //message.innerHTML='保存成功';
+                            alert(ret);
+                            location.reload();
+                            
+                            
+                        //}else{
+                            //var message = document.getElementById('over_save_message');
+                            //message.innerHTML='保存失败'+ret;
+                            //message.style.color='red';
+                        // alert('保存失败'+ret);
+                            //location.reload();
+                    // }
+
+                });
+            }
+        } else {
+            //document.write ("User does not want to continue!");
+            //return false;
+            alert('放弃保存');
+            //location.reload();
+            totalHour = parseFloat('{{g_today_real_time_total}}') + parseFloat('{{g_today_supportive_total_without_coef}}');
+        }
+        
+
+        
+    }
+    function save_overtime(){
+        
+        var over_time=document.getElementById('over_time').value;
+        var over_type = document.getElementById('over_time_type').value;
+        var is_paid = $("#is_paid").is(":checked");
+        var date = document.getElementById('over_time_date').value;
+        if(!isNaN(over_time) && over_time && over_type.length !=0){
+
+            $.get("/report/save_overtime_data/",{'over_time':over_time,'over_type':over_type,'is_paid':is_paid,'date':date}, function(ret){
+                    //$('#prod_type').val(ret.result)
+                    //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                    
+                    if(ret=='Y'){
+                        
+                        var message = document.getElementById('over_save_message');
+                        message.style.color='black';
+                        message.innerHTML='保存成功';
+                        alert('保存成功');
+                        //location.reload();
+                        parent.location.reload();
+                        
+                    }else{
+                        var message = document.getElementById('over_save_message');
+                        message.innerHTML='保存失败'+ret;
+                        message.style.color='red';
+                        alert('保存失败'+ret);
+                        //location.reload();
+                    }
+
+            });
+        }
+        else if(over_type.length ==0){
+            alert('加班种类不能为空');
+        }
+        else{
+            alert('加班工时必须是数字且不能为空!')
+        }
+        //window.location.reload();
+    }
+
+
+    // filter produce time log
+    function prod_time_log(){
+        //alert('not ready yet')
+        document.forms[1].action = '/report/get_prod_time_log/';
+    }
+
+    //filter supportive logs according to date
+    function support_time_log(){
+        var a = document.getElementById('support_to_date')
+        var b = document.getElementById('support_from_date')
+        if(a instanceof Date){
+            
+            
+            alert('日期不能为空！')
+        }
+        else{
+            document.forms[3].action = '/report/get_support_time_log/';
+        }
+        
+    }
+
+    //validate support time save support time
+    function valid_support(){
+        
+        //totalHour = parseFloat(totalHour).toFixed(2);
+        //totalHour = parseFloat(real_time) + parseFloat(totalHour);
+        var rest = document.getElementById('rest').value;
+        if(rest.length!=0){
+            totalHour += parseFloat(rest);
+        }
+
+        var clean = document.getElementById('clean').value;
+        if(clean.length!=0){
+            totalHour += parseFloat(clean);
+        }
+        //
+        var record = $('#record').val();
+        if(record.length!=0){
+            totalHour += parseFloat(record);
+        }
+
+        var inside_group = $('#inside_group').val();
+        if(inside_group.length!=0){
+            totalHour += parseFloat(inside_group);
+        }
+
+        var outside_group = $('#outside_group').val();
+        if(outside_group.length!=0){
+            totalHour += parseFloat(outside_group);
+        }
+
+        var complete_machine = $('#complete_machine').val();
+        if(complete_machine.length!=0){
+            totalHour += parseFloat(complete_machine);
+        }
+
+        var granite = $('#granite').val();
+        if(granite.length!=0){
+            totalHour += parseFloat(granite);
+        }
+
+        var prob = $('#prob').val();
+        if(prob.length!=0){
+            totalHour += parseFloat(prob);
+        }
+
+        var shortage = $('#shortage').val();
+        if(shortage.length!=0){
+            totalHour += parseFloat(shortage);
+        }
+
+        var plan_change = $('#plan_change').val();
+        if(plan_change.length!=0){
+            totalHour += parseFloat(plan_change);
+        }
+
+        var human_quality_issue_rework = $('#human_quality_issue_rework').val();
+        if(human_quality_issue_rework.length!=0){
+            totalHour += parseFloat(human_quality_issue_rework);
+        }
+
+        var item_quality_issue = $('#item_quality_issue').val();
+        if(item_quality_issue.length!=0){
+            totalHour += parseFloat(item_quality_issue);
+        }
+
+        var human_quality_issue_repair = $('#human_quality_issue_repair').val();
+        if(human_quality_issue_repair.length!=0){
+            totalHour += parseFloat(human_quality_issue_repair);
+        }
+
+        var equipment_mantainence = $('#equipment_mantainence').val();
+        if(equipment_mantainence.length!=0){
+            totalHour += parseFloat(equipment_mantainence);
+        }
+
+        var inventory_check = $('#inventory_check').val();
+        if(inventory_check.length!=0){
+            totalHour += parseFloat(inventory_check);
+        }
+
+        var quality_check = $('#quality_check').val();
+        if(quality_check.length!=0){
+            totalHour += parseFloat(quality_check);
+        }
+
+        var document_time = $('#document').val();
+        if(document_time.length!=0){
+            totalHour += parseFloat(document_time);
+        }
+
+        var conference = $('#conference').val();
+        if(conference.length!=0){
+            totalHour += parseFloat(conference);
+        }
+
+        var group_management = $('#group_management').val();
+        if(group_management.length!=0){
+            totalHour += parseFloat(group_management);
+        }
+
+        var borrow_time = $('#borrow_time').val();
+        if(borrow_time.length!=0){
+            totalHour += parseFloat(borrow_time);
+        }
+
+        var borrow_type = $('#borrow_type option:selected').val();
+        
+
+        var vertical = $('#vertical').val();
+        if(vertical.length!=0){
+            totalHour += parseFloat(vertical);
+        }
+
+        var comments = $('#comments').val();
+        
+
+        var date_time = $('#suportdate').val();
+        
+        //
+       
+        var retVal = confirm("本日总工时为： "+parseFloat(totalHour).toFixed(2)+", 是否确定？");
+        if( retVal == true ) {
+            {% comment %} if (isNaN(rest) ||(isNaN(clean))){
+                alert("休息工时必须是数字且不为空");
+                return false;
+            }else{
+                document.forms[2].action ='/report/supportive_time/';
+            } {% endcomment %}
+            $.get("/report/supportive_time/",{'rest':rest,'clean':clean,'record':record,'inside_group':inside_group,'outside_group':outside_group,'complete_machine':complete_machine,'granite':granite,'prob':prob,'shortage':shortage,'plan_change':plan_change,'human_quality_issue_rework':human_quality_issue_rework,'item_quality_issue':item_quality_issue,'human_quality_issue_repair':human_quality_issue_repair,'equipment_mantainence':equipment_mantainence,'inventory_check':inventory_check,'quality_check':quality_check,'document':document_time,'conference':conference,'group_management':group_management,'borrow_time':borrow_time,'borrow_type':borrow_type,'vertical':vertical,'comments':comments,'suportdate':date_time}, function(ret){  
+                    alert(ret);
+                    location.reload();
+                });
+        }else{
+            alert('取消保存！');
+            //location.reload();
+            totalHour = parseFloat('{{g_today_real_time_total}}') + parseFloat('{{g_today_supportive_total_without_coef}}');
+        }
+
+    }
+
+    
+  
+    // validate qty
+    {% comment %} function validateQty(ret){
+        var qty = ret;
+        alert(qty.real_time_estimate)
+
+    } {% endcomment %}
+    //List all product type accroding to SFG ID
+    $(document).ready(function(){
+        $("#sfg_id").change(function(){
+        //$(" rel="nofollow"#sum").click(function(){
+            var a = $("#sfg_id").val();
+            //var b = $("#b").val();
+            $.get("/report/get_sfg/",{'a':a}, function(ret){
+                //$('#prod_type').val(ret.result)
+                //$('#prod_type').append('<option value="' + ret.result + '">' + ret.result + '</option>')
+                var $el = $("#prod_type");
+                $el.empty(); // remove old options
+                    
+                    {% comment %} $.each(ret, function(k,v) {
+                        $el.append('<option value="' + k + '">' + v + '</option>');
+                    });		 {% endcomment %}
+                for (var i = 0; i < ret.result.length; i++) {
+                     $el.append('<option value="' + ret.result[i] + '">' + ret.result[i] + '</option>');
+
+                 }
+            })
+        //});
+        }); 
+         });
+
+    $(document).ready(function(){
+        //$("#op_id").change(function(){
+        $("#standard_time").mouseover(function(){
+        //$(" rel="nofollow"#sum").click(function(){
+            var a = $("#prod_type").val();
+            var b = $('#op_id option:selected').val()
+            var c = $('#prob_info option:selected').val()
+            var d = $('#qty').val()
+            //var b = $("#b").val();
+            $.get("/report/get_standard_time/",{'type':a,'op':b,'prob':c,'qty':d}, function(ret){
+                $('#standard_time').val(ret.result)
+            })
+        //});
+        }); 
+    });
+    
+    $(document).ready(function(){
+        //$("#op_id").change(function(){
+        $("#op_id").click(function(){
+        //$(" rel="nofollow"#sum").click(function(){
+            var a = $("#sfg_id").val();
+            var b = $('#op_id option:selected').val()
+            
+            //var b = $("#b").val();
+            $.get("/report/get_real_time_estimate/",{'sfg':a,'op':b}, function(ret){
+                $('#qty').val(ret.real_time_estimate);
+                $('#qty_check').val(ret.real_time_estimate);
+                //var result = ret;
+                //validateQty(ret);
+            })
+        //});
+        }); 
+    });
+
+    window.onload = function (){
+        var today = new Date();//定义日期对象     
+        var yyyy = today.getFullYear();//通过日期对象的getFullYear()方法返回年      
+        var MM = today.getMonth() +1;//通过日期对象的getMonth()方法返回年   
+        var dd = today.getDate() ;//通过日期对象的getDate()方法返回年
+        submitTime = yyyy + '-' + MM +'-' + dd
+        $("#prodate").attr('value',submitTime);
+        $("#suportdate").attr('value',submitTime);
+        $("#over_time_date").attr('value',submitTime);
+
+        var allLi = document.getElementsByTagName('li');
+        
+        var allDiv = $('#main_content').children("div")
+        for(i=0;i<allLi.length;i++){
+            allLi[i].index = i;
+            allLi[i].onclick = function (){
+                //allLi[i].style.background='#6AC1F7';
+                
+                for(i=0;i<allLi.length;i++){
+                    allLi[i].style.background='#6AC1F7';
+                    allDiv[i].style.display='none';
+                }
+                
+                this.style.background='orange';
+                allDiv[this.index].style.display='block';
+                
+                
+            //alert(allLi.length);
+            //alert(allDiv.length);
+                
+            //li.style.background='orange';
+            //li.style.display='block';
+            
+            }
+        }
+        {% comment %} var lPro = document.getElementById('liproduce');
+        var lRep = document.getElementById('lireport');
+        var dPro = document.getElementById('dproduce');
+        var dRep = document.getElementById('dreport');
+        //dRep.style.display='block';
+        lPro.onclick = function (){
+            dPro.style.display='block';
+            lPro.style.background='orange';
+            dRep.style.display='none';
+            lRep.style.background='';
+
+        }
+        lRep.onclick = function (){
+            dPro.style.display='none';
+            lPro.style.background='';
+            dRep.style.display='block';
+            lRep.style.background='orange';
+        } {% endcomment %}
+
+        $("body").on("submit", "form", function() {
+            $(this).submit(function() {
+                return false;
+            });
+            return true;
+        });
+        
+
+    }
+
+
+
+
+</script>
+<style type="text/css">
+    .div1{float:left;width:30%;height:1500px;margin=10};
+    .div2{float:left;width:65%;height:100%;margin=10};
+    .divsupport{float:left,width:30%,margin=10};
+    .divsupportlog{float:left,width:65%,margin:10};
+    
+    #main_content
+    {
+     margin-top:20px;
+     width:100%;
+     margin-left:20px;
+    }
+    #main_content li
+    {
+     display:inline;
+     list-style-type:none;
+     background-color:#6AC1F7;
+     padding:10px;
+     border-radius:5px 5px 0px 0px;
+     color:#292A0A;
+     font-weight:bold;
+     cursor:pointer;
+    }
+    #main_content li.notselected
+    {
+     background-color:None;
+     color:#292A0A; 
+    }
+    .active {background-color:orange;display:block}
+   
+    .parent{
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+ 
+
+    table thead th{
+        background: #79aec8;
+    }
+
+
+
+</style>
+</head>
+<body>
+    <div id='main_content'>
+        <li class='notselected' id='liproduce' style='background:orange'>工时采集（一）</li>
+        <li class='notselected' id='lireport'>工时采集（二）</li>
+        <li class='notselected' id='lidash'>采集工时统计</li>
+        <li class='notselected' id='limaterial'>物耗信息采集</li>
+        <li class='notselected' id='xiaobujian'>装配信息采集</li>
+        
+        <!-- 工时采集（1）-->
+        <div id='dproduce' style='display:block;'>
+            {% comment %} 制造工时表 {% endcomment %}
+            <div class='div1'>
+                <br/>
+                <h2>您好 {{user.last_name}}{{user.first_name}}</h2><br/>
+                {% comment %} <p style='color:green'>消息: 加班工时已可以提交，谢谢！</p> {% endcomment %}
+
+                <form onsubmit='valid_report()'  method="post" >
+                    {% csrf_token %}
+                    
+                    {% if save_message %}
+                    <p>{{save_message}}</p>
+
+                    {% endif %}
+                    {% if error_message %}<p style='color:red'>{{error_message}} </p>{% endif %}
+                    <fieldset style='width:90%'>
+                        <br/>
+                        <legend>工时填报</legend>
+                        <label>SFG</lable>
+                        <input id='sfg_id' type='text' name='sfg_id' >
+                        <br/><br/>
+                        <label>机型</lable>
+                        <select id='prod_type'  name='prod_type'>
+                        </select>
+                        <br/><br/>
+                        {% if groups %}
+                                <label>测头</lable>
+                                <select id='prob_info' name='prob_info' >
+                                <option value='None'>---</option>
+                                {% for entry in prob_list %}
+                                    
+                                    <option value="{{ entry.prob_info  }}">{{ entry.prob_info }}</option>
+                                {% endfor %}
+                                </select>
+                                <br/><br/>
+                            {% else %}
+                                <select id = 'prob_info' name='prob_info' style='display:none'>
+                                    <option value='None'>---</option>
+                                </select>
+                            <br/><br/>
+                        {% endif %}
+
+                        <label>工步</lable>
+                            <select id='op_id' name="op_id">
+                                <option value=' '>---</option>
+                                {% for entry in op_list  %}
+                                    <option value = "{{entry.op_id}}">{{entry.op_id}} {{entry.op_name}}</option>
+                                {% endfor %}
+                            </select>
+                        <br/><br/>
+
+                        <label>数量</lable>
+                        <input id='qty' type='text' name='qty'>
+                        <br/><br/>
+                        <input id='qty_check' name='qty_check' type='text' style='display:none'>
+
+                        <input type='text' name='user_name' value='{{user.id}}' readonly style='display:none'>
+                    
+                        <label>标准工时</lable>
+                        <input id='standard_time' type='text' name='standard_time' value='' readonly>
+                        <br/><br/>
+                        <label>制造工时</lable>
+                        <input id = 'real_time' type='text' name='real_time'>
+                        <br/><br/>
+                        {% comment %} <label>加班工时</lable>
+                        <input id = 'over_time' type='text' name='over_time'>
+                        <br/><br/>
+                        <label>加班种类</lable>
+                        <select id='over_time_type' name="over_time_type">
+                            <option value=''>---</option>
+                            <option value='工作日'>工作日</option>
+                            <option value='周末'>周末</option>
+                        </select>
+                        <br/><br/>
+                        <label>是否申请加班费</lable>
+                        <input id = 'is_paid' name='is_paid' type='checkbox' value=0>
+                        <br/><br/> {% endcomment %}
+                        <font>日期:</font>
+                        <input id='prodate' name='prodate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > 
+                        
+                        <br/><br/><br/>
+                        <input type="button" value="提交" onclick='valid_report()'>
+                        <br/><br/><br/><br/>
+                    </fieldset>
+                    <br/><br/>
+                    <p id='over_save_message'></p>
+                    <h2>加班填报</h2>
+                    <fieldset style='width:90%'>
+                        <legend>加班填报</legend>
+                            <br/><br/>
+                            <label>加班工时</lable>
+                            <input id = 'over_time' type='text' name='over_time'>
+                            <br/><br/>
+                            <label>加班种类</lable>
+                            <select id='over_time_type' name="over_time_type">
+                                
+                                <option value='工作日'>工作日</option>
+                                <option value='周末'>周末</option>
+                            </select>
+                            <br/><br/>
+                            <label>是否申请加班费</lable>
+                            <input id = 'is_paid' name='is_paid' type='checkbox'>
+                            <br/><br/>
+                            <font>日期:</font>
+                            <p><input id='over_time_date' name='over_time_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" ><p>
+                            <input type="button" value="提交" onclick='save_overtime()'>
+                        
+                    </fieldset>
+                </form>
+                <div style='width:96%'>
+                    <br/><br/>
+                    <h2>加班工时查询</h2>
+                    {% autoescape off %}
+                        {{overtime_data}}
+                    {% endautoescape %}
+                    
+                </div>
+            </div>
+            {% comment %} 制造工时记录 {% endcomment %}
+            <div class='div2'>
+                <br/>
+                <h2>当天报工记录查询</h2>
+                <br/>
+                <fieldset style='width:20%'>
+
+                    <form onsubmit='prod_time_log()' action="/report/" method="post" >
+                        {% csrf_token %}
+                        <p>From: <input id='prod_from_date' name='prod_from_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>To: <input id='prod_to_date' name='prod_to_date' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    
+                        <input type='submit' value='Submit'>
+                    </form>
+                </fieldset>
+                <br/>
+                {% if error_prod_from_date %}<p style="color:red">{{error_prod_from_date}}</p>{% endif %}
+                {% if error_prod_to_date %}<p style="color:red">{{error_prod_to_date}}</p>{% endif %}
+                <table border="1" style="overflow:scroll;text-align:center">
+                    <tr class='parent'>
+                        <th width=50>SFG</th>
+                        <th width=300>机型</th>
+                        <th width=50>工步</th>
+                        <th width=50>测头</th>
+                        <th width=50>数量</th>
+                        <th width=80>标准工时</th>
+                        <th width=80>制造工时</th>
+                        {% comment %} <th width=80>加班</th>
+                        <th width=80>加班种类</th>
+                        <th width=80>有无加班费</th> {% endcomment %}
+                        <th width=80>日期</th>
+                    </tr>
+                        {% for i in logs %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td>{{i.sfg}} </td>
+                            <td>{{i.type}} </td>
+                            <td>{{i.op}} </td>
+                            <td>{{i.prob}} </td>
+                            <td>{{i.qty}} </td>
+                            <td>{{i.standard }}</td>
+                            <td>{{i.real}} </td>
+                            {% comment %} <td>{{i.over_time}} </td>
+                            <td>{{i.over_time_type}} </td>
+                            <td>{{i.is_paid}} </td> {% endcomment %}
+
+                            <td>{{i.date}}</td>
+                        </tr>
+                        {% endfor %}
+                </table>
+                <br/>
+                {% comment %} <p>当天KPI (KIP算法：标准工时/制造工时)</p>
+                <p>{{today_kpi}}</p>
+                <p>当月KPI</p>
+                <p>{{month_kpi}}</P>
+                <p>本年KPI</p>
+                <p>{{year_kpi}}</P>
+                <p>总辅助工时{{supportive_total}}</p>  {% endcomment %}
+                
+                <fieldset>
+                    <legend>本日</legend>
+                    <p>标准工时：{{g_today_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_today_real_time_total}}小时</p>
+                    <p>加班工时：{{overtime_total}}<p>
+                    <p>工作时间（无系数）：{{g_today_real_time_total}} + {{g_today_supportive_total_without_coef}} = {{g_today_natural_hours}}</p>
+                    <p>辅助工时：{{g_today_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_today}} （标准工时/制造工时）</p>
+                    <p>业绩：{{performance_today}} （标准工时+辅助工时*系数+外借工时*系数）</p>
+                    <p>工时有效率：{{efficiency_today}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>本月</legend>
+                    <p>标准工时：{{g_month_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_month_real_time_total}}小时</p>
+                    <p>辅助工时：{{g_month_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_month}} （标准工时/制造工时）</p>
+                    <p>工时有效率：{{efficiency_month}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>本年</legend>
+                    <p>标准工时：{{g_year_standard_time_total}}小时</p>
+                    <p>制造工时：{{g_year_real_time_total}}小时</p>
+                    <p>辅助工时：{{g_year_supportive_total}}小时</p>
+                    <p>工效比：{{kpi_year}} （标准工时/制造工时）</p>
+                    <p>工时有效率：{{efficiency_year}} （制造工时/（制造工时+辅助工时））</p>
+                </fieldset> 
+            </div>
+        </div>
+        <!-- 工时采集（二））-->
+        <div id='dreport' style='display:none'>
+            <div style='width:28%;float:left'>
+                <form onsubmit='valid_support()' action='/report/' method='post' >
+                    {% csrf_token %}
+                    <br/>
+                    <h2>辅助工时</h2>
+                    {% if supportive_save_message %}{{supportive_save_message}}{% endif %}
+                    {% if supportive_error_message %}<p style='color:red'>{{supportive_error_message}}<p>{% endif %}
+                    
+                    <fieldset>
+                        <legend>日常</legend>
+                            <label>休息</lable>
+                            <input id='rest' type="text" name='rest' />
+                             <br/><br/>
+                            <label>卫生</lable>
+                            <input id='clean' type="text" name='clean' />
+                            <br/><br/>
+                            <label>记录</lable>
+                            <input type="text" id='record' name='record' />
+                            <!-- etc -->
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>培训</legend>
+                            <label>组内</lable>
+                            <input type="text" name='inside_group' id='inside_group'/>
+                             <br/><br/>
+                            <label>组外</lable>
+                            <input type="text" name='outside_group' id='outside_group'/>
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>搬运</legend>
+                            <label>整机</lable>
+                            <input type="text" name='complete_machine' id='complete_machine'  />
+                             <br/><br/>
+                            <label>花岗石</lable>
+                            <input type="text" name='granite' id='granite'/>
+                            <br/><br/>
+                            <label>物流搬运</lable>
+                            <input type="text" name='prob' id='prob' />
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>返工</legend>
+                            <label>补缺件</lable>
+                            <input type="text" name='shortage' id='shortage'/>
+                            <br/><br/>
+                            <label>计划调整</lable>
+                            <input type="text" name='plan_change' id='plan_change'/>
+                            <br/><br/>
+                            <label>人为质量问题</lable>
+                            <input type="text" name='human_quality_issue_rework' id='human_quality_issue_rework'/>
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>返修</legend>
+                            <label>零件质量问题</lable>
+                            <input type="text" name='item_quality_issue' id='item_quality_issue'/>
+                            <br/><br/>
+                            <label>人为质量问题</lable>
+                            <input type="text" name='human_quality_issue_repair' id='human_quality_issue_repair'/>
+                            
+                    
+                    </fieldset>
+                    <br/><br/>
+                    <fieldset>
+                        <legend>其他</legend>
+                            <label>设备维护</lable>
+                            <input type="text" name='equipment_mantainence' id='equipment_mantainence'/>
+                            <br/><br/>
+                            <label>库存核查</lable>
+                            <input type="text" name='inventory_check' id='inventory_check'/>
+                            <br/><br/>
+                            <label>质量审核</lable>
+                            <input type="text" name='quality_check' id='quality_check'/>
+                            <br/><br/>
+                            <label>档案整理</lable>
+                            <input type="text" name='document' id='document'/>
+                            <br/><br/>
+                            <label>会议</lable>
+                            <input type="text" name='conference' id='conference'/>
+                            <br/><br/>
+                            <label>班组管理</lable>
+                            <input type="text" name='group_management' id='group_management'/>
+                            <br/><br/>
+                            <label>线性/垂直度修正</label>
+                            <input type="text" name='vertical' id='vertical'/>
+  
+                            
+                    
+                    </fieldset>
+                    <br/>
+                    <fieldset>
+                        <legend>外借</legend>
+                            <label>外借种类</label>
+                            <select id='borrow_type' name="borrow_type" >
+                                <option value=' '>---</option>
+                                {% for borrows in borrow_time  %}
+                                    <option value = "{{borrows.borrow}}">{{borrows.borrow}}</option>
+                                {% endfor %}
+                            </select>
+                            <label>时数</label>
+                            <input type="text" name='borrow_time' id='borrow_time'/>
+                            <br/><br/>
+                            <label>备注<label>
+                            <br/><br/>
+                            <textarea style="width:250px;height:150px;" name="comments" id="comments" ></textarea>
+                            
+
+                    </fieldset>
+                    <br/><br/>
+                    <font>日期:</font>
+                    <input id='suportdate' name='suportdate' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" >       
+                    <br/><br/>
+                    
+                    <input type='button' value='提交' onclick='valid_support()'>
+                </form>
+            </div>
+
+            <div style='width:68%;float:left;margin:10'>
+                <br/>
+                <h2>当天报工记录查询</h2>
+                <fieldset style='width:30%'>
+                    <form onsubmit='support_time_log()' action="/report/" method="post" >
+                        {% csrf_token %}
+                        <p>From: <input id='support_from_date' name='support_from_date' value='' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                        <p>To: <input id='support_to_date' name='support_to_date' value='' type="text" onclick="fPopCalendar(event,this,this)" readonly="readonly" > </p>
+                    
+                        <input type='submit' value='Submit'>
+                    </form>
+                </fieldset>
+                <br/>
+                {% if error_sup_from_date %}<p style="color:red">{{error_sup_from_date}}</p>{% endif %}
+                {% if error_sup_to_date %}<p style="color:red">{{error_sup_to_date}}</p>{% endif %}
+                <p>本日辅助工时汇总: {{g_today_supportive_total}}</p>
+                <br/>
+                <table border="1" style="overflow:scroll;text-align:center;position:absolute;">
+                    <tr class='parent'>
+                        <th width=50>日期</th>
+                        <th width=50>休息</th>
+                        <th width=50>卫生</th>
+                        <th width=50>记录</th>
+                        <th width=50>组内</th>
+                        <th width=50>组外</th>
+                        <th width=50>整机</th>
+                        <th width=50>花岗石</th>
+                        <th width=50>物流搬运</th>
+                        <th width=50>补缺件</th>
+                        <th width=50>计划调整</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>零件质量问题</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>设备维护</th>
+                        <th width=50>库存核查</th>
+                        <th width=50>质量审核</th>
+                        <th width=50>档案整理</th>
+                        <th width=50>会议</th>
+                        <th width=50>线性/垂直度修正</th>
+                        <th width=50>班组管理</th>
+                        <th width=50>外借</th>
+                        <th width=50>外借分类</th>
+                        <th width=50>备注</th>
+                        
+                    </tr>
+                        {% for i in supportive_logs %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td>{{i.date}} </td>
+                            <td>{{i.rest}} </td>
+                            <td>{{i.clean}} </td>
+                            <td>{{i.record}} </td>
+                            <td>{{i.inside_group}} </td>
+                            <td>{{i.outside_group}} </td>
+                            <td>{{i.complete_machine}} </td>
+                            <td>{{i.granite }}</td>
+                            <td>{{i.prob}} </td>
+                            <td>{{i.shortage}}</td>
+                            <td>{{i.plan_change}} </td>
+                            <td>{{i.human_quality_issue_rework}} </td>
+                            <td>{{i.item_quality_issue}} </td>
+                            <td>{{i.human_quality_issue_repair}} </td>
+                            <td>{{i.equipment_mantainence}} </td>
+                            <td>{{i.inventory_check }}</td>
+                            <td>{{i.quality_check}} </td>
+                            <td>{{i.document}}</td>
+                            <td>{{i.conference}} </td>
+                            <td>{{i.vertical}}</td>
+                            <td>{{i.group_management}} </td>
+                            
+                            <td>{{i.borrow_time}} </td>
+                            <td>{{i.borrow_name}} </td>
+                            <td>{{i.comments}}</td>
+
+                            
+            
+                        </tr>
+                        {% endfor %} 
+                </table>
+                <br/><br/>
+                
+            
+            </div>
+        </div>
+        <!-- 采集工时统计-->
+        <div id='ddash' style='display:none'>
+            {% include 'echarts/individul_kpi.html' %}
+            <p>{{user_groups}}</p>
+        </div>
+        <!-- 物耗信息采集-->
+        <div id='dmaterial' style='display:none'>
+            <br/><br/>
+            <div>
+                <fieldset>
+                        <legend>物耗使用</legend>
+                            <label>物料编码</lable>
+                            <input type='text' id='material_so' name='material_so' style="width:30%">
+                             <br/><br/>
+                             <label>物料名称</lable>
+                            <input type='text' id='material_name' name='material_name' readonly style="width:30%">
+                             <br/><br/>
+                            <label>使用数量</lable>
+                            <input type='text' id='material_qty' name='material_qty' style="width:30%">
+                            <br/><br/>
+                            
+                            
+                </fieldset>
+                <br/><br/>
+                <input type='button' id="saveUsage" onclick='saveUsage()'  value='保存'>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function(){
+                $('#material_so').change(function(){
+                    var msno = $('#material_so').val();
+                    $.get("/report/getMaterialNo/",{'msno':msno}, function(ret){
+                
+                        $('#material_name').val(ret);
+                        
+                    })
+
+                });
+            });
+            function saveUsage(){
+                var msno = $('#material_so').val();
+                var name = $('#material_name').val();
+                var qtyUse = $('#material_qty').val();
+                if(msno =='' || name == ''){
+                    alert('编号和物料名称不能为空')
+                }
+                else if(isNaN(qtyUse) || qtyUse == ''){
+                    alert('数量必须是数字且不为空');
+                }
+                else{
+                     $.get("/report/saveMaterialUse/",{'msno':msno,'qty':qtyUse}, function(ret){
+                
+                        alert(ret);
+                        $('#material_so').val('');
+                        $('#material_name').val('');
+                        $('#material_qty').val('');
+
+                    })
+                }
+               
+            }
+        </script>
+        <!-- 装配信息采集-->
+        <div id='xiaobujian' style='display:none'>
+            <br/><br/><br/>
+            <!-- <a href="/smallpart/">小部件</a> -->
+            <iframe width="100%" height="100%" src="/smallpart/"></iframe>
+            
+        </div>
+    </div>
+</body>
+</html>

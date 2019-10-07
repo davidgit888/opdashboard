@@ -1,0 +1,153 @@
+
+{% load staticfiles %}
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+
+<style>
+   
+    .parent{
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+    table th{
+        background: #79aec8;
+    }
+    table tboday tr:nth-child(even){
+        background:lightgray;
+    }
+</style>
+<script>
+    function back(){
+        window.history.back(-1);
+    }
+</script>
+
+<div align='center'> 
+    <div>
+        <br/><br/>
+        <h2>{{user}}工作时间汇总</h2>
+        <br/>
+        <p>总制造工时：{{real_time_total}}</p>
+        <table align='center' border="1" style="overflow:scroll;text-align:center">
+            <thead>
+                        <tr class='parent'>
+                            <th width=50>SFG</th>
+                            <th width=300>机型</th>
+                            <th width=50>工步</th>
+                            <th width=50>测头</th>
+                            <th width=50>数量</th>
+                            <th width=80>标准工时</th>
+                            <th width=80>制造工时</th>
+                            {% comment %} <th width=80>加班</th>
+                            <th width=80>加班种类</th>
+                            <th width=80>有无加班费</th> {% endcomment %}
+                            <th width=80>日期</th>
+                        </tr>
+            </thead>
+            <tbody>
+                            {% for i in individual_log %}
+                            <tr class="{% cycle 'row1' 'row2' %}">
+                                <td>{{i.sfg}} </td>
+                                <td>{{i.type}} </td>
+                                <td>{{i.op}} </td>
+                                <td>{{i.prob}} </td>
+                                <td>{{i.qty}} </td>
+                                <td>{{i.standard }}</td>
+                                <td>{{i.real}} </td>
+                                {% comment %} <td>{{i.over_time}} </td>
+                                <td>{{i.over_time_type}} </td>
+                                <td>{{i.is_paid}} </td> {% endcomment %}
+                                <td>{{i.date}}</td>
+                            </tr>
+                            {% endfor %}
+            </tboday>
+        </table>
+    </div>
+    <br/><br/><br/>
+    <div>
+        <div>
+            <p>总辅助工时(无系数): {{supportive_total_without_coef}}</p>
+        </div>
+        <table align='center'  border="1" style="overflow:scroll;text-align:center;">
+            <thead>
+                    <tr class='parent'>
+                        <th width=50>日期</th>
+                        <th width=50>休息</th>
+                        <th width=50>卫生</th>
+                        <th width=50>记录</th>
+                        <th width=50>组内</th>
+                        <th width=50>组外</th>
+                        <th width=50>整机</th>
+                        <th width=50>花岗石</th>
+                        <th width=50>物流搬运</th>
+                        <th width=50>补缺件</th>
+                        <th width=50>计划调整</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>零件质量问题</th>
+                        <th width=50>人为质量问题</th>
+                        <th width=50>设备维护</th>
+                        <th width=50>库存核查</th>
+                        <th width=50>质量审核</th>
+                        <th width=50>档案整理</th>
+                        <th width=50>班组管理</th>
+                        <th width=50>会议</th>
+                        <th width=50>线性/垂直度修正</th>
+                        <th width=50>外借</th>
+                        <th width=50>外借分类</th>
+                        <th width=50>备注</th>
+                        
+                    </tr>
+                </thead>
+                <tboday>
+                        {% for i in individual_sup_log %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td>{{i.date}} </td>
+                            <td>{{i.rest}} </td>
+                            <td>{{i.clean}} </td>
+                            <td>{{i.record}} </td>
+                            <td>{{i.inside_group}} </td>
+                            <td>{{i.outside_group}} </td>
+                            <td>{{i.complete_machine}} </td>
+                            <td>{{i.granite }}</td>
+                            <td>{{i.prob}} </td>
+                            <td>{{i.shortage}}</td>
+                            <td>{{i.plan_change}} </td>
+                            <td>{{i.human_quality_issue_rework}} </td>
+                            <td>{{i.item_quality_issue}} </td>
+                            <td>{{i.human_quality_issue_repair}} </td>
+                            <td>{{i.equipment_mantainence}} </td>
+                            <td>{{i.inventory_check }}</td>
+                            <td>{{i.quality_check}} </td>
+                            <td>{{i.document}}</td>
+                            <td>{{i.group_management}} </td>
+                            <td>{{i.conference}} </td>
+                            <td>{{i.vertical}}</td>
+                            <td>{{i.borrow_time}} </td>
+                            <td>{{i.borrow_name}} </td>
+                            <td>{{i.comments}}</td>
+
+                            
+            
+                        </tr>
+                        {% endfor %} 
+                </tboday>
+            </table>
+        </div>
+        <br/>
+        <div align='center'>
+        <h2>加班工时</h2>
+        
+        <p>总加班工时工时:{{overtime_total}}</p>   
+            {% autoescape off %}
+                {{overtime_data}}
+            {% endautoescape %}
+        <div>
+        <br/>
+        <input type='button' value='返回' onclick='back()'>
+        
+</div>

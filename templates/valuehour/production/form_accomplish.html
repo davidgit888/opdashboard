@@ -1,0 +1,343 @@
+{% extends 'valuehour/production/submit.html' %}
+{% block title %}提交辅助外借工时{% endblock %}
+{% block content %}
+<div class="x_panel">
+  <div class="x_content">
+      <br />
+      <form id="accomplish" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="form-group">
+          <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">大类</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" id="category" required="required" name="category" onchange="change_choice($(this).val())">
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id = "having_prob">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">小类</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" id="sub_category" name="sub_category" required="required">
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">期间费用</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="expense" class="date-picker form-control col-md-7 col-xs-12" type="number" step="0.1" name="expense" required="required">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">附件上传<span class="badge bg-red" style="display: none;" id="unuploaded">未上传</span><span class="badge bg-green" style="display: none;" id="uploaded">已上传</span></label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+			 <div class="input-group">
+				<input type="file" class="form-control" name="attach" onchange="fileChange(this);" id="attach">
+				<span class="input-group-btn">
+				<button type="button" class="btn btn-primary" onclick="postData()">上传</button>
+				</span>
+			  </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">备注</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <textarea id="message" class="form-control" name="comments" data-parsley-trigger="keyup" data-parsley-maxlength="1000" data-parsley-minlength-message="不能多于1000个字"
+                            data-parsley-validation-threshold="10" required="required"></textarea>
+          </div>
+        </div>
+        <div class="ln_solid"></div>
+        <div class="form-group">
+          <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
+            <!--<button class="btn btn-primary" type="button">Cancel</button>
+                <button class="btn btn-primary" type="reset">Reset</button>-->
+            <button type="submit" class="btn btn-success">Submit</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+  {% endblock %}
+  {% block js %}
+
+    <!-- jQuery -->
+    <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/valuehour/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="/static/valuehour/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="/static/valuehour/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
+    <script src="/static/valuehour/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap-wysiwyg -->
+    <script src="/static/valuehour/vendors/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js"></script>
+    <script src="/static/valuehour/vendors/jquery.hotkeys/jquery.hotkeys.js"></script>
+    <script src="/static/valuehour/vendors/google-code-prettify/src/prettify.js"></script>
+    <!-- jQuery Tags Input -->
+    <script src="/static/valuehour/vendors/jquery.tagsinput/src/jquery.tagsinput.js"></script>
+    <!-- Switchery -->
+    <script src="/static/valuehour/vendors/switchery/dist/switchery.min.js"></script>
+    <!-- Select2 -->
+    <script src="/static/valuehour/vendors/select2/dist/js/select2.full.min.js"></script>
+    <!-- Parsley -->
+    <script src="/static/valuehour/vendors/parsleyjs/dist/parsley.min.js"></script>
+    <!-- Autosize -->
+    <script src="/static/valuehour/vendors/autosize/dist/autosize.min.js"></script>
+    <!-- jQuery autocomplete -->
+    <script src="/static/valuehour/vendors/devbridge-autocomplete/dist/jquery.autocomplete.min.js"></script>
+    <!-- starrr -->
+    <script src="/static/valuehour/vendors/starrr/dist/starrr.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="/static/valuehour/build/js/custom.min.js"></script>
+	<script src="/static/valuehour/vendors/layer/layer.js"></script>
+	<script>
+
+
+		//获取url参数
+	function getQueryVariable(variable)
+	{
+		   var query = window.location.search.substring(1);
+		   var vars = query.split("&");
+		   for (var i=0;i<vars.length;i++) {
+				   var pair = vars[i].split("=");
+				   if(pair[0] == variable){return pair[1];}
+		   }
+		   return('');
+	}
+
+
+	function fillCase(){
+		id = getQueryVariable("v");
+		expense = window.parent.document.getElementById("expense__"+id).innerText;
+		category = window.parent.document.getElementById("b_category__"+id).innerText;
+		subject = window.parent.document.getElementById("b_subject__"+id).innerText;
+		comments = window.parent.document.getElementById("comments__"+id).innerText;
+		try{
+			attach = window.parent.document.getElementById("attach__"+id).innerText;
+			$("#unuploaded").css("display", "");
+		}catch(e){
+			$("#uploaded").css("display", "");
+		}
+		$("#expense").val(expense);
+		$("#message").val(eval("'" + comments + "'"));
+		// $("#category option[value='"+category+"']").attr("selected", true);
+		// $("#category").val("事业部");
+		if (subject){
+		$("#sub_category").html('<option value="'+subject+'">---已选中：'+subject+'---</option>');			
+		}
+	}
+
+	// function upfile(){
+	// 	var fileObj = document.getElementById('attach').files[0];
+	// 	console.log(fileObj);
+	// 	var FileContoler = 'http://10.136.6.87:8888/jzgs/uploadFiles/?id=38';
+	// 	var form = new FormData();
+	// 	form.append('file', fileObj);
+	// }
+
+	function postData(){
+		para = getQueryVariable("v");
+		id = para.split('_')[1];
+		var fileObj = document.getElementById('attach').files[0];
+	    var formData = new FormData();
+	    formData.append("file",fileObj);
+	    formData.append("id", id);
+	    $.ajax({
+	        url:'/jzgs/uploadFiles/', /*接口域名地址*/
+	        type:'post',
+	        data: formData,
+	        contentType: false,
+	        processData: false,
+	        success:function(res){
+	        	layer.msg('提交成功！', {icon: 1, time:600});
+	        	window.parent.add_attach(id);
+	            console.log(res);
+	        },
+	        error:function(res){
+	        	console.log(res);
+	        }
+	    })
+	}
+
+
+	function fileChange(target,id) {
+		var isIE = /msie/i.test(navigator.userAgent) && !window.opera;   
+		var fileSize = 0;   
+		var filetypes =[".jpg",".png",".rar",".txt",".zip",".doc",".ppt",".xls",".pdf",".docx",".xlsx", ".7z", ".csv", ".msg", ".jpeg", ".gif", ".tif"];   
+		var filepath = target.value;   
+		var filemaxsize = 1024*20;   
+		if(filepath){   
+			var isnext = false;   
+			var fileend = filepath.substring(filepath.indexOf(".")).toLowerCase();
+			console.log(fileend);
+		if(filetypes && filetypes.length>0){
+			for(var i =0; i<filetypes.length;i++){   
+				if(filetypes[i]==fileend){   
+					isnext = true;   
+					break;   
+				}   
+			}   
+		}   
+		if(!isnext){   
+			alert("不接受此文件类型！");   
+			target.value ="";   
+			return false;   
+			}   
+			}else{   
+			return false;   
+		}   
+		if (isIE && !target.files) {   
+			var filePath = target.value;   
+			var fileSystem = new ActiveXObject("Scripting.FileSystemObject");   
+				if(!fileSystem.FileExists(filePath)){   
+					alert("附件不存在，请重新输入！");   
+				return false;  
+				}   
+			var file = fileSystem.GetFile (filePath);   
+			fileSize = file.Size;   
+			} else {   
+			fileSize = target.files[0].size;   
+		}   
+		  
+		var size = fileSize / 1024;   
+		if(size>filemaxsize){   
+			alert("附件大小不能大于"+filemaxsize/1024+"M！");   
+			target.value ="";   
+			return false;   
+		}   
+		if(size<=0){   
+			alert("附件大小不能为0M！");   
+			target.value ="";   
+			return false;   
+		}   
+	} 
+
+	
+
+	function get_info(a, b){
+		$.getJSON("/jzgs/getBorrowType/", function(data){
+			services = [];
+			project1 = [];
+			project2 = [];
+			choices = ['事业部','具体项目1','具体项目2']
+			$.each(data.borrow, function(i, v){
+				if(v.b_category =='事业部'){
+					services.push(v.b_subject);
+				}else if(v.b_category == '具体项目1'){
+					project1.push(v.b_subject);
+				}else if(v.b_category == '具体项目2'){
+					project2.push(v.b_subject);
+				};
+			});
+			cat = '';
+			$.each(choices, function(i,v){
+				cat = cat + '<option>'+v+'</option>';
+			})
+			if(getQueryVariable('cat')){
+				$("#category").html('<option value="'+decodeURI(getQueryVariable('cat'))+'">---已选中：'+decodeURI(getQueryVariable('cat'))+'---</option>'+cat);				
+			}else{
+				$("#category").html('<option value="">请选择</option>'+cat);
+			}
+
+			});
+	};
+
+
+	function change_choice(vv){		//alert(vv);
+
+		$.getJSON("/jzgs/getBorrowType/", function(data){
+			services = [];
+			project1 = [];
+			project2 = [];
+			choices = ['事业部','具体项目1','具体项目2'];			
+			// console.log(JSON.stringify(data.borrow));
+			$.each(data.borrow, function(i, v){
+				// alert(v.b_category);
+				// alert(v.b_subject);
+				if(v.b_category =='事业部'){
+					services.push(v.b_subject);
+				}else if(v.b_category == '具体项目1'){
+					project1.push(v.b_subject);
+				}else if(v.b_category == '具体项目2'){
+					project2.push(v.b_subject);
+				};
+			});	
+			//alert(services);
+		});
+
+		if (vv=='事业部'){
+			target =  services;
+		}else if(vv=='具体项目1'){
+			target = project1;
+		}else if (vv=='具体项目2'){
+			target = project2;
+		}
+		choice_string = '';
+		$.each(target, function(i,v){
+			choice_string = '<option>'+v+'</option>' + choice_string;
+		});
+		$("#sub_category").html('<option value="">请选择</option>'+choice_string);
+	};
+/*	
+	function get_standard(qty){
+		sfgid ="";
+		op = "";
+		prob = "";
+		$.getJSON("api/machine_standard.json?sfg="+sfgid+"&op="+op+"&prob="+prob+"&qty="+qty, function(data){
+			//alert(data.standard);
+			standard_hour = data.standard;
+			$("#standard_hour").val(Math.round(standard_hour*qty*100)/100);
+		});
+	};
+	
+	//获取基本信息	
+	function get_basic_info(){
+		$.getJSON("api/business.json",function(data){		
+			if(data.services && data.projects){
+				services = '';
+				projects = '';
+				//get category list
+				$.each(data.services, function(i, v){
+					services = services + '<option>'+v+'</option>';
+				});
+				$("#category").html('<option value="">请选择</option>'+services);
+				//get sub_category list
+				$.each(data.projects, function(i,v){
+					projects = projects + '<option>'+v+'</option>';
+				});
+				$("#sub_category").html('<option value="">请选择</option>'+projects);
+			}				
+		});
+	};
+	
+*/	
+	function makep(){
+		window.parent.hellos(getQueryVariable("v"), $("#category").val(), $("#sub_category").val(), $("#expense").val(), $("#message").val());
+		var index = parent.layer.getFrameIndex(window.name);
+		setTimeout(function(){
+		  parent.layer.close(index);
+		}, 600);		
+	}
+
+	$(document).ready(function(){
+	   	get_info();
+	   	fillCase();
+		//get date from url parameter
+		$("#input_date").val(getQueryVariable("date"));
+		$("#input_date").attr("readonly", "readonly");
+		//validation before submit
+		$("#accomplish").submit(function(e){
+			e.preventDefault();
+			var form = $(this);
+			if (form.parsley( 'isValid' )){
+				makep();
+			};
+		});
+	});
+	</script>
+{% endblock%}

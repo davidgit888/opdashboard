@@ -1,4 +1,5 @@
-﻿{% load i18n static %}<!DOCTYPE html>
+﻿{% load i18n static %}
+<!DOCTYPE html>
 <html>
 <head>
     <title>Hexagon Dashboard</title>
@@ -74,10 +75,11 @@
                 var hh = today.getHours();//通过日期对象的getHours方法返回小时     
                 var mm = today.getMinutes();//通过日期对象的getMinutes方法返回分钟     
                 var ss = today.getSeconds();//通过日期对象的getSeconds方法返回秒  
+                document.getElementById('comments').innerHTML = '{{sys_env}}';
                 document.getElementById("user").innerHTML =  '您好 '+'{{user.last_name}}{{user.first_name}}';//yyyy + "年" + MM + "月" + dd + "日" + hh + "时" + mm + "分" ; 
                 document.getElementById('date').innerHTML = yyyy + "年" + MM + "月" + dd + "日" ; 
                 document.getElementById('time').innerHTML = hh + "时" + mm + "分" + ss +'秒';
-                document.getElementById('comments').innerHTML = '{{sys_env}}';
+                
 
                 t = setTimeout(time, 1000); //设定定时器，循环执行            
             }
@@ -179,11 +181,11 @@
             <ul id="nav"></ul>
             <div id="info" class="date">
 			<h3></h3>
-           
+                <p id='comments'></p>
                 <p id="user"></p>
                 <p id='date'></p>
                 <p id='time'></p>
-                <p id='comments'></p>
+                
             
             </div>
         </div>

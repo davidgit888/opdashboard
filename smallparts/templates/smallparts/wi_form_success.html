@@ -254,38 +254,38 @@
 
 
         //add by Pierre
-        $(function() {
-          $('#save').click(function() {
-            var d = {};
-            var t = $('form').serializeArray();
-            $.each(t, function() {
-              d[this.name] = this.value;
-            });
+        // $(function() {
+        //   $('#save').click(function() {
+        //     var d = {};
+        //     var t = $('form').serializeArray();
+        //     $.each(t, function() {
+        //       d[this.name] = this.value;
+        //     });
 
-            list = {{ item_list|safe }};
-            goon = 0;
-            $.each(list, function(index, item){
-                result_item = '#result'+item.replace('.','\\\.');
-                result_item = $(result_item).val();
-                if(!result_item || result_item == '0'){
-                    alert('没有填写完整或者有NOKAY，请检查！');
-                    goon +=1;
-                    return false;
-                }
-            })
-            //to save the data
-            goon = 0;
-            if (goon > 0){
-                return false;
-            }else{
-                d['result'] =1;
-            }
-            alert(JSON.stringify(d));
+        //     list = {{ item_list|safe }};
+        //     goon = 0;
+        //     $.each(list, function(index, item){
+        //         result_item = '#result'+item.replace('.','\\\.');
+        //         result_item = $(result_item).val();
+        //         if(!result_item || result_item == '0'){
+        //             alert('没有填写完整或者有NOKAY，请检查！');
+        //             goon +=1;
+        //             return false;
+        //         }
+        //     })
+        //     //to save the data
+        //     goon = 0;
+        //     if (goon > 0){
+        //         return false;
+        //     }else{
+        //         d['result'] =1;
+        //     }
+        //     alert(JSON.stringify(d));
 
-            //pass data to web
-            Post("/smallpart/post/", JSON.stringify(d));
-          });
-        });
+        //     //pass data to web
+        //     Post("/smallpart/post/", JSON.stringify(d));
+        //   });
+        // });
 
         </script>
     </body>

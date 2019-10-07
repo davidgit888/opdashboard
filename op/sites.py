@@ -45,7 +45,7 @@ def produced(rquest):
     InstalledCmm.objects.filter(Year=year).update(**{month:op51})
     DeliveredCmm.objects.filter(Year=year).update(**{month:op142})
     results = updateProduction()
-    return render(rquest, 'op/生产制造.html')
+    return render(rquest, 'jzgs/生产制造.html')
 
 @login_required
 def plan(request):

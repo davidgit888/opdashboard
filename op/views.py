@@ -67,34 +67,36 @@ def userAllPermisions(request):
 @login_required(login_url='/accounts/login/')
 def dashboard(request):
     
-    navList = userAllPermisions(request)
-    # navList = ['生产制造','配置缺件']
-    if request.user.is_staff:
-        admin = 'Admin'
-        update = ''
-    else:
-        admin = ''
-        update = ''
-    if request.user.username == 'admin':
-        log = 'log'
-        update = 'update'
-    else:
-        log = ''
-    f = open("../system.txt")
-    sys_env = f.read()
-    return render(request,'op/index-dashboard.html',{
-            'List':json.dumps(navList),
-            'admin':admin,
-            'update':update,
-            'log':log,
-            'sys_env':sys_env,
-        })
+    # navList = userAllPermisions(request)
+    # # navList = ['生产制造','配置缺件']
+    # if request.user.is_staff:
+    #     admin = 'Admin'
+    #     update = ''
+    # else:
+    #     admin = ''
+    #     update = ''
+    # if request.user.username == 'admin':
+    #     log = 'log'
+    #     update = 'update'
+    # else:
+    #     log = ''
+    # f = open("../system.txt")
+    # sys_env = f.read()
+    # return render(request,'op/index-dashboard.html',{
+    #         'List':json.dumps(navList),
+    #         'admin':admin,
+    #         'update':update,
+    #         'log':log,
+    #         'sys_env':sys_env,
+    #     })
+
+    return HttpResponseRedirect("/jzgs/testBase/")
 
         # Redirect to a success page.
 
 @login_required(login_url='/accounts/login/')       
 def report(request):
-    return HttpResponseRedirect('/report/')
+    return HttpResponseRedirect('/jzgs/')
 
 def report_analysis(request):
     return HttpResponseRedirect('/report/report_analysis/')

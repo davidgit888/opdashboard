@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    {% load staticfiles %}
+    <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
+    <script src="{% static 'js/Calendar.js' %}"></script>   
+    <link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+    <script src="{% static 'js/kendo.all.min.js' %}"></script>
+
+    <link href="{% static 'css/kendo.common.min.css' %}" rel="stylesheet"> 
+    <link href="{% static 'css/kendo.default.min.css' %}" rel="stylesheet" /> 
+</head>
+<body>
+        <div id='dmaterial'>
+                <br/><br/>
+                <div>
+                    <fieldset>
+                            <legend>物耗使用</legend>
+                                <label>物料编码</lable>
+                                <input type='text' id='material_so' name='material_so' style="width:30%">
+                                 <br/><br/>
+                                 <label>物料名称</lable>
+                                <input type='text' id='material_name' name='material_name' readonly style="width:30%">
+                                 <br/><br/>
+                                <label>使用数量</lable>
+                                <input type='text' id='material_qty' name='material_qty' style="width:30%">
+                                <br/><br/>
+                                
+                                
+                    </fieldset>
+                    <br/><br/>
+                    <input type='button' id="saveUsage" onclick='saveUsage()'  value='保存'>
+                </div>
+    </div>
+        <!-- <div class="x-body">
+        <form class="layui-form">
+          <div class="layui-form-item">
+              <label for="username" class="layui-form-label">
+                  <span class="x-red">*</span>物料编码
+              </label>
+              <div class="layui-input-inline">
+                  <input type="text" id="username" name="username" required="" lay-verify="required"
+                  autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                  <span class="x-red">*</span>将会成为您唯一的登入名
+              </div>
+          </div>
+          <div class="layui-form-item">
+              <label for="phone" class="layui-form-label">
+                  <span class="x-red">*</span>物料名称
+              </label>
+              <div class="layui-input-inline">
+                  <input type="text" id="phone" name="phone" required="" lay-verify="phone"
+                  autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                  <span class="x-red">*</span>将会成为您唯一的登入名
+              </div>
+          </div>
+          <div class="layui-form-item">
+              <label for="L_email" class="layui-form-label">
+                  <span class="x-red">*</span>使用数量
+              </label>
+              <div class="layui-input-inline">
+                  <input type="text" id="L_email" name="email" required="" lay-verify="email"
+                  autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                  <span class="x-red">*</span>
+              </div>
+          </div>
+
+          <div class="layui-form-item">
+              <label for="L_repass" class="layui-form-label">
+              </label>
+              <button  class="layui-btn" lay-filter="add" lay-submit="">
+                  增加
+              </button>
+          </div>
+      </form>
+    </div> -->
+</body>
+</html> 
+
+            
+
+<script>
+    $(document).ready(function(){
+        $('#material_so').change(function(){
+            var msno = $('#material_so').val();
+            $.get("/report/getMaterialNo/",{'msno':msno}, function(ret){
+        
+                $('#material_name').val(ret);
+            })
+        });
+    });
+    function saveUsage(){
+        var msno = $('#material_so').val();
+        var name = $('#material_name').val();
+        var qtyUse = $('#material_qty').val();
+        if(msno =='' || name == ''){
+            alert('编号和物料名称不能为空')
+        }
+        else if(isNaN(qtyUse) || qtyUse == ''){
+            alert('数量必须是数字且不为空');
+        }
+        else{
+             $.get("/report/saveMaterialUse/",{'msno':msno,'qty':qtyUse}, function(ret){
+        
+                alert(ret);
+                $('#material_so').val('');
+                $('#material_name').val('');
+                $('#material_qty').val('');
+            })
+        }
+
+    }
+</script>

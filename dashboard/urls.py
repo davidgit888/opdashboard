@@ -25,4 +25,5 @@ urlpatterns = [
     path('logout/', views.loggedout),
     path('report/', include('report.urls')),
     path('smallpart/', include('smallparts.urls')),
+    path('jzgs/', include('jzgs.urls')),
 ]

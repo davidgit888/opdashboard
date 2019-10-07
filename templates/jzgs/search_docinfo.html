@@ -1,0 +1,122 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+<script src="{% static 'js/jquery.tablesorter.js' %}"></script>
+
+<script src="{% static 'js/jquery.floatThead.js' %}"></script>
+<script>
+
+    var all_results = '{{result|safe}}';
+    var all_type_info = '{{doc_type_result|safe}}';
+    var results = $.parseJSON(all_results);
+    var type_info = $.parseJSON(all_type_info);
+    var r_len = Object.keys(results["info"])['length'];
+    var t_len = Object.keys(type_info['id'])['length'];
+    var doc_list = '{{doc_id|safe}}';
+    var jdoc_list = $.parseJSON(doc_list);
+
+    function refresh(){
+        location.reload();
+    }
+    
+    window.onload = function(){
+        for(i=0;i<t_len;i++){
+            $('#firs_tr').append( '<th>'  + type_info["type"][i] + '</th>' );
+        }
+        
+        for(i=0;i<jdoc_list.length;i++){
+            
+                for(k=0;k<r_len;k++){
+                    if(k==0){
+                            $('#search_table tbody ').append( '<tr>');
+                            $('#search_table tbody ').append( '<td class="link"><u><strong><span style="color:blue">'  + jdoc_list[i] + '</span></strong></u></td>' );
+                        }
+                    
+                  
+                    for(j=0;j<t_len;j++){
+                        
+                        if(results['sfg'][k]==jdoc_list[i] && results['type_id'][k]==type_info['id'][j]){
+                            if(results["info"][k].includes('Y')){
+                                $('#search_table tbody ').append( '<td style="background:#00EC00">'  + results["info"][k] + '</td>' ); 
+                            }
+                            else{
+                                $('#search_table tbody ').append( '<td>'  + results["info"][k] + '</td>' ); 
+                            }
+                              
+                        }    
+                    }
+                    
+                }
+        } 
+
+        $(".link").click(function(){
+            var sfg_id=$(this)[0].textContent;
+            
+            url = '/report/update_docinfo/?sfg='+sfg_id
+            newwindow=window.location.href=url;
+            if (window.focus) {newwindow.focus()} 
+        });
+
+       
+        
+        
+    }
+      $(document).ready(function() {
+            var $table = $('#search_table');
+            $table.floatThead();
+        });
+    function redi_url(){
+        window.location.replace('/report/search_docinfo/?sfg=');
+    }
+
+    function search(){
+        var sfg_id = $('#sfg_id').val()
+        window.location.replace('/report/search_docinfo/?sfg='+sfg_id);
+    }
+    
+{% comment %} 
+    $('body').on('mousewheel',function(){
+        //alert('wheel moved')
+        // floate schedule table
+        var $table = $('#search_table');
+        $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        });
+    }); {% endcomment %}
+</script>
+
+<div>
+    <br/><br/>
+    <h1>归档记录</h1><br/>
+    <h4>归档记录查询</h4>
+    
+    
+    
+    <div>
+        <input type='button' value='刷新' onclick='refresh()'>
+        <input type='button' value='显示所有数据' onclick='redi_url()'>
+        <br/><br/>
+        <label>查询</label>
+        <input type='text' id='sfg_id'>
+        
+        <input type='button'  value='查询' onclick='search()'>
+        
+        <br/><br/>
+        <table id='search_table' style='text-align:center;' border=1  >
+            <thead>
+                <tr id='firs_tr'>
+                    <th >SFG</th>
+                </tr>
+               
+                
+            </thead>
+            <tbody>
+               
+            </tbody>
+        </table>
+    </div>
+    <br/><br/>
+    <input type='button' value='刷新' onclick='refresh()'>
+<div>

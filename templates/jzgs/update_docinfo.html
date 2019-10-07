@@ -1,0 +1,57 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script>
+    //window.onload=function(){
+        var docs_types = [];
+        {% for i in doc_type %}
+            docs_types.push('{{i.type_id}}')
+        {% endfor %}
+        
+    //};
+    
+    function save_doc(){
+        
+        var doc_data = {}
+        var sfg = $('#sfg').val();
+        doc_data['sfg'] = sfg;
+        for(i=0;i<docs_types.length;i++){
+            doc_data[docs_types[i]] = $("#"+docs_types[i]).val();
+        }
+        //alert(doc_data['sn']);
+        $.get("/report/save_doc_info/",doc_data, function(ret){
+            alert(ret);
+            var sfg = $("#sfg").val();
+            window.location.replace('/report/search_docinfo/?sfg='+sfg);
+        }); 
+    }
+    function back(){
+        window.history.back(-1);
+    }
+
+</script>
+   
+<div>
+    <br/><br/>
+    <fieldset>
+        <p></p>
+        <legend>更新归档记录</legend>
+        <h1>更新归档记录</h1>
+        <label>SFG</label>
+        <input type='text' id='sfg' name='sfg' value='{{sfg}}' readonly>
+        <br/><br/>
+        
+        
+      
+        {% for i in doc_info %}
+            <label>{{i.type}}</label>
+            <input id='{{i.id}}' value='{{i.info}}'>
+            <br/><br/>
+        {% endfor %}
+    
+        <br/><br/>
+        <input type='button' onclick='save_doc()' value='更新'>
+        <input type='button' onclick='back()' value = '返回'>
+    </fieldset>
+   
+</div>

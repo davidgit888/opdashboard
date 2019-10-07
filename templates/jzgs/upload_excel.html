@@ -1,0 +1,13 @@
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools %}
+    {% comment %} <a href="upload_excel/">上传文件</a> {% endcomment %}
+
+
+        {% csrf_token %}
+        <a href="upload_excel/"><input type='submit' value='上传文件'></a>
+    
+    <br />
+    {{ block.super }}
+
+{% endblock %}

@@ -1,0 +1,219 @@
+
+    {% load staticfiles %}
+
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script src="{% static 'js/jquery-1.9.1.js' %}"></script>   
+    <script src="{% static 'js/jquery.tablesorter.js' %}"></script>
+    <link href="{% static 'css/table.css' %}" rel="stylesheet">
+
+<style>
+   
+    .parent{
+        background: #79aec8;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+    table thead th{
+        background: #79aec8;
+    }
+    table tboday tr:nth-child(even){
+        background:lightgray;
+    }
+    .float {
+        float:left;
+        margin:10px;
+    }
+    #main_content
+    {
+     margin-top:20px;
+     width:100%;
+     margin-left:20px;
+    }
+    #main_content li
+    {
+     display:inline;
+     list-style-type:none;
+     background-color:#6AC1F7;
+     padding:10px;
+     border-radius:5px 5px 0px 0px;
+     color:#292A0A;
+     font-weight:bold;
+     cursor:pointer;
+    }
+    #main_content li.notselected
+    {
+     background-color:None;
+     color:#292A0A; 
+    }
+    .active {background-color:orange;display:block}
+   
+</style>
+<script>
+
+    window.onload =function (){
+
+   
+        var allLi = document.getElementsByTagName('li');
+            
+            var allDiv = $('#main_content').children("div");
+            //alert(allDiv.length);
+            for(i=0;i<allLi.length;i++){
+                allLi[i].index = i;
+                allLi[i].onclick = function (){
+                    //allLi[i].style.background='#6AC1F7';
+                    
+                    for(i=0;i<allLi.length;i++){
+                        allLi[i].style.background='#6AC1F7';
+                        allDiv[i].style.display='none';
+                    }
+                    
+                    this.style.background='orange';
+                    allDiv[this.index].style.display='block';
+                    
+                    
+                //alert(allLi.length);
+                //alert(allDiv.length);
+                    
+                //li.style.background='orange';
+                //li.style.display='block';
+                
+                }
+            }
+
+                    // call the tablesorter plugin
+            $(function() {
+        
+                $("table").tablesorter({
+                    theme : 'blue',
+
+                    dateFormat : "yyyymmdd", // set the default date format
+
+                    // or to change the format for specific columns, add the dateFormat to the headers option:
+                    headers: {
+                    0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                    // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                    // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                    }
+
+                });
+                });
+
+            $("#opdetails").click(function(){
+                $("#optables").toggle('show');
+            });
+         }
+</script>
+
+<body>
+    <div id='main_content'>
+        <li class='notselected' id='liproduce' style='background:orange'>图表</li>
+        <li class='notselected' id='lireport'>数据</li>
+        <br/><br/>
+        <div id='chart' style='display:block;width:98%'>
+            <div style='width:100%'>
+                {{employee_bar|safe}}
+            </div>
+            <div>
+                {{employee_eff_bar|safe}}
+            </div>
+            <br/><br/><br/><br/>
+            <div>
+            </div>
+            <div>
+                {{op_bar|safe}}
+            </div>
+            <br/><br/><br/><br/>
+            <div>
+                {{supp_bar|safe}}
+            </div>
+        </div>
+
+        <div id='digit_total' style='display:none;width:100%'>
+            
+                        <div>
+                            <h2>{{title}}</h2>
+                        
+                            {% autoescape off %}
+                                        <h2>{{anls_title}}</h2>
+                                        <p>{{anls_result}}</p>
+                                    
+                                    
+                                    {% endautoescape %}
+                        </div>
+                        {% comment %} work time analysis according to work group not default group {% endcomment %}
+                        <div>
+                            <h2>工时分析</h2>
+                            {% autoescape off %}
+                                {{work_time_anls_table}}
+                            {% endautoescape %}
+                        </div>
+                        <div>
+                        <h2>工步总数统计</h2>
+                            <table border=1>
+                                <thead>
+                                    <tr>
+                                        {% for i in anls_opcounts %}
+                                            <th>{{i.op_name}}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        {% for j in anls_opcounts %}
+                                            <td>{{j.qty}}</td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+
+                            </table>
+                            {% comment %} {% if request.user.username in 'admin,pengpeng,liuxinxin,caolong' %} {% endcomment %}
+                                {% comment %} <a href='/report/opdetails/'>工步详情</a> {% endcomment %}
+                                <input type="button" id='opdetails' value='工步详情'>
+                                <div id='optables' style="display:none">
+                                    <h1>工步信息详情</h1>
+                                    {% autoescape off %}
+                                    {{data_opcounts}}
+                                    {% endautoescape %}
+                                </div>
+                            {% comment %} {% endif %} {% endcomment %}
+                        </div>
+                        <br/>
+                        <div >
+                            <h2>外借工时统计</h2>
+                            {% autoescape off %}
+                            {{sup_bor_total}}
+                        </div>
+                        <div >   
+                            <h2>加班工时统计</h2>
+                            {{over_time_total}}
+                            {% endautoescape %}
+                            
+                        </div>
+                        <div width='100%'>
+                            <h2>辅助工时统计(汇总{{op_t_total}})</h2>
+                            {% autoescape off %}
+                        
+                            {{sup_not_bor_total}}
+                            {% endautoescape %}
+                        </div>
+                        <div>
+                        {% if trans_time %}
+                        
+                            <h2>借调工时统计</h2>
+                            {% autoescape off %}
+                            {{trans_time}}
+                            {% endautoescape %}
+                        {% endif %}
+                        </div>
+                  
+
+                    
+        </div>
+        
+    </div>
+</body>

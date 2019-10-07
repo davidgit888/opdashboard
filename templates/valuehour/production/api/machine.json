@@ -1,0 +1,84 @@
+﻿{
+	"machine": [{
+			"id":1,
+			"sfg": 1667,
+			"op": "滑架",
+			"prob":"test1",
+			"standard": 3.5,
+			"real_time": 1,
+			"product_type": "TORO PERFORMANCE 20.33.15",
+			"qty": 2
+		},
+		{
+			"id":2,
+			"sfg": 1669,
+			"op": "底座",
+			"prob":"test2",
+			"standard": 7.6,
+			"real_time": 2,
+			"product_type": "TORO ADVANTAGE 20.35.25",
+			"qty": 1
+		}
+	],
+	"assistance": [{
+			"id":1,
+			"type":"辅助工时",
+			"category": "日常",
+			"subject": "休息",
+			"standard":4,
+			"real_time": 3,
+			"attach":"url---",
+			"b_category":"testing",
+			"b_subject":"subjects",
+			"expense":2000,
+			"comments":"sdfdsfds"
+		},
+		{
+			"id":2,
+			"type":"外借工时",
+			"category": "培训",
+			"subject": "组外",
+			"standard":5,
+			"real_time": 5,
+			"attach":"url---",
+			"b_category":"testing",
+			"b_subject":"subjects",
+			"expense":2000,
+			"comments":"sdfdsdsfdsfsd"
+		},
+		{
+			"id":3,
+			"type":"辅助工时",
+			"category": "搬运",
+			"subject": "花岗石",
+			"standard":4,
+			"real_time": 3,
+			"attach":"url---",
+			"b_category":"testing",
+			"b_subject":"subjects",
+			"expense":2000,
+			"comments":"sdfdservdfdgff"
+		}
+	],
+	"extra": [{
+			"id":1,
+			"over_time_type": "服务支持",
+			"is_paid": "是",
+			"over_time": 2
+		},
+		{
+			"id":2,
+			"over_time_type": "展会支持",
+			"is_paid": "否",
+			"over_time": 1
+		},
+		{
+			"id":3,
+			"over_time_type": "预验收",
+			"is_paid": "是",
+			"over_time": 1
+		}
+	],
+	"date": "2019-08-19",
+	"activate": 1
+}

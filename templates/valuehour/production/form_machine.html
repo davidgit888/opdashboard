@@ -1,0 +1,298 @@
+{% extends 'valuehour/production/submit.html' %}
+{% block title %}提交制造工时{% endblock %}
+{% block content %}
+<div class="x_panel">
+  <div class="x_content">
+      <br />
+      <form id="machining" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">日期</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="input_date" name="date" class="date-picker form-control col-md-7 col-xs-12" required="required" type="text">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">SFG ID</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input type="text" id="sfg" name="sfg" required="required" class="form-control col-md-7 col-xs-12" onChange="get_info($(this).val()); get_rest()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">机型</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+<!--             <input type="text" id="machine" name="product_type" required="required" class="form-control col-md-7 col-xs-12" readonly="readonly"> -->
+            <select class="select2_group form-control" id="machine" name="product_type" required="required"> </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">工步</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" required = "required" id="operation" name="op" onChange="get_standard($('#quantity').val()); get_rest()">
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id = "having_prob">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">测头</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" id="prob" name="prob" onChange="get_standard($('#quantity').val())">
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">数量<span id="restnbr"></span></label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="quantity" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step="0.01" name="qty" min="0.01" onChange="get_standard($(this).val())">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">标准工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="standard_hour" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" min="0.01" name="standard_basic"  readonly="readonly">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">制造工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="machine_hour" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" name="real_time">
+          </div>
+        </div>
+        <div class="ln_solid"></div>
+        <div class="form-group">
+          <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
+            <!--<button class="btn btn-primary" type="button">Cancel</button>
+                <button class="btn btn-primary" type="reset">Reset</button>-->
+            <button type="submit" class="btn btn-success">提交</button>
+          </div>
+        </div>
+        {% csrf_token %}
+        <input type="text" id="contract" name="contract" hidden="hidden">
+        <input type="text" id="cost_rate" name="cost_rate" hidden="hidden">
+        <input type="text" id="quote" name="quote" hidden="hidden">
+        <input type="text" id="original_group" name="original_group" hidden="hidden">
+        <input type="text" id="work_group" name="work_group" hidden="hidden">
+        <!--<input type="text" id="user_id" name="user_id" hidden="hidden">-->
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block js %}
+    <!-- jQuery -->
+    <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/valuehour/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="/static/valuehour/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="/static/valuehour/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
+    <script src="/static/valuehour/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap-wysiwyg -->
+    <script src="/static/valuehour/vendors/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js"></script>
+    <script src="/static/valuehour/vendors/jquery.hotkeys/jquery.hotkeys.js"></script>
+    <script src="/static/valuehour/vendors/google-code-prettify/src/prettify.js"></script>
+    <!-- jQuery Tags Input -->
+    <script src="/static/valuehour/vendors/jquery.tagsinput/src/jquery.tagsinput.js"></script>
+    <!-- Switchery -->
+    <script src="/static/valuehour/vendors/switchery/dist/switchery.min.js"></script>
+    <!-- Select2 -->
+    <script src="/static/valuehour/vendors/select2/dist/js/select2.full.min.js"></script>
+    <!-- Parsley -->
+    <script src="/static/valuehour/vendors/parsleyjs/dist/parsley.min.js"></script>
+    <!-- Autosize -->
+    <script src="/static/valuehour/vendors/autosize/dist/autosize.min.js"></script>
+    <!-- jQuery autocomplete -->
+    <script src="/static/valuehour/vendors/devbridge-autocomplete/dist/jquery.autocomplete.min.js"></script>
+    <!-- starrr -->
+    <script src="/static/valuehour/vendors/starrr/dist/starrr.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="/static/valuehour/build/js/custom.min.js"></script>
+	<script src="/static/valuehour/vendors/layer/layer.js"></script>
+	<script src="/static/valuehour/vendors/pierre/commonjs.js"></script>
+	<script>
+
+
+		//获取url参数
+	// function getQueryVariable(variable)
+	// {
+	// 	   var query = window.location.search.substring(1);
+	// 	   var vars = query.split("&");
+	// 	   for (var i=0;i<vars.length;i++) {
+	// 			   var pair = vars[i].split("=");
+	// 			   if(pair[0] == variable){return pair[1];}
+	// 	   }
+	// 	   return('');
+	// }
+	
+	
+
+	function get_info(sfgid){
+		$("#machine").val('');
+		var index = layer.load(3, {shade: [0.1,'#fff']});
+		$.getJSON("/jzgs/getProductType/?sfg="+sfgid.replace(/\&/g, "%26"), function(data){
+			if(data.length ==1){
+			$("#machine").html('<option>'+data[0]+'</option>');			
+			layer.close(index);				
+		}else if(data.length >1){
+			options = '';
+			for (i in data){
+				options += '<option>' + data[i] + '</option>';
+			}
+			$("#machine").html('<option value="">请选择</option>'+options);
+			layer.close(index);
+		}else{
+			$("#restnbr").html('');
+			$("#machine").html('');
+			$("#sfg").val('');
+			layer.close(index);
+			layer.msg('没有查找到SFG,请重试', {icon: 2, time:2000});
+		};
+		});
+	};
+	
+	// function get_standard(qty){
+	// 	product_type = $("#machine").val();
+	// 	op = $("#operation").val();
+	// 	prob = $("#prob").val();
+	// 	// if(!prob){
+	// 	// 	prob='';
+	// 	// 	$("#having_prob").html('<input type="text" id="prob" name="prob" hidden="hidden">');
+	// 	// }
+	// 	var index = layer.load(3, {shade: [0.1,'#fff']});
+	// 	$.getJSON("/jzgs/getStandardHours/?product_type="+product_type+"&op="+op+"&prob="+prob, function(data){
+	// 		//alert(data.standard);
+	// 		standard_hour = data;
+	// 		$("#standard_hour").val(Math.round(standard_hour*qty*100)/100);
+	// 	});
+	// 	layer.close(index);
+	// };
+
+	// function get_rest(){
+	// 	op = $("#operation").val();
+	// 	sfg = $("#sfg").val();
+	// 	if (!(op && sfg)){
+	// 		$("#restnbr").html('');
+	// 		return false;
+	// 	}
+	// 	var index = layer.load(3, {shade: [0.1,'#fff']});
+	// 	$.getJSON('/jzgs/getManHoursSurplus/?sfg='+sfg+'&op='+op, function(data){
+	// 		resthour = data;
+	// 		if((resthour || resthour == 0) && op!=11){
+	// 		$("#restnbr").html('');				
+	// 		$("#restnbr").html('(<span class="badge bg-green">剩：'+resthour+'</span>)');				
+	// 	}else if(op == 11){
+	// 		$("#restnbr").html('');
+	// 	};
+	// 	});	
+	// 	layer.close(index);
+	// };
+
+
+	//获取基本信息	
+	function get_basic_info(){
+		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
+		var index = layer.load(1, {shade: [0.1,'#fff']});
+		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
+			if(data.prob){
+				prob = '';
+				$.each(data.prob, function(i, v){
+					prob = prob + '<option>'+v['prob_info']+'</option>';
+				});
+				$("#prob").html('<option value="">请选择</option>'+prob);
+			}else{
+				$("#having_prob").html('<input type="text" id="prob" name="prob" hidden="hidden">').removeClass("form-group");
+			};
+			if(data.op_list){
+				ope = '';
+				$.each(data.op_list, function(ii, vv){
+					ope = ope + '<option value="'+vv['op_id']+'">'+vv['op_id']+' '+vv['op_name']+'</option>';
+				});
+				$("#operation").html('<option value="">请选择</option>'+ope);
+			}else{
+				layer.msg('没有读取到你的工步清单数据，请确认！', {icon: 2, time:2000});
+			};
+			checkUser(data);
+			// if(data.user){
+			// 	try{
+			// 		$('#cost_rate').val(data.user[0].cost_rate);
+			// 		$('#quote').val(data.user[0].quote);
+			// 		$('#original_group').val(data.user[0].original_group);
+			// 		$('#work_group').val(data.user[0].work_group);
+			// 		if(data.user[0].cost_rate == 0){
+			// 			// throw "你的费率设置不完整，无法报工"
+			// 			//删除这个
+			// 			$('#cost_rate').val(20);
+			// 		}
+			// 	}catch(e){
+			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
+			// 		layer.load(2, {shade: [0.1,'#fff']});
+			// 	}
+
+			// }else{
+			// 	layer.msg('你的后台数据配置不完整，请联系管理员!', {icon: 2, time:2000});
+			// }
+			layer.close(index);
+		});
+	};	
+	
+	// function makep(){
+	// 	window.parent.getmachine();
+	// 	var index = parent.layer.getFrameIndex(window.name);
+	// 	setTimeout(function(){
+	// 	  parent.layer.close(index);
+	// 	}, 1000);		
+	// }
+	
+	$(document).ready(function(){
+	   get_basic_info();
+	   //get_info();
+		//get date from url parameter
+		$("#input_date").val(getQueryVariable("date"));
+		$("#input_date").attr("readonly", "readonly");
+		//validation before submit
+		$("#machining").submit(function(e){
+			e.preventDefault();
+			$("#contract").val($("#sfg").val());
+			t = $(this).serializeArray();
+			datas = {};
+			$.each(t, function(){
+				datas[this.name] = this.value;
+			});
+			datas['standard'] =  datas['standard_basic'] * datas['quote'] / datas['cost_rate'];
+			delete datas['standard_basic'];
+			var form = $(this);
+			// alert(JSON.stringify(datas));
+			// return false;
+			if (form.parsley( 'isValid' )){
+				//ajax提交Form数据
+				$.ajax({
+						type:'post',
+						//url:"{% url 'valuehour:get_machine' %}",
+						url:"/jzgs/saveManHours/",
+						data:{'data':JSON.stringify(datas)},
+						dataType:'json',
+						error:function(response){
+							layer.msg('接收失败，错误代码:'+response, {icon: 2, time:2000});
+							makep();
+						},
+						success:function(response){
+							if(response == 'success'){
+								layer.msg('提交成功！', {icon: 1});
+								makep();
+							}else{
+								layer.msg('接收失败，错误代码:'+response, {icon: 2, time:2000});
+								console.log(response);
+								makep();								
+							}
+						}
+					});//end
+			};
+		});
+	});
+	</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+﻿{
+	"class":"machine",
+	"id":1,
+	"sfg":3112,
+	"product_type":"TORO PERFORMANCE 20.33.15",
+	"op":30,
+	"prob":"testing",
+	"qty":12,
+	"standard":9,
+	"real_time":11,
+	"date": "2019-08-19",
+	"activate": 1
+}

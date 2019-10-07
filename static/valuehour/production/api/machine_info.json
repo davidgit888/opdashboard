@@ -1,0 +1,9 @@
+﻿{
+	"sfg": "1999",
+	"product_type": "teseing",
+	"op":[21,31,41,51,61],
+	"prob":["prob1", "prob2", "prob3", "prob4"],
+	"standard":12,
+	"cost_rate":100,
+	"quote":123
+}

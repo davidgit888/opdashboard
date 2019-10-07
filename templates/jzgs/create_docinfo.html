@@ -1,0 +1,53 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery-1.9.1.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet"> 
+<script>
+    //window.onload=function(){
+        var docs_types = [];
+        {% for i in doc_type %}
+            docs_types.push('{{i.type_id}}')
+        {% endfor %}
+        
+    //};
+    
+    function save_doc(){
+        
+        var doc_data = {}
+        var sfg = $('#sfg').val();
+        doc_data['sfg'] = sfg;
+        for(i=0;i<docs_types.length;i++){
+            doc_data[docs_types[i]] = $("#"+docs_types[i]).val();
+        }
+        //alert(doc_data['sn']);
+        if(sfg){
+            $.get("/report/save_doc_info/",doc_data, function(ret){
+            alert(ret);
+            }); 
+        }else{
+            alert('请输入SFG');
+        }
+        
+    }
+
+</script>
+   
+<div left='10px'>
+    <br/><br/>
+    <fieldset>
+        <p></p>
+        
+        <legend>创建归档记录</legend>
+        <h1>创建归档记录</h1>
+        <label>SFG</label>
+        <input type='text' id='sfg' name='sfg'>
+        <br/><br/>
+        {% for i in doc_type %}
+            <label>{{i.type}}</label>
+            <input id='{{i.type_id}}'>
+            <br/><br/>
+        {% endfor %}
+    
+        <br/><br/>
+        <input type='button' onclick='save_doc()' value='提交'>
+    </fieldset>
+</div>

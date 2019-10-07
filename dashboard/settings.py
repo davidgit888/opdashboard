@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,11 +48,21 @@ INSTALLED_APPS = [
     'shortageConf.apps.ShortageconfConfig',
     'report.apps.ReportConfig',
     'smallparts.apps.SmallpartsConfig',
+    'jzgs.apps.JzgsConfig',
+    
     # 'django_crontab',
     #'OpReport.apps.OpreportConfig',
 
     
 ]
+
+# CORS_ORIGIN_WHITELIST = (
+#     '127.0.0.1:8080',
+#     'localhost:8080',
+#     '10.136.24.100',
+# )
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
 # 最简单配置
 # CRONJOBS = [
@@ -59,10 +70,11 @@ INSTALLED_APPS = [
 #     ('01 * * * *', 'op.views.crontTest')
 # ]
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

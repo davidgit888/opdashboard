@@ -1,0 +1,45 @@
+
+{% load staticfiles %}
+<link href="{% static 'css/table.css' %}" rel="stylesheet">  
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+<script>
+    function save_comments(){
+        var comm = $('#comments').val().replace(/\n/g, ",");
+        
+        
+        document.forms[0].action = '/report/create_new_sfg_comments/?sfg='+'{{sfg}}'+'&comments='+comm;
+    };
+
+     function selfClose(){
+            window.close();
+    }
+</script>
+<div style='text-align:center;'>
+    <br/><br/>
+    <h2>创建SFG备注信息</h2>
+    <p style='color:red'>{{message}}</p>
+
+    <br/>
+    <div border=1>
+        <form onsubmit='save_comments()' action="/report/" method='post'>
+            {% csrf_token %}
+            <label>SFG: </label>
+            <input type='text' id='sfg' name='sfg' value='{{sfg}}' readonly="readonly">
+            <br/><br/>
+
+            <label>备注:</label>
+            <br/><br/>
+            <textarea id='comments' name='comments' typle = 'text' maxlength="200" style="width:250px;height:250px;" name="comments" value=''></textarea>
+                                
+            
+            <br/>
+            <input type='submit'  value='保存'>
+            &nbsp&nbsp&nbsp&nbsp
+             <input type='button' value='不保存' onclick='selfClose()'>
+             &nbsp&nbsp&nbsp&nbsp
+             <input type='button' value='关闭' onclick='selfClose()'>
+        </form>
+        
+        
+    </div>
+</div>

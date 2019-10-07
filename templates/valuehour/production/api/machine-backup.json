@@ -1,0 +1,19 @@
+﻿{
+    "machine":[
+        {"SFG":1667,"OP":"滑架","STANDARD":3.5,"REAL":4.2, "TYPE":"TORO PERFORMANCE 20.33.15", "QTY":2},
+        {"SFG":1669,"OP":"底座","STANDARD":7.6,"REAL":5.6, "TYPE":"TORO ADVANTAGE 20.35.25", "QTY":1}
+    ],
+    "assistance":[
+        {"CATEGORY":"日常","ITEMS":"休息","HOUR":2},
+        {"CATEGORY":"培训","ITEMS":"组外","HOUR":2.3},
+        {"CATEGORY":"搬运","ITEMS":"花岗石","HOUR":1.2}
+    ],
+    "borrow":[
+        {"CATEGORY":"服务支持","COMMENTS":"去xxx支持项目","HOUR":7.6,"ATTACHMENT":"附件名称1"},
+        {"CATEGORY":"展会支持","COMMENTS":"去支持xxx展会","HOUR":2,"ATTACHMENT":"附件名称2"},
+        {"CATEGORY":"预验收","COMMENTS":"支持xxx的预验收","HOUR":5,"ATTACHMENT":"附件名称3"}
+    ],
+    "total_hours":7.9,
+    "date":"2019-08-19",
+    "activate":1
+}

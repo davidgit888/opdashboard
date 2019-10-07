@@ -1,0 +1,11 @@
+﻿{
+	"table":"machine",
+	"id":123,
+	"sfg": "1999",
+	"product_type": "teseing",
+	"op":"21",
+	"prob":"testing",
+	"standard":12,
+	"real_time":13,
+	"date":"2019-08-29"
+}

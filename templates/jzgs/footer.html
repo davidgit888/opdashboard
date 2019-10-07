@@ -1,0 +1,177 @@
+        <!-- footer content -->
+        <footer>
+          <div class="pull-right" id="test">
+            Gentelella - Bootstrap Admin Template by <a href="https://colorlib.com">Colorlib</a>
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+        <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript">
+
+    function get_worker(year, q){
+      //
+      $.getJSON("/jzgs/getWorkerValue/?year="+year+"&quarter="+q, function(data){
+        if(data){
+          $("#this_quarter").html(data.this_quarter+'H');
+          $("#whole_year").html(data.whole_year+'H');
+          $("#quarter").html(year+'/Q'+q);
+        }
+      })//
+    }
+
+    $("#baogong").click(function(){
+      $(this).removeAttr("href");
+      //获取日期
+      var now = new Date();
+      var year = now.getFullYear();
+      var month = now.getMonth() + 1;
+      var day = now.getDate();
+      today = year + '-'+month + '-'+day;
+      // alert("hrefd");
+      window.location.href = "{% url 'valuehour:baogong' %}?date="+today;
+      // $("this").href="{% url 'valuehour:baogong' %}?date="+today;
+    });
+
+  function get_manangement(year, q){
+        //
+        result = '';
+      $.getJSON("/jzgs/getRecoverate/?year="+year+"&quarter="+q, function(data){        
+        if(data){
+          result = data;
+          for (k in data)
+          {
+            $("#this_quarter").html(data[k]*100+'%');
+            $("#whole_year_title").html('<i class="fa fa-line-chart"></i>全年Recover Rate');
+            $("#this_quarter_title").html('<i class="fa fa-line-chart"></i> <a href="javascript:void(0)" id="quarter" class="green"></a>&nbspR Rate');
+            //暂时放季度的指标，TODO
+            // $("#whole_year").html('暂无%');
+            $("#quarter").html(year+'/Q'+q);
+          }
+        }
+      })//
+
+      $.getJSON("/jzgs/getRecoverate/?year="+year+"&quarter=9", function(data){//begin JSON
+        if(data){//begin if
+          for (j in data){//begin for
+            $("#whole_year").html(data[j]*100+'%');
+          }//end for
+        }//end if
+      });//end JSON 
+
+      return result;
+  }
+
+    function up(condition, property){
+      quarter = parseInt($("#quarter").html().split('/')[1].replace('Q',''));
+      if(condition == 'plus'){
+      quarter += 1;        
+    }else if(condition == 'minus'){
+      quarter -= 1;
+    }
+
+      if (quarter == 5){
+        quarter =1;
+      }else if(quarter == 0){
+        quarter =4;
+      }
+      var now= new Date();
+      if (property == 'yuangong'){
+        get_worker(now.getFullYear(), quarter);        
+      }else{
+        get_manangement(now.getFullYear(), quarter);
+      }
+
+    }
+
+
+		$(document).ready(function(){
+
+          //获取日期
+          var now = new Date();
+          var year = now.getFullYear();
+          var month = now.getMonth() + 1;
+          var day = now.getDate();
+          today = year + '-'+month + '-'+day;
+
+          if(month >1 && month <=3){
+            q = 1;
+          }else if(month >3 && month <=6){
+            q = 2;
+          }else if(month >6 && month<=9){
+            q = 3;
+          }else if(month >9 && month <=12){
+            q = 4;
+          }
+
+
+          // document.getElementById("baogong").href = "{% url 'valuehour:baogong' %}?date="+today;
+          // function addhref(){
+          //   alert("sdfsdf");
+          //   $(this).href = '?date=2019-09-20';
+          // }
+          // document.getElementById("baogong").onclick = window.open('/jzgs/baogong/');         
+
+
+					// $('#user_name').html('{{ request.user.last_name }}{{ request.user.first_name }}');
+					// $('#banner_name').html('{{ request.user.last_name }}{{ request.user.first_name }}');
+          $.ajaxSettings.async = false; 
+          $.getJSON('/jzgs/getWorkerOpProb/', function(data){
+            role = data.role;
+            current_path = '{{request.path}}';
+            if(role =='报工平台-员工'){
+              $("#nav_baogong").css("display", "block");
+              if (current_path=='/jzgs/shenhe/'){
+                layer.msg('你没有该界面的权限,跳转至主页... ...', {icon: 1});
+                window.location.href = '/jzgs/';
+              }
+            }else if(role == '报工平台-班组长'){
+              if (current_path=='/jzgs/baogong/'){
+                layer.msg('你没有该界面的权限,跳转至主页... ...', {icon: 1});
+                window.location.href = '/jzgs/';
+              }              
+              $("#nav_shenhe").css("display", "block");
+            }else{
+              $("#nav_baogong").css("display", "block");  
+              $("#nav_shenhe").css("display", "block");            
+            }
+            path = '{{request.path}}';
+            //当在首页
+            if (path == '/jzgs/'){
+              //如果是员工角色
+            if(role && role == '报工平台-员工'){
+              get_worker(year, q);
+              $("#downs").click(function(){
+                up("minus", "yuangong");
+              });
+              $("#ups").click(function(){
+                up("plus", "yuangong");
+              });
+              //如果非员工角色
+            }else{
+              //on downs
+              res_mam = get_manangement(year, q);
+              $("#downs").click(function(){
+                up("minus", "feiyuangong");
+              });
+              //on ups
+              $("#ups").click(function(){
+                up("plus", "feiyuangong");
+              });
+
+              if(role == '报工平台-主管' || role =='报工平台-经理'){
+                string = '';
+                $.each(res_mam, function(i, v){
+                  string += i+' : '+v*100+'%\n';
+                });
+                $("#this_quarter").attr("title", '***本季度***班组情况：\n'+string);
+              }
+            }
+            }
+
+          })//end json
+          $.ajaxSettings.async = true; 
+          // document.getElementById("baogong").href = "{% url 'valuehour:baogong' %}?date="+today;
+		});
+
+        </script>
+        <!-- /footer content -->

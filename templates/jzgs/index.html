@@ -1,0 +1,280 @@
+
+<!-- 
+<div class="right_col" role="main">
+<h1 >Testjfiaejwiofjioaweiofioawejigvjaeriojiwrjafiejifj</h1>
+</div> -->
+
+<div>
+	<h1>Testing</h1>
+
+
+	<input type="button" name="test" value="Test" onclick="testfunc()">
+	<script type="text/javascript">
+		function testfunc(){
+			$.ajax({
+				type:"POST",
+				url: "/jzgs/test/",
+				data:{'sfg':'123','op':'50'},
+				dataType: "json",
+				success:function(data){
+					alert(data);
+				},
+				error: function(res){
+	                    alert('error');
+	            }
+			})
+		}
+	</script>
+	<br/><br/>
+
+	<input type="button" name="test" value="制造工时提交" onclick="saveManHours()">
+	<script type="text/javascript">
+		function saveManHours(){
+			'{% csrf_token %}'
+			data = {		
+				'contract':"ABC",
+				'sfg':1235,
+				'product_type':"Global S",
+				'op': 51,
+				'prob': "abc",
+				'qty':0.5,
+				'standard':2,
+				'real_time':1.5,
+				'cost_rate':100,
+				'quote':100,
+				'date':'2019-01-01',
+				'original_group':'数据-装配组A',
+				'work_group':'数据-装配组A',			
+			}
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/saveManHours/",
+				data: {'data':JSON.stringify(data)},
+				dataType: 'json',
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert(res);
+				}
+			})
+		}
+	</script>
+	<br/><br/>
+	<input type="button" name="fuzhu" value="辅助工时提交" onclick="saveAssitance()">
+	<script type="text/javascript">
+		function saveAssitance(){
+			'{% csrf_token %}'
+			data = {
+				
+				'contract':"ABC1",
+				// 'a_type':'生产外工时',
+				// 'a_category':"培训工时",
+				'a_subject': '外部培训',
+				'real_time':1.6,
+				'cost_rate':100,
+				'standard': 2,
+				'quote':100,
+				'expense': 0,
+				'date':'2019-01-01',
+				'original_group':'数据-装配组A',
+				'work_group':'数据-装配组A',
+				'b_category':'',
+				'b_subject':'',	
+				'comments':'comments test',	
+				'quality_no':'hmq123'		
+			}
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/saveAssistance/",
+				data: {'data':JSON.stringify(data)},
+				dataType: "json",
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert(res);
+				}
+			})
+		}
+	</script>
+	<br/><br/>
+	<input type="button" name="fuzhu" value="辅助工时更新" onclick="updateAssitance()">
+	<script type="text/javascript">
+		function updateAssitance(){
+			data = {"data":[
+				{	
+				'id':98,
+				'type':'assistance',
+				'action':'update',
+				'b_category':"培训工时1",
+				'b_subject': '外部培训1',
+				'confirmed':1.6,
+				'expense':0,
+				'comments':'comments0',	
+				'expense_hour':10,	
+			}
+			]}
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/updateWorkerValue/",
+				data: {'data':JSON.stringify(data)},
+				dataType: "json",
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert(res);
+				}
+			})
+		}
+	</script>
+	<br/><br/>
+	<input type="button" name="test" value="删除辅助时" onclick="deleteAssis()">
+	<script type="text/javascript">
+		function deleteAssis(){
+			data = {"data":[{			
+				'id':10,
+				'type':'assistance',
+				'action':'delete',
+			} 
+			]}
+			alert(JSON.stringify(data));
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/updateWorkerValue/",
+				data: {'data':JSON.stringify(data)},
+
+				dataType: "json",
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert("not ok");
+				}
+			})
+		}
+	</script>
+	<br/><br/>
+	<input type="button" name="test" value="删除制造工时51" onclick="deleteManHours()">
+	<script type="text/javascript">
+		function deleteManHours(){
+			'{% csrf_token %}'
+			// data = {			
+			// 	'id':60,
+			// 	'type':'machine',
+			// 	'confirmed':2,	
+			// 	'action':'delete',
+			// }
+			// $.ajax({
+			// 	type:"POST",
+			// 	url:"/jzgs/updateWorkerValue/",
+			// 	data: {'data':JSON.stringify(data)},
+			// 	dataType: "json",
+			// 	success:function(res){
+			// 		alert(res);
+			// 	},
+			// 	error: function(res){
+			// 		alert("not ok");
+			// 	}
+			// })
+			// obj = {"data":[
+			// 	{   
+			//        'id':60,
+			//        'type':'machine',
+			//        'action':'delete',
+		 //   		}	
+	  //     	]};
+
+	  obj = {"data":[{			
+				'id':60,
+				'type':'machine',
+				'action':'delete',
+			}
+			]} 
+
+	   alert(JSON.stringify(obj));
+
+	   $.ajax({
+	     type:'post',
+	     url:"/jzgs/updateWorkerValue/",
+	     data:{"data":JSON.stringify(obj)},
+	     //dataType:'text',
+	     error:function(response){
+	   
+	      alert(response);
+	     },
+	     success:function(response){
+	                 alert(response);
+	     }
+	    });//end
+		}
+	</script>
+
+	<input type="button" name="test" value="保存加班工时" onclick="saveOvertime()">
+	<script type="text/javascript">
+		function saveOvertime(){
+			'{% csrf_token %}'
+			data = {			
+				'hour':2,
+				'fee':1,
+				'category':'工作日',
+				'date':'2019-09-10',
+
+			}
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/saveOvertime/",
+				data: {'data':JSON.stringify(data)},
+				dataType: "json",
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert("not ok");
+				}
+			})
+		}
+	</script>
+	<br/><br/>
+	<input type="button" name="test" value="JASON" onclick="getJasonList()">
+	<script type="text/javascript">
+		function getJasonList(){
+			'{% csrf_token %}'
+			data = {"data":[{			
+				'id':10,
+				'type':'assistance',
+				'action':'delete',
+			} , 
+			{
+				'id':9,
+				'type':'assistance',
+				'action':'delete',
+			}]}
+			$.ajax({
+				type:"POST",
+				url:"/jzgs/jsonTest/",
+				data: {"data":JSON.stringify(data)},
+				dataType: "json",
+				success:function(res){
+					alert(res);
+				},
+				error: function(res){
+					alert("not ok");
+				}
+			})
+		}
+	</script>
+
+	<form action="/jzgs/uploadFiles/" method="POST" enctype="multipart/form-data">
+	    {% csrf_token %}
+	    <p>上传文件</p>
+	    <label>Upload Files</label>
+	    <input type="file" value="upload" name='file'>
+	    <input type="text" name="id" id="id" value="38">
+	    <input type="submit" value="Submit">
+	</form>
+	<br/><br/>
+</div>
+
+

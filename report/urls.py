@@ -39,6 +39,10 @@ urlpatterns = [
     path('saveMaterialGet/',views.saveMaterialGet),
     path('saveMaterialSup/',views.saveMaterialSup),
     path('uploadMatrlAprv/',views.uploadMatrlAprv),
+    path('getScheduleTable/', views.getScheduleTable),
+    path('getSchedulePerform/', views.getSchedulePerform),
+    path('getScheduleAnalysis/', views.getScheduleAnalysis),
+    path('getScheduleMaterial/', views.getScheduleMaterial),
     
     #path('upload_excel/',)
 ]

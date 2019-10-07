@@ -1,0 +1,269 @@
+{% extends 'valuehour/production/submit.html' %}
+{% block title %}提交辅助外借工时{% endblock %}
+{% block content %}
+<div class="x_panel">
+  <div class="x_content">
+      <br />
+      <form id="maniassis" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">日期</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="input_date" name="date" class="date-picker form-control col-md-7 col-xs-12" required="required" type="text">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">类别</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+		  <input id="a_type" name="a_type" class="date-picker form-control col-md-7 col-xs-12" required="required" value="辅助制造工时" type="text" readonly="readonly">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">SFG ID</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input type="text" id="sfg" name="contract" required="required" class="form-control col-md-7 col-xs-12" onChange="get_info($(this).val());">
+           <!--  <select  id="sfg" name="contract" required="required" class="form-control col-md-7 col-xs-12"></select> -->
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">科目</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+			  <select class="select2_group form-control" id="sub_types" name="a_subject" required="required">
+			  </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">价值工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="standard_hour" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" name="standard"  readonly="readonly">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">实际工时</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="real_time" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step = "0.01" name="real_time" onchange="calculate()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">备注</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <textarea id="message" class="form-control" name="comments" data-parsley-trigger="keyup" data-parsley-maxlength="1000" data-parsley-minlength-message="不能多于1000个字"
+                            data-parsley-validation-threshold="10"></textarea>
+          </div>
+        </div>
+        <div class="ln_solid"></div>
+        <div class="form-group">
+          <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
+            <!--<button class="btn btn-primary" type="button">Cancel</button>
+                <button class="btn btn-primary" type="reset">Reset</button>-->
+            <button type="submit" class="btn btn-success">提交</button>
+          </div>
+        </div>
+        {% csrf_token %}
+<!--         <input type="text" id="contract" name="contract" hidden="hidden" value="ABC"> -->
+        <input type="text" id="cost_rate" name="cost_rate" hidden="hidden">
+        <input type="text" id="quote" name="quote" hidden="hidden">
+        <input type="text" id="original_group" name="original_group" hidden="hidden">
+        <input type="text" id="work_group" name="work_group" hidden="hidden">
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block js %}
+    <!-- jQuery -->
+    <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/valuehour/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="/static/valuehour/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="/static/valuehour/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
+    <script src="/static/valuehour/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap-wysiwyg -->
+    <script src="/static/valuehour/vendors/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js"></script>
+    <script src="/static/valuehour/vendors/jquery.hotkeys/jquery.hotkeys.js"></script>
+    <script src="/static/valuehour/vendors/google-code-prettify/src/prettify.js"></script>
+    <!-- jQuery Tags Input -->
+    <script src="/static/valuehour/vendors/jquery.tagsinput/src/jquery.tagsinput.js"></script>
+    <!-- Switchery -->
+    <script src="/static/valuehour/vendors/switchery/dist/switchery.min.js"></script>
+    <!-- Select2 -->
+    <script src="/static/valuehour/vendors/select2/dist/js/select2.full.min.js"></script>
+    <!-- Parsley -->
+    <script src="/static/valuehour/vendors/parsleyjs/dist/parsley.min.js"></script>
+    <!-- Autosize -->
+    <script src="/static/valuehour/vendors/autosize/dist/autosize.min.js"></script>
+    <!-- jQuery autocomplete -->
+    <script src="/static/valuehour/vendors/devbridge-autocomplete/dist/jquery.autocomplete.min.js"></script>
+    <!-- starrr -->
+    <script src="/static/valuehour/vendors/starrr/dist/starrr.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="/static/valuehour/build/js/custom.min.js"></script>
+	<script src="/static/valuehour/vendors/layer/layer.js"></script>
+	<script src="/static/valuehour/vendors/pierre/commonjs.js"></script>
+	<script>
+
+	//获取基本信息	
+	function get_basic_info(){
+		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
+		var index = layer.load(1, {shade: [0.1,'#fff']});
+		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
+			checkUser(data);
+			// if(data.user){
+			// 	try{
+			// 		$('#cost_rate').val(data.user[0].cost_rate);
+			// 		$('#quote').val(JSON.parse(data.user[0].flexible).cost);
+			// 		$('#original_group').val(data.user[0].original_group);
+			// 		$('#work_group').val(data.user[0].work_group);	
+			// 		if(data.user[0].cost_rate == 0){
+			// 			throw "你的费率设置不完整，无法报工"
+			// 		}				
+			// 	}catch(e){
+			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
+			// 		layer.load(2, {shade: [0.1,'#fff']});
+			// 	}
+			// }else{
+			// 	layer.msg('没有读取到你的身份信息，请确认！', {icon: 2, time:2000});
+			// }
+			layer.close(index);
+		});
+	};	
+
+	// function get_cat(name){
+	// 	$.getJSON("/jzgs/getBorrowType/", function(data){
+	// 		target = data['category'];
+	// 		result = '';
+	// 		$.each(target, function(i, v){
+	// 			if(v['a_subject'] == name){
+	// 				result = v['a_category'];
+	// 			}
+	// 		})
+	// 		console.log(name);
+	// 		return name;
+	// 	});
+	// }
+
+	function get_types(){
+	//获取api数据
+	$.getJSON("/jzgs/getBorrowType/", function(data){
+		target = data['category'];
+		select_string = "";
+		$.each(target, function(i,v){
+			if(v['a_type'] == "辅助制造工时"){
+				select_string = select_string + '<option>'+v['a_subject']+'</option>';				
+			}
+		});
+		$("#sub_types").html('<option value="">请选择</option>'+select_string);
+	});			
+	};
+
+	// function calculate(){
+	// 	$("#standard_hour").val("");
+	// 	real = $("#real_time").val();
+	// 	quote = $("#quote").val();
+	// 	cost_rate = $("#cost_rate").val();
+	// 	result = real * quote / cost_rate;
+	// 	$("#standard_hour").val(result.toFixed(2));
+	// }	
+	
+		//获取url参数
+	// function getQueryVariable(variable)
+	// {
+	// 	   var query = window.location.search.substring(1);
+	// 	   var vars = query.split("&");
+	// 	   for (var i=0;i<vars.length;i++) {
+	// 			   var pair = vars[i].split("=");
+	// 			   if(pair[0] == variable){return pair[1];}
+	// 	   }
+	// 	   return('');
+	// }
+
+	function get_info(sfgid){
+		var index = layer.load(3, {shade: [0.1,'#fff']});
+		$.getJSON("/jzgs/getProductType/?sfg="+sfgid.replace(/\&/g, "%26"), function(data){
+			if(data.length>0){
+			layer.close(index);	
+			layer.msg('正确的SFG', {icon: 1, time:1000});			
+		}else{
+			layer.close(index);
+			layer.msg('没有查找到SFG,请重试', {icon: 2, time:1000});
+			$("#sfg").val('');
+		};
+		});
+	};	
+
+	// function makep(){
+	// 	window.parent.getmachine();
+	// 	var index = parent.layer.getFrameIndex(window.name);
+	// 	setTimeout(function(){
+	// 	  parent.layer.close(index);
+	// 	}, 1000);		
+	// }
+	
+	$(document).ready(function(){
+	     get_basic_info();
+	     get_types();
+	     res = window.parent.findallsfg();
+	     if (res){
+	     	string = '';
+	     	$.each(res, function(i, v){
+	     		string = string + '<option>'+v+'</option>';
+	     	});
+	     	$("#sfg").html('<option value="">请填写相关SFG</option>'+string);
+	     };
+		//get date from url parameter
+		$("#input_date").val(getQueryVariable("date"));
+		$("#input_date").attr("readonly", "readonly");
+		//validation before submit
+		$("#maniassis").submit(function(e){
+			e.preventDefault();
+			t = $(this).serializeArray();
+			datas = {};
+			$.each(t, function(){
+				datas[this.name] = this.value;
+			})
+			//datas['contract'] = 'ABC';
+			//datas['a_category'] = '';
+			// datas['standard'] = 0;
+			//datas['cost_rate'] = '';
+			//datas['quote'] = '';
+			datas['expense'] = 0;
+			datas['quality_no'] = '';
+			//datas['original_group'] = '';
+			//datas['work_group'] = '';
+			datas['b_category'] = '';
+			datas['b_subject'] = '';
+			var form = $(this);
+			if (form.parsley( 'isValid' )){
+				//ajax提交Form数据
+				$.ajax({
+						type:'post',
+						url:"/jzgs/saveAssistance/",
+						data:{'data':JSON.stringify(datas)},
+						//dataType:'text',
+						error:function(response){
+							console.log(response);
+							alert('提交失败！');
+						},
+						success:function(response){
+							if(response == '"success"'){
+								layer.msg('提交成功！', {icon: 1});
+								// alert("提交数据为："+JSON.stringify(datas));
+								makep();
+							}else{
+								layer.msg('接收失败，错误代码:'+response, {icon: 2});
+								console.log(response);
+								makep();								
+							}
+						}
+					});//end
+			};
+		});
+	});
+	</script>
+{% endblock %}

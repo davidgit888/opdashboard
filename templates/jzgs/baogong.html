@@ -1,0 +1,462 @@
+{% extends 'valuehour/production/base.html' %}
+{% block title %}价值工时--报表{% endblock %}
+{% block content %}
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+          <div class="row tile_count" style="margin-left: 4%">
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center;padding-bottom: 0px;padding-top: 15px;">
+              <span class="count_top"><i class="fa fa-clock-o"></i> 填报制造工时</span>
+              <div class="count" id="title_zhizao">...</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px;padding-top: 15px;">
+              <span class="count_top"><i class="fa fa-clock-o"></i> 填报辅助工时</span>
+              <div class="count" id="title_fuzhu">...</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px;padding-top: 15px;">
+              <span class="count_top"><i class="fa fa-clock-o"></i> 填报加班工时</span>
+              <div class="count" id="title_jiaban">...</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px; padding-top: 15px;">
+              <span class="count_top"><i class="fa fa-yen"></i> 理论价值工时</span>
+              <div class="count" id="title_jiazhi">...</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px;padding-top: 15px;">
+              <span class="count_top"><i class="fa fa-yen"></i> 确认价值工时</span>
+              <div class="count" id="title_queren">...</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px;padding-top: 15px;">
+              <a href="javascript:void(0);" id="downs"><i class="fa fa-toggle-down"></i></a>
+              <span class="count_top green" id="this_quarter_title"><i class="fa fa-yen"></i> <a href="javascript:void(0)" id="quarter" class="green"></a>价值工时</span>
+              <a href="javascript:void(0)" id="ups"><i class="fa fa-toggle-up"></i></a>              
+              <div class="count green" id="this_quarter">计算中...</div>
+
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="width: 13%; text-align: center; padding-bottom: 0px;padding-top: 15px;">
+              <span class="count_top green" id="whole_year_title"><i class="fa fa-yen"></i> 全年价值工时</span>
+              <div class="count green" id="whole_year">计算中...</div>
+            </div>            
+<!--               <div class="btn-group" role="group" aria-label="First group">
+                <button type="button" class="btn btn-default btn-sm"><<</button>
+                <button type="button" class="btn btn-default btn-sm">>></button>
+              </div> -->
+
+          </div>
+          <!-- /top tiles -->
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="dashboard_graph">
+
+                <div class="row x_title">
+                  <div class="col-md-6">
+                    <h3>详细记录<small>&nbsp<i class="fa fa-calendar"></i></small>&nbsp<small id="title_date"></small></h3>
+                  </div>
+                  <div class="col-md-6">
+                    <div id="report_range" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                      <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                      <span>请输入日期</span> <b class="caret"></b>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                <!--table begin -->
+                <div class="x_content">
+                    <p class="text-muted font-13 m-b-30">
+                    </p>
+                    <!---begin acc-->
+
+                    <div class="x_content">
+
+
+                    <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                      <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
+                        <li role="presentation" class="active"><a href="#tab_content1" id="home-tab" role="tab" data-toggle="tab" aria-expanded="true">制造工时</a>
+                        </li>
+                        <li role="presentation" class=""><a href="#tab_content2" role="tab" id="profile-tab" data-toggle="tab" aria-expanded="false">非制造工时</a>
+                        </li>
+                        <li role="presentation" class=""><a href="#tab_content3" role="tab" id="profile-tab2" data-toggle="tab" aria-expanded="false">加班工时</a>
+                        </li>
+                        <li role="presentation" class=""><a href="#tab_content4" role="tab" id="profile-tab2" data-toggle="tab" aria-expanded="false">类别汇总</a>
+                        </li>
+                      </ul>
+                      <div id="myTabContent" class="tab-content">
+                        <div role="tabpanel" class="tab-pane fade active in" id="tab_content1" aria-labelledby="home-tab">
+		                    <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+		                      <thead>
+		                        <tr>
+		                          <th>合同号</th>
+		                          <th>SFG</th>
+		                          <th>产品类型</th>
+		                          <th>数量</th>
+		                          <th>填报工时</th>
+		                          <th>价值工时</th>
+		                          <th>确认工时</th>
+		                          <th>用户名</th>
+		                          <th>日期</th>
+		                        </tr>
+		                      </thead>
+		                      <tbody>
+		                      </tbody>
+		                    </table>
+                        </div>
+                        <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab">
+                        <table id="datatable-responsive1" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                          <thead>
+                            <tr>
+                              <th>合同号</th>
+                              <th>属性</th>
+                              <th>类别1</th>
+                              <th>类别2</th>
+                              <th>科目1</th>
+                              <th>科目2</th>
+                              <th>填报工时</th>
+                              <th>价值工时</th>
+                              <th>确认工时</th>
+                              <th>期间费用</th>
+                              <th>备注</th>
+                              <th>附件</th>
+                              <th>用户名</th>
+                              <th>日期</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          </tbody>
+                        </table>
+                        </div>
+                        <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="profile-tab">
+                        <table id="datatable-responsive2" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                          <thead>
+                            <tr>
+                              <th>加班类型</th>
+                              <th>申请加班费</th>
+                              <th>加班小时</th>
+                              <th>用户名</th>
+                              <th>日期</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          </tbody>
+                        </table>
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane fade" id="tab_content4" aria-labelledby="profile-tab">
+
+                          <div class="panel-body">
+                            <table class="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th>类型</th>
+                                  <th>填报工时</th>
+                                  <th>价值工时</th>
+                                  <th>确认工时</th>
+                                  <th>期间费用</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <th scope="row">制造工时</th>
+                                  <td id="machine_tianbao"></td>
+                                  <td id="machine_jiazhi"></td>
+                                  <td id="machine_queren"></td>
+                                  <td>x</td>
+                                </tr>
+                                <tr>
+                                  <th scope="row">非制造工时</th>
+                                  <td id="fuzhu_tianbao"></td>
+                                  <td id="fuzhu_jiazhi"></td>
+                                  <td id="fuzhu_queren"></td>
+                                  <td id="fuzhu_feiyong"></td>
+                                </tr>
+                                <tr>
+                                  <th scope="row">加班工时</th>
+                                  <td id="jiaban_tianbao"></td>
+                                  <td>x</td>
+                                  <td>x</td>
+                                  <td>x</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                        </div>
+
+
+                      </div>
+                    </div>
+
+                  </div>
+
+
+                    <!---end acc -->
+					
+					
+                  </div>
+
+                <!--table end -->
+
+                </div>
+
+
+                <div class="clearfix"></div>
+              </div>
+            </div>
+
+          </div>
+          <br />
+          </div>
+        </div>
+        <!-- /page content -->
+{% endblock %}
+{% block js %}
+    <!-- jQuery -->
+    <script src="/static/valuehour/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="/static/valuehour/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="/static/valuehour/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="/static/valuehour/vendors/nprogress/nprogress.js"></script>
+    <!-- Chart.js -->
+    <script src="/static/valuehour/vendors/Chart.js/dist/Chart.min.js"></script>
+    <!-- gauge.js -->
+    <script src="/static/valuehour/vendors/gauge.js/dist/gauge.min.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
+    <!-- Skycons -->
+    <script src="/static/valuehour/vendors/skycons/skycons.js"></script>
+    <!-- Flot -->
+    <script src="/static/valuehour/vendors/Flot/jquery.flot.js"></script>
+    <script src="/static/valuehour/vendors/Flot/jquery.flot.pie.js"></script>
+    <script src="/static/valuehour/vendors/Flot/jquery.flot.time.js"></script>
+    <script src="/static/valuehour/vendors/Flot/jquery.flot.stack.js"></script>
+    <script src="/static/valuehour/vendors/Flot/jquery.flot.resize.js"></script>
+    <!-- Flot plugins -->
+    <script src="/static/valuehour/vendors/flot.orderbars/js/jquery.flot.orderBars.js"></script>
+    <script src="/static/valuehour/vendors/flot-spline/js/jquery.flot.spline.min.js"></script>
+    <script src="/static/valuehour/vendors/flot.curvedlines/curvedLines.js"></script>
+    <!-- DateJS -->
+    <script src="/static/valuehour/vendors/DateJS/build/date.js"></script>
+    <!-- JQVMap -->
+    <script src="/static/valuehour/vendors/jqvmap/dist/jquery.vmap.js"></script>
+    <script src="/static/valuehour/vendors/jqvmap/dist/maps/jquery.vmap.world.js"></script>
+    <script src="/static/valuehour/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
+    <script src="/static/valuehour/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+    <!-- Datatables -->
+    <script src="/static/valuehour/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
+    <script src="/static/valuehour/vendors/datatables.net-scroller/js/dataTables.scroller.min.js"></script>
+    <script src="/static/valuehour/vendors/jszip/dist/jszip.min.js"></script>
+    <script src="/static/valuehour/vendors/pdfmake/build/pdfmake.min.js"></script>
+    <script src="/static/valuehour/vendors/pdfmake/build/vfs_fonts.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="/static/valuehour/build/js/custom.min.js"></script>
+      <script src="/static/valuehour/vendors/layer/layer.js"></script>
+    <script type="text/javascript">console.log(localStorage.getItem("sidebar"));</script>
+
+
+    <script type="text/javascript">
+
+$("#report_range").daterangepicker();
+
+function init_daterangepicker(){if("undefined"!=typeof $.fn.daterangepicker){console.log("init_daterangepicker");var a=function(a,b,c){console.log(a.toISOString(),b.toISOString(),c),$("#title_date").html(a.format("YYYY-MM-DD")+" to "+b.format("YYYY-MM-DD")),$("#report_range span").html(a.format("YYYY-MM-DD")+" to "+b.format("YYYY-MM-DD"))},b={startDate:moment().subtract(29,"days"),endDate:moment(),minDate:"01/01/2019",maxDate:"12/31/2035",dateLimit:{days:660},showDropdowns:!0,showWeekNumbers:!0,timePicker:!1,timePickerIncrement:1,timePicker12Hour:!0,ranges:{Today:[moment(),moment()],Yesterday:[moment().subtract(1,"days"),moment().subtract(1,"days")],"Last 7 Days":[moment().subtract(6,"days"),moment()],"Last 30 Days":[moment().subtract(29,"days"),moment()],"This Month":[moment().startOf("month"),moment().endOf("month")],"Last Month":[moment().subtract(1,"month").startOf("month"),moment().subtract(1,"month").endOf("month")]},opens:"left",buttonClasses:["btn btn-default"],applyClass:"btn-small btn-primary",cancelClass:"btn-small",format:"MM/DD/YYYY",separator:" to ",locale:{applyLabel:"Submit",cancelLabel:"Clear",fromLabel:"From",toLabel:"To",customRangeLabel:"Custom",daysOfWeek:["Su","Mo","Tu","We","Th","Fr","Sa"],monthNames:["January","February","March","April","May","June","July","August","September","October","November","December"],firstDay:1}};$("#report_range span").html(moment().subtract(29,"days").format("YYYY-MM-DD")+" to "+moment().format("YYYY-MM-DD")),$("#report_range").daterangepicker(b,a),$("#report_range").on("show.daterangepicker",function(){console.log("show event fired")}),$("#report_range").on("hide.daterangepicker",function(){console.log("hide event fired")}),$("#report_range").on("apply.daterangepicker",function(a,b){get_data(b.startDate.format("YYYY-MM-DD"), b.endDate.format("YYYY-MM-DD"));console.log("apply event fired, start/end dates are "+b.startDate.format("MMMM D, YYYY")+" to "+b.endDate.format("MMMM D, YYYY"))}),$("#report_range").on("cancel.daterangepicker",function(a,b){console.log("cancel event fired")}),$("#options1").click(function(){$("#report_range").data("daterangepicker").setOptions(b,a)}),$("#options2").click(function(){$("#report_range").data("daterangepicker").setOptions(optionSet2,a)}),$("#destroy").click(function(){$("#report_range").data("daterangepicker").remove()})}};
+
+init_daterangepicker();
+
+function get_role(){
+  $.getJSON("/jzgs/getWorkerOpProb/", function(data){
+      role = data.role;
+  });
+  return role;
+}
+
+function parse_data_management(url){
+  // url = "/jzgs/getManAssiOverValue/?date="+begin+"&end_date="+end;
+  $.ajaxSetup({async:false});
+  $.getJSON(url, function(data){
+      console.log(data);
+      machines = [];
+      assistances = [];
+      overtimes = [];
+      $.each(data, function(i, v){
+        if(v.machine){
+          machines=machines.concat(v.machine);
+        }
+        if(v.assistance){
+          assistances=assistances.concat(v.assistance);
+        }
+        if(v.overtime){
+          overtimes=overtimes.concat(v.overtime);
+        }
+      });
+      //end each
+  });
+  $.ajaxSetup({async:true});
+  console.log({'machines':machines, 'assistances':assistances, 'overtimes':overtimes});
+  return {'machines':machines, 'assistances':assistances, 'overtimes':overtimes};
+}
+
+function parse_data_worker(url){
+  machines = [];
+  assistances = [];
+  overtimes = [];
+  $.ajaxSetup({async:false});
+  $.getJSON(url, function(data){
+          if(data){
+            for(v in data){
+              detail = data[v];
+              machines= detail.machine;
+              assistances=detail.assistance;
+              overtimes=detail.overtime;           
+            }
+          }
+        }); 
+  $.ajaxSetup({async:true});
+  //end
+  return {'machines':machines, 'assistances':assistances, 'overtimes':overtimes};
+}
+
+
+function get_data(begin, end){
+  var index = layer.load(1, {shade: [0.1,'#fff']});
+  //begin
+  if (begin && end){
+    url = "/jzgs/getManAssiOverValue/?date="+begin+"&end_date="+end;    
+  }else if(begin && !end){
+    url = "/jzgs/getManAssiOverValue/?date="+begin;
+  }
+
+  //judge role
+  current_role = get_role();
+  console.log(current_role);
+  if ( current_role == '报工平台-员工'){
+    target = parse_data_worker(url);
+    console.log("走员工数据");
+  }else{
+    target = parse_data_management(url);
+    console.log("走班组长数据");
+  };
+  // console.log(target);
+
+      total_value = 0;
+      total_queren = 0;
+      //treat machine
+      $("#datatable-responsive").dataTable().fnClearTable();
+      $("#datatable-responsive").dataTable().fnDestroy();
+      $('#datatable-responsive').DataTable({                  
+          data: target['machines'],
+          drawCallback: function () {
+              var api = this.api();
+              $("#machine_tianbao").html(api.column( 4 ).data().sum().toFixed(1));
+              $("#title_zhizao").html(api.column( 4 ).data().sum().toFixed(1)+'H');
+              $("#machine_jiazhi").html(api.column( 5 ).data().sum().toFixed(1));
+              total_value += api.column( 5 ).data().sum();
+              total_queren += api.column( 6 ).data().sum();
+              $("#machine_queren").html(api.column( 6 ).data().sum().toFixed(1));
+          },
+          "aaSorting" : [[7, "asc"],[8,"asc"]],
+          columns: [
+              {data: 'contract'},
+              {data: 'sfg'},
+              {data: 'product_type'},
+              {data: 'qty'},
+              {data: 'real_time'},
+              {data: 'standard', render: $.fn.dataTable.render.number('', '.', 2, '')},
+              {data: 'confirmed'},
+              {data: 'username'},
+              {data: 'date'}
+          ]
+      });
+      //machine end
+      //assistance begin
+      $("#datatable-responsive1").dataTable().fnClearTable();
+      $("#datatable-responsive1").dataTable().fnDestroy();
+      $('#datatable-responsive1').DataTable({
+          data: target['assistances'],
+          drawCallback: function () {
+              var api = this.api();
+              $("#fuzhu_tianbao").html(api.column( 6 ).data().sum().toFixed(1));
+              $("#title_fuzhu").html(api.column( 6 ).data().sum().toFixed(1)+'H');
+              $("#fuzhu_jiazhi").html(api.column( 7 ).data().sum().toFixed(1));
+              total_value += api.column( 7 ).data().sum();
+              total_queren += api.column( 8 ).data().sum();
+              $("#title_jiazhi").html(total_value.toFixed(1)+'H');
+              $("#title_queren").html(total_queren.toFixed(1)+'H');
+              $("#fuzhu_queren").html(api.column( 8 ).data().sum().toFixed(1));
+              $("#fuzhu_feiyong").html(api.column( 9 ).data().sum().toFixed(1));
+          },
+          "aaSorting" : [[12, "asc"],[13,"asc"]],
+          columns: [
+              {data: 'contract'},
+              {data: 'a_type'},
+              {data: 'a_category'},
+              {data: 'a_subject'},
+              {data: 'b_category'},
+              {data:'b_subject'},
+              {data:'real_time'},
+              {data:'standard'},
+              {data:'confirmed'},
+              {data:'expense'},
+              {data:'comments'},
+              {data:'attach'},
+              {data:'username'},
+              {data:'date'}
+          ]
+      });
+      //assistance end
+      //overtime begin
+      $("#datatable-responsive2").dataTable().fnClearTable();
+      $("#datatable-responsive2").dataTable().fnDestroy();
+      $('#datatable-responsive2').DataTable({
+          data: target['overtimes'],
+          drawCallback: function () {
+              var api = this.api();
+              $("#jiaban_tianbao").html(api.column( 2 ).data().sum().toFixed(1));
+              $("#title_jiaban").html(api.column( 2 ).data().sum().toFixed(1)+'H');
+          },
+          "aaSorting" : [[3, "asc"],[4,"asc"]],
+          columns: [
+              {data: 'over_time_type'},
+              {data: 'is_paid'},
+              {data: 'over_time'},
+              {data:'user'},
+              {data:'date'}
+          ]
+      });                
+      //overtime end 
+      layer.close(index);   
+  //end
+}
+
+
+jQuery.fn.dataTable.Api.register( 'sum()', function ( ) {
+  return this.flatten().reduce( function ( a, b ) {
+    if ( typeof a === 'string' ) {
+      a = a.replace(/[^\d.-]/g, '') * 1;
+    }
+    if ( typeof b === 'string' ) {
+      b = b.replace(/[^\d.-]/g, '') * 1;
+    }
+
+    return a + b;
+  }, 0 );
+} );
+
+    </script>
+{% endblock %}

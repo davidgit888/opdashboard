@@ -1,0 +1,740 @@
+{% load staticfiles %}
+
+<script src="{% static 'js/Calendar.js' %}"></script>
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+
+<script src="{% static 'js/jquery.tablesorter.js' %}"></script> 
+<link href="{% static 'css/table.css' %}" rel="stylesheet">
+<script src="{% static 'js/jquery.floatThead.js' %}"></script>
+<script>
+	  //show qty that is not 1 in schedule module
+    function showQty(data,id){
+        //document.getElementById(id).style.display = "block";
+        document.getElementById(id).innerHTML = data;
+        document.getElementById(id).style.background = 'orange';
+        //console.log(data);
+        
+    }
+
+    function hideQty(data,id){
+        //document.getElementById(id).style.display = "none";
+        //window.alert=function(){};
+        document.getElementById(id).innerHTML = data.toString();
+        document.getElementById(id).style.background = 'yellow';
+    }
+    // form schedule data
+    // var schedule = '{{schedule_json|safe}}';
+    // if(schedule){
+    //     var data = $.parseJSON(schedule);
+
+    
+    //     var dataLength = Object.keys(data)['length'];
+    //     for(j=0;j<10;j++){
+    //     var a = {};
+        
+    //         for(i=0;i<dataLength-3;i++){
+                
+    //             a[Object.keys(data[0])[i]]='---';
+    //             a['sfg_id']='---';
+    //             a['type_name']='---';
+    //             a['sfg_comments']='---';
+                
+    //         };
+    //         data.push(a);
+    //     };
+    // }
+
+    {% comment %} $(document).ready(function(){ 
+       
+        
+        //alert(Object.keys(data[0])['length']);  
+    }); {% endcomment %}
+
+    
+    var today = new Date();
+    var today_year = today.getFullYear();
+    // schedule
+    function support_time_log(){
+        document.forms[1].action = '/report/report_analysis/';
+        
+    }
+    // performance check
+    function performance_total(){
+        document.forms[0].action = '/report/report_analysis/';
+    }
+    // search doc info by date
+    function search_docinfo(){
+        //var from_date = $("#docinfo_from_date").val()
+        //var to_date = $("#docinfo_to_date").val()
+        var sfg = $("#d_sfg").val()
+        if(sfg){
+            url = '/report/search_docinfo/?sfg='+sfg //from_date='+from_date+'&to_date='+to_date
+        newwindow=window.open(url,'_blank');
+        if (window.focus) {newwindow.focus()}
+        }
+        else{
+            alert('请输入SFG');
+        }
+        
+    }
+    //save classified document 
+    function classify_doc(){
+        url = '/report/create_docinfo/'
+        newwindow=window.open(url,'_blank');
+        if (window.focus) {newwindow.focus()}
+           
+    }
+
+    // filter schedule keywords
+    $(function () {
+        $("#filterName").keyup(function () {
+        $("#tblNeedsScrolling tbody tr").hide() //将tbody中的tr都隐藏
+            .filter(":contains('"+($(this).val())+"')").show();
+            $("#tblNeedsScrolling tbody tr td").css("color","black");
+
+            if($("#filterName").val() !=' ' && $("#filterName").val() != ''){
+                $("#tblNeedsScrolling tbody tr td").filter(":contains('"+($(this).val())+"')").css( "color", "orange" ); //，将符合条件的筛选出来
+                $("#tblNeedsScrolling tbody tr td").filter(":not(:contains('"+($(this).val())+"'))").css( "color", "black" );
+            }
+           
+        });
+        
+     });
+
+     $(function () {
+        $("#filterName1").keyup(function () {
+        $("#performance_table tbody tr").stop().hide() //将tbody中的tr都隐藏
+            .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
+        });
+     });
+
+    // save performance data
+    function save_all_perform(){
+        var cd_time=6;
+        if(p_save_status=='No'){
+            var rows = document.getElementById("performance_table").rows;
+            //alert(rows.length);
+            //var row = rows[1];
+            //alert(row);
+            //var length = row.cells.length;
+            //alert(length);
+            var cell_check=$(".is_checked")
+            for(j=1;j<rows.length;j++){
+
+            
+                    row = rows[j]
+                    if (cell_check[j-1].checked){
+                        
+                        
+                        var user = row.cells[1].innerText;
+                        var natural_time = row.cells[2].innerText;
+                        var perfom = row.cells[3].innerText;
+                        var standard = row.cells[4].innerText;
+                        var real = row.cells[5].innerText;
+                        var support = row.cells[6].innerText;
+                        var borrow = row.cells[7].innerText;
+                        var kpi = row.cells[8].innerText;
+                        var efficiency = row.cells[9].innerText;
+                        var date = row.cells[10].innerText;
+                        var username = row.cells[11].innerText;
+                        var group = row.cells[12].innerText;
+                        var work_group = row.cells[13].innerText;
+                        var validate = row.cells[14].innerText;
+                        $.get("/report/save_indiv_perform/",{'user':user,'natural_time':natural_time,'perfom':perfom,'standard':standard,
+                        'real':real,'support':support,'borrow':borrow,'kpi':kpi,'efficiency':efficiency,'date':date,'username':username,
+                        'group':group,'work_group':work_group,'validate':validate}, function(ret){
+                            if(ret.includes('失败')){
+                                //alert(ret);
+                                $('#p_save_message').append('<span style="color:red">'+rFet+', </span>')
+                            }else{
+                                $('#p_save_message').append('<span>'+ret+', </span>')
+                            }
+                    
+                        
+                   
+                    //var result = ret;fFf
+                    //validateQty(ret);
+                        })
+                }
+                if(j==rows.length -1){
+                       var timer = setInterval( function() {
+
+                            cd_time--;
+
+                            
+                            $('#cd_time').html(cd_time+'秒后刷新页面！');
+                            if (cd_time == 0) {
+
+                                location.reload();
+                                clearInterval(timer);
+                            } 
+
+
+                            }, 1000 );
+                            
+                        }    
+                //document.getElementById("p_save_message").innerHTML='保存成功';
+                {% comment %} var time = 5;
+                setInterval( function() {
+
+                    time--;
+
+                    $('#cd_time').html(time+'秒后刷新页面！');``
+
+                    if (time == 0) {
+
+                        location.reload();
+                    }    
+
+
+                    }, 1000 ); {% endcomment %}
+            //location.reload();    
+            }
+        }else{
+            alert('当天记录已经保存，请勿重复保存！')
+        }
+        
+        
+        
+        
+    }
+
+    // get all parameters from view
+    var p_date='{{p_date}}';
+    var p_save_status = '{{p_save_status}}';
+    var tab='{{tab}}';
+    var activeLi = '{{li}}';
+    //get schedule data
+    var data2_date = '{{data2_date|safe}}';
+    var sche_date = $.parseJSON(data2_date);
+    var data2_users = '{{data2_users|safe}}';
+    var sche_users = $.parseJSON(data2_users);
+    var data2_qty = '{{data2_qty|safe}}';
+    var sche_qty = $.parseJSON(data2_qty);
+    // var op_list = '{{op_list|safe}}';
+    var op_list =[];
+    '{% for i in op_list %}'
+        op_list.push('{{i.op_name}}');
+    '{% endfor %}'
+
+    var sfg_list = '{{sfg_list|safe}}';
+    var sfg_list = $.parseJSON(sfg_list);
+    var sfg_list_length = Object.keys(sfg_list["sfg_id"])['length']
+    var sfgs = '{{sfgs|safe}}';
+
+    // form schedule data
+    var sfgall = []
+    if(sfgs){
+        for(i=0;i<sfg_list_length;i++){
+
+            var sfg_items = {};
+            sfg_items['sfg_id']=sfg_list['sfg_id'][i]
+            if(sfg_list['comments'][i]==null){
+                sfg_items['sfg_comments']='N';
+            }else{
+                sfg_items['sfg_comments']=sfg_list['comments'][i];
+            }
+            sfg_items['type_name']=sfg_list['type_name'][i];
+            for(k=0;k<op_list.length;k++){
+                try{
+                    sfg_items[k+10]=sche_users[op_list[k]][sfg_items['sfg_id']];
+                    sfg_items[k+100]=sche_date[op_list[k]][sfg_items['sfg_id']];
+                    sfg_items[k+1000]=sche_qty[op_list[k]][sfg_items['sfg_id']];
+                }
+                catch(err){
+                    sfg_items[k+10]='---';
+                    sfg_items[k+100]='---';
+                    sfg_items[k+1000]=0;
+                }
+            }
+            sfgall.push(sfg_items);
+        };
+
+        var data=sfgall;
+        for(j=0;j<10;j++){
+        var a = {};
+        
+            for(i=0;i<Object.keys(data)['length']-3;i++){
+                
+                a[Object.keys(data[0])[i]]='---';
+                a['sfg_id']='---';
+                a['type_name']='---';
+                a['sfg_comments']='---';
+                
+            };
+            data.push(a);
+        };
+    }
+
+    
+
+    $(document).ready(function(){
+
+        if(tab && activeLi ){
+            if(tab == 'None' && activeLi == 'None'){
+                $('#liKpi').css('background','orange');
+                $('#dKpi').css('display','inline-block');
+            }else{
+                $('#'+tab).css('display','inline-block');
+                $('#'+activeLi).css('background','orange');
+            }
+
+        }else{
+            $('#liKpi').css('background','orange');
+            $('#dKpi').css('display','inline-block');
+        }
+    })
+    //var produce_log = new Array();
+    
+    window.onload = function (){
+        //Show and hide li 
+        var allLi = document.getElementsByTagName('li');
+        //var today = '{{p_date}}';
+        //var p_date = document.getElementById('p_perform_today');
+        //var p_date='{{p_date}}';
+        
+        $("#p_perform_today").attr('value',p_date);
+        
+        //alert(p_date);
+        
+        
+        var allDiv = $('#main_content').children("div")
+        for(i=0;i<allLi.length;i++){
+            allLi[i].index = i;
+            allLi[i].onclick = function (){
+                //allLi[i].style.background='#6AC1F7';
+                
+                for(i=0;i<allLi.length;i++){
+                    allLi[i].style.background='#6AC1F7';
+                    allDiv[i].style.display='none';
+                }
+                
+                this.style.background='orange';
+                allDiv[this.index].style.display='block';
+                
+                
+            //alert(allLi.length);
+            //alert(allDiv.length);
+                
+            //li.style.background='orange';
+            //li.style.display='block';
+            
+            }
+        }
+        //scrolify($('#performance_table'), 650);
+        
+
+        // sort tables date
+        
+        $(function() {
+                // call the tablesorter plugin
+            $("table").tablesorter({
+                theme : 'blue',
+
+                dateFormat : "yyyymmdd", // set the default date format
+
+                // or to change the format for specific columns, add the dateFormat to the headers option:
+                headers: {
+                0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+                // 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+                // 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+                }
+
+            });
+        });
+
+        $("#a_submit").click(function(){
+            
+            var date = $('#a_month option:selected').val();
+            var group =$('#a_group option:selected').val();
+            var year = $('#a_year option:selected').val();
+            url = '/report/group_statistic/?date='+date+'&group='+group+'&year='+year
+            newwindow=window.open(url,'_blank');
+            if (window.focus) {newwindow.focus()}
+        });   
+
+        $("#p_submit").click(function(){
+            
+            var date = $('#p_perform_today').val();
+            //alert(date);
+            url = '/report/perform_pop/?date='+date
+            newwindow=window.open(url,'_blank');
+            if (window.focus) {newwindow.focus()}
+        });   
+
+        $("#performance_table tbody tr td:nth-child(3)").click(function(){
+                
+                var date = $(this).parent('tr').find('td').eq(10).html();
+                var username = $(this).parent('tr').find('td').eq(11).html();
+                var user = $(this).parent('tr').find('td').eq(1).html();
+                {% comment %} //alert($(this).html());
+                
+                //$(this).attr('class', 'submit');
+                var b = this.index;
+                alert(date);
+                alert(username);
+                //alert(a);
+             {% endcomment %}
+            url = '/report/per_get_prod_log/?date='+date+'&username='+username+'&user='+user+'&tab=dKpi'
+            newwindow=window.open(url,'_blank');
+            if (window.focus) {newwindow.focus()}
+           //if(newwindow){data.submit();}
+            
+            //var b = $("#b").val();
+            {% comment %} $.get("/report/per_get_prod_log/",{'date':date,'username':username}, function(ret){
+                for(i=0;i<ret.length;i++){
+                    alert(ret.length);
+                    alert(ret[i].sfg);
+                    alert(ret[i].type);
+                    alert(ret[i].op);
+                    alert(ret[i].qty);
+                    alert(ret[i].standard);
+                    alert(ret[i].real);
+                   
+                    
+                }
+                
+                //var result = ret;
+                //validateQty(ret);
+            }) {% endcomment %}
+
+        });
+
+            //form schedule table
+        // if(data){
+
+
+
+        //     for(i=0;i<data.length;i++){
+        //     var allRows = '';
+        //     if(data[i]['sfg_id'] != '---'){
+
+            
+        //         allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
+        //     }
+        //     else{
+        //         allRows += '<tr><td contenteditable="true">'+data[i]['sfg_id']+'</td><td contenteditable="true">'+data[i]['type_name']+'</td>'+'<td contenteditable="true">'+data[i]['sfg_comments']+'</td>';
+        //     }
+        //     for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
+        //         if(data[i][j+1000]>=1){
+        //             allRows +='<td  style="background:#00EC00">'+data[i][j+10]+'</td>';
+        //             allRows +='<td  style="background:#00EC00">'+data[i][j+100]+'</td>';
+        //         }
+        //         else if(data[i][j+10]=='---'){
+        //             allRows +='<td contenteditable="true">'+data[i][j+10]+'</td>';
+        //             allRows +='<td contenteditable="true">'+data[i][j+100]+'</td>';
+        //         }
+        //         else{
+        //             ///// old data
+        //             //allRows +='<td style="background:yellow">'+data[i][j+10]+'</td>';
+        //             var user = "'"+data[i][j+10]+"'";
+        //             allRows += '<td  id="'+(i*100000+j)+'" style="background:yellow" onmouseover="showQty('+data[i][j+1000]+','+(i*100000+j)+
+        //                 ')" onmouseout="hideQty('+user.toString()+ ','+(i*100000+j)+
+        //                 ')">'+data[i][j+10]+'</td>';
+        //             ////new 
+        //             allRows +='<td  style="background:yellow"> '+data[i][j+100]+'</td>';
+        //         }
+                
+        //     }
+        //     allRows += '</tr>';
+        //     $('#tblNeedsScrolling tbody ').append(allRows);
+        //     //console.log(i);
+       
+            
+        //     } 
+        // }
+        //alert(allRows);
+        //});
+        $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
+
+            var comments = $(this).parent('tr').find('td').eq(2).html();
+            if(comments != '---'){
+
+              
+                var sfg = $(this).parent('tr').find('td').eq(0).html();
+                
+                url = '/report/get_sfg_comments/?sfg='+sfg
+                newwindow=window.open(url,'windowName','height=590,width=1000,top=100, left=200');
+                if (window.focus) {newwindow.focus()}
+            //if(newwindow){data.submit();}
+                
+                //var b = $("#b").val();
+            } 
+            
+        });
+
+        for(i=0;i<10;i++){
+            $("#a_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
+            $("#m_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
+        }
+
+        $('#action-toggle').change(function() {
+            var checkboxes = $(this).closest('table').find(':checkbox');
+            checkboxes.prop('checked', $(this).is(':checked'));
+        });
+
+
+      
+        // var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
+        //             // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
+        //             var blob = new Blob([html], { type: "application/vnd.ms-excel" });
+        //             var a = document.getElementsByTagName("a")[0];
+        //             // 利用URL.createObjectURL()方法为a元素生成blob URL
+        //             a.href = URL.createObjectURL(blob);
+        //             // 设置文件名
+        //             a.download = "生产进度.xls";
+    }
+    // end of window.onload 
+
+
+
+
+    // // export Schedule table to excel
+    // function exportSchedule(){
+    //       //download excel
+    //     {% comment %} var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
+    //                 // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
+    //                 var blob = new Blob([html], { type: "application/vnd.ms-excel" });
+    //                 var a = document.getElementsByTagName("a")[0];
+    //                 // 利用URL.createObjectURL()方法为a元素生成blob URL
+    //                 a.href = URL.createObjectURL(blob);
+    //                 // 设置文件名
+    //                 a.download = "生产进度.xls"; {% endcomment %}
+
+    //     var tab_text="<table border='2px'><tr bgcolor='#87AFC6'>";
+    //     var textRange; var j=0;
+    //     tab = document.getElementById('tblNeedsScrolling'); // id of table
+
+    //     for(j = 0 ; j < tab.rows.length ; j++) 
+    //     {     
+    //         tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
+    //         //tab_text=tab_text+"</tr>";
+    //     }
+
+    //     tab_text=tab_text+"</table>";
+    //     tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+    //     tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
+    //     tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+    //     var ua = window.navigator.userAgent;
+    //     var msie = ua.indexOf("MSIE "); 
+
+    //     if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+    //     {
+    //         txtArea1.document.open("txt/html","replace");
+    //         txtArea1.document.write(tab_text);
+    //         txtArea1.document.close();
+    //         txtArea1.focus(); 
+    //         sa=txtArea1.document.execCommand("SaveAs",true,"生产进度.xls");
+    //     }  
+    //     else                 //other browser not tested on IE 11
+    //         sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));  
+
+    //     return (sa);
+    // }
+
+    // Freeze the header of table
+   
+{% comment %} 
+        $(document).ready(function() {
+        scrolify($('#tblNeedsScrolling'), 640); // 160 is height
+        }); {% endcomment %}
+    
+    // make schedule table's head to floate
+   {% comment %} $(document).ready(function() {
+            var $table = $('#tblNeedsScrolling');
+            $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+            });
+        
+    });  {% endcomment %}
+
+    
+    $('body').on('mousewheel',function(){
+        //alert('wheel moved')
+        // floate schedule table
+        var $table = $('#tblNeedsScrolling');
+        $table.floatThead({
+            scrollContainer: function($table){
+                return $table.closest('.wrapper');
+            }
+        });
+
+        
+
+       
+    });
+
+    
+    $(document).ready(function(){
+        $("#schedule_date_p").html('<strong>开始日期: </strong><u><span style="color:coral">'+'{{from_date}}'+'</u></span>, <strong>结束日期: </strong><u><span style="color:coral">'
+        +'{{to_date}}'+'</span></u>');
+        //$("#schedule_to_date_p").html('结束日期'+'{{to_date}}');
+    })
+
+    
+
+</script>
+<style>
+    #main_content
+    {
+     margin-top:20px;
+     width:100%;
+     
+    }
+    .submit
+    {
+        background:green;
+    }
+    #main_content li
+    {
+     display:inline;
+     list-style-type:none;
+     background-color:#6AC1F7;
+     padding:10px;
+     border-radius:5px 5px 0px 0px;
+     color:#292A0A;
+     font-weight:bold;
+     cursor:pointer;
+    }
+    .parent{
+        background: #6AC1F7;
+    }
+
+    .row1{
+        background:white;
+    }
+    .row2{
+        background:lightgray;
+    }
+    #main_content li.notselected
+    {
+     background-color:None;
+     color:#292A0A; 
+    }
+    .active 
+    {
+     display:inline;
+     list-style-type:none;
+     background-color:orange;
+     padding:10px;
+     border-radius:5px 5px 0px 0px;
+     color:#292A0A;
+     font-weight:bold;
+     cursor:pointer;
+    }
+    #tblNeedsScrolling tbody td{
+        max_length:150px;
+       word-wrap:break-word; 
+    }
+    .tableHead
+    {
+        cursor:pointer;
+    }
+    table thead th{
+        background: #79aec8;
+    }
+    {% comment %}   
+    table thead tr{
+        display:block;
+    }
+
+    table td{
+        width:150px;//fixed width
+    } 
+    
+
+    table  tbody{
+    display:block;
+    height:760px;
+    overflow:auto;//set tbody to auto
+    } 
+    table {
+        table-layout: fixed;
+    }  {% endcomment %}
+    
+</style>
+
+ <!-- 生产状态 -->
+              <div style="margin-left:30px">
+                <h1>工时分析</h1>
+                <br/><br/>
+                <div style="align:center">
+                    {% comment %} <form onsubmit='data_analysis()' action="/report/" method="post" style="align:center">
+                                    {% csrf_token %} {% endcomment %}
+                                    <label>年度：</label>
+                                    <select id='a_year' name='a_year'>
+
+                                    </select>
+                                    <label>月份: <label>
+                                    <select id='a_month' name="a_month">
+                                        <option value=1>---</option>
+                                        <option value=1>1</option>
+                                        <option value=2>2</option>
+                                        <option value=3>3</option>
+                                        <option value=4>4</option>
+                                        <option value=5>5</option>
+                                        <option value=6>6</option>
+                                        <option value=7>7</option>
+                                        <option value=8>8</option>
+                                        <option value=9>9</option>
+                                        <option value=10>10</option>
+                                        <option value=11>11</option>
+                                        <option value=12>12</option>
+                                        <option value=0>全年</option>
+                                        
+                                    </select>
+                                    {% comment %} <span>筛选：</span><input type="text" id="filterName1"> {% endcomment %}
+                                    
+
+                        {% comment %} </form> {% endcomment %}
+                        <select id='a_group' name='a_group'>
+                            {% for i in user_groups %}
+                                <option value="{{i}}">{{i}}</option>
+                            {% endfor %}
+                        </select>
+                        <input id='a_submit' type='button' value='提交'>
+                        {% autoescape off %}
+                            <h2>{{anls_title}}</h2>
+                            <p>{{anls_result}}</p>
+                        
+                        
+                        {% endautoescape %}
+                </div>
+                <div>
+                 <h2>工步总数统计</h2>
+                   <table border=1>
+                        <thead>
+                            <tr>
+                                {% for i in anls_opcounts %}
+                                    <th>{{i.op_name}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {% for j in anls_opcounts %}
+                                    <td>{{j.qty}}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+                <div>
+                    <h2>辅助工时统计</h2>
+                     {% autoescape off %}
+                    {{sup_not_bor_total}}
+                    <h2>外借工时统计</h2>
+                    {{sup_bor_total}}
+                    
+                    <h2>加班工时统计</h2>
+                    {{over_time_total}}
+                    {% endautoescape %}
+                    {{over_time_data}}
+                </div>
+             
+                
+        </div>

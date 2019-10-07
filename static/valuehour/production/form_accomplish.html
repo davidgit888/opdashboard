@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	  
+    <title>Gentelella Alela! | </title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="../vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <!-- bootstrap-wysiwyg -->
+    <link href="../vendors/google-code-prettify/bin/prettify.min.css" rel="stylesheet">
+    <!-- Select2 -->
+    <link href="../vendors/select2/dist/css/select2.min.css" rel="stylesheet">
+    <!-- Switchery -->
+    <link href="../vendors/switchery/dist/switchery.min.css" rel="stylesheet">
+    <!-- starrr -->
+    <link href="../vendors/starrr/dist/starrr.css" rel="stylesheet">
+    <!-- bootstrap-daterangepicker -->
+    <link href="../vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+  </head>
+
+  <body class="nav-md" style="background-color:#FFFFFF">
+<div class="x_panel">
+  <div class="x_content">
+      <br />
+      <form id="machining" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="form-group">
+          <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">大类</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" required = "required" id="category" name="category">
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id = "having_prob">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">小类</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+              <select class="form-control" required = "required" id="sub_category" name="sub_category">
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">期间费用</label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <input id="expense" class="date-picker form-control col-md-7 col-xs-12" required="required" type="number" step="0.1" name="expense">
+          </div>
+        </div>
+        <div class="ln_solid"></div>
+        <div class="form-group">
+          <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
+            <!--<button class="btn btn-primary" type="button">Cancel</button>
+                <button class="btn btn-primary" type="reset">Reset</button>-->
+            <button type="submit" class="btn btn-success">Submit</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="../vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- iCheck -->
+    <script src="../vendors/iCheck/icheck.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="../vendors/moment/min/moment.min.js"></script>
+    <script src="../vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- bootstrap-wysiwyg -->
+    <script src="../vendors/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js"></script>
+    <script src="../vendors/jquery.hotkeys/jquery.hotkeys.js"></script>
+    <script src="../vendors/google-code-prettify/src/prettify.js"></script>
+    <!-- jQuery Tags Input -->
+    <script src="../vendors/jquery.tagsinput/src/jquery.tagsinput.js"></script>
+    <!-- Switchery -->
+    <script src="../vendors/switchery/dist/switchery.min.js"></script>
+    <!-- Select2 -->
+    <script src="../vendors/select2/dist/js/select2.full.min.js"></script>
+    <!-- Parsley -->
+    <script src="../vendors/parsleyjs/dist/parsley.min.js"></script>
+    <!-- Autosize -->
+    <script src="../vendors/autosize/dist/autosize.min.js"></script>
+    <!-- jQuery autocomplete -->
+    <script src="../vendors/devbridge-autocomplete/dist/jquery.autocomplete.min.js"></script>
+    <!-- starrr -->
+    <script src="../vendors/starrr/dist/starrr.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="../build/js/custom.min.js"></script>
+	<script src="layer/layer.js"></script>
+	<script>
+	
+		//获取url参数
+	function getQueryVariable(variable)
+	{
+		   var query = window.location.search.substring(1);
+		   var vars = query.split("&");
+		   for (var i=0;i<vars.length;i++) {
+				   var pair = vars[i].split("=");
+				   if(pair[0] == variable){return pair[1];}
+		   }
+		   return('');
+	}
+	
+	
+
+	function get_info(sfgid){
+		console.log(sfgid.toString());
+		$.getJSON("api/machine_info.json?sfg="+sfgid,function(data){
+			$("#machine").val(data.product_type);
+			select_string = '';
+			prob_string = '';
+			$.each(data.op, function(i, v){
+				select_string = select_string + '<option>'+v+'</option>';
+			});
+			/*$.each(data.prob, function(i, v){
+				prob_string = prob_string + '<option>'+v+'</option>';
+			});*/
+			$("#operation").html('<option value="">请选择</option>'+select_string);	
+			//$("#prob").html('<option value="">请选择</option>'+prob_string);
+			//$("#standard_hour").val(data.standard);
+		});
+	};
+	
+	function get_standard(qty){
+		sfgid ="";
+		op = "";
+		prob = "";
+		$.getJSON("api/machine_standard.json?sfg="+sfgid+"&op="+op+"&prob="+prob+"&qty="+qty, function(data){
+			//alert(data.standard);
+			standard_hour = data.standard;
+			$("#standard_hour").val(Math.round(standard_hour*qty*100)/100);
+		});
+	};
+	
+	//获取基本信息	
+	function get_basic_info(){
+		$.getJSON("api/business.json",function(data){		
+			if(data.services && data.projects){
+				services = '';
+				projects = '';
+				//get category list
+				$.each(data.services, function(i, v){
+					services = services + '<option>'+v+'</option>';
+				});
+				$("#category").html('<option value="">请选择</option>'+services);
+				//get sub_category list
+				$.each(data.projects, function(i,v){
+					projects = projects + '<option>'+v+'</option>';
+				});
+				$("#sub_category").html('<option value="">请选择</option>'+projects);
+			}				
+		});
+	};
+	
+	
+	function makep(){
+		window.parent.getmachine();
+		var index = parent.layer.getFrameIndex(window.name);
+		setTimeout(function(){
+		  parent.layer.close(index);
+		}, 1000);		
+	}
+	
+	$(document).ready(function(){
+	   get_basic_info();
+	   //get_info();
+		//get date from url parameter
+		$("#input_date").val(getQueryVariable("date"));
+		$("#input_date").attr("readonly", "readonly");
+		//validation before submit
+		$("#machining").submit(function(e){
+			e.preventDefault();
+			t = $(this).serializeArray();
+			datas = {};
+			$.each(t, function(){
+				datas[this.name] = this.value;
+			})
+			var form = $(this);
+			if (form.parsley( 'isValid' )){
+				//ajax提交Form数据
+				$.ajax({
+						type:'post',
+						url:"http://localhost/gentelella-master/gentelella-master/production/index.php",
+						data:JSON.stringify(datas),
+						dataType:'json',
+						error:function(response){
+							alert(response.responseText);
+						},
+						success:function(response){
+							alert(response);
+							console.log(response);
+							layer.msg('提交成功！', {icon: 1});
+							makep();
+						}
+					});//end
+			};
+		});
+	});
+	</script>
+	
+  </body>
+</html>

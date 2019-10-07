@@ -1,0 +1,80 @@
+{% load staticfiles %}
+<script src="{% static 'js/jquery-3.3.1.js' %}"></script> 
+
+
+
+        <div >
+            <h1>物料申请，审批，到货，使用信息</h1>
+                <label>年度：</label>
+                    <select id='m_year' name='m_year'>
+
+                </select>
+                    <label>月份: <label>
+                    <select id='m_quarter' name="m_quarter">
+                        
+                        <option value='Q1'>Q1</option>
+                        <option value='Q2'>Q2</option>
+                        <option value='Q3'>Q3</option>
+                        <option value='Q4'>Q4</option>
+                        <option value=0>全年</option>    
+                    </select>
+                <select id='m_group' name='m_group'>
+                        
+                            {% for i in user_groups %}
+                                
+                                    <option value="{{i}}">{{i}}</option>
+                                
+                            {% endfor %}
+                        
+                </select>
+            <input type='button' onclick='materialCheck()' value='查看季度物耗'>
+            <input type='button' onclick='materialGet()' value='新增物耗收货'>
+            <input type='button' onclick='materialApprove()' value='新增物耗审批'>
+            
+            <script>
+                 //$(document).ready(function(){
+                    var today = new Date();
+                    var today_year = today.getFullYear();
+                    $(document).ready(function(){
+                        var mQuarter = Math.ceil((today.getMonth()+1)/3);
+                        var mQtoday = ('Q'+mQuarter);
+                        $("#m_quarter").val(mQtoday);
+                        for(i=0;i<10;i++){
+                            $("#a_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
+                            $("#m_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
+        }
+                    });
+                    
+                    var m_year= $('#m_year option:selected').val();
+                    var m_quarter = $('#m_quarter option:selected').val();
+                    var m_group = $('#m_group option:selected').val();
+                    function materialCheck(){
+                        var m_year= $('#m_year option:selected').val();
+                        var m_quarter = $('#m_quarter option:selected').val();
+                        var m_group = $('#m_group option:selected').val();
+                        //alert(m_year);
+                        url = '/report/materialCheck/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group;
+                        newwindow=window.open(url,'_blank');
+                        if (window.focus) {newwindow.focus()}
+                    };
+
+                    function materialGet(){
+                        var m_year= $('#m_year option:selected').val();
+                        var m_quarter = $('#m_quarter option:selected').val();
+                        var m_group = $('#m_group option:selected').val();
+                        url = '/report/materialGet/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group;
+                        newwindow=window.open(url,'_blank');
+                        if (window.focus) {newwindow.focus()}
+                    }
+
+                    function materialApprove(){
+                        var m_year= $('#m_year option:selected').val();
+                        var m_quarter = $('#m_quarter option:selected').val();
+                        var m_group = $('#m_group option:selected').val();
+                        url = '/report/materialApprove/?year='+ m_year +'&quarter='+m_quarter+'&group='+m_group+'&messages=';
+                        newwindow=window.open(url,'_blank');
+                        if (window.focus) {newwindow.focus()}
+                    }
+                 
+            </script>
+        </div>
