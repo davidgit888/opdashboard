@@ -17,7 +17,7 @@ class ManHoursAdmin(admin.ModelAdmin):
     list_display = ('contract','sfg','product_type','op','prob','username','full_name','qty','standard', 'real_time','confirmed','date','original_group','work_group')
     search_fields = ['contract','sfg','username__username','username__last_name','date','original_group','work_group']
     date_hierarchy = 'date'
-    list_filter = ('work_group', 'original_group')
+    list_filter = ('work_group', 'original_group','is_active')
 
     staff_fieldsets = (
     (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','quote','cost_rate','date','original_group','work_group')}),

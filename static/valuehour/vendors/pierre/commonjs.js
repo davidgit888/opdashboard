@@ -3,12 +3,12 @@ function checkUser(data){
 	try{
 		$('#cost_rate').val(data.user[0].cost_rate);
 		$('#quote').val(data.user[0].quote);
+		console.log("正在使用外部报价");
+		// console.log("费率"+data.user[0].cost_rate);
 		$('#original_group').val(data.user[0].original_group);
 		$('#work_group').val(data.user[0].work_group);
 		if(data.user[0].cost_rate == 0){
-			throw "费率设置不完整，无法报工"
-			//删除这个
-			// $('#cost_rate').val(200);
+			throw "费率设置不完整，无法报工";
 		}
 	}catch(e){
 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:4000});
@@ -19,6 +19,31 @@ function checkUser(data){
 	layer.msg('你的后台数据配置不完整，请联系管理员!', {icon: 2, time:4000});
 	}
 }
+
+
+function checkUser1(data){
+	if(data.user){
+		try{
+			$('#original_group').val(data.user[0].original_group);
+			$('#work_group').val(data.user[0].work_group);
+			$('#cost_rate').val(data.user[0].cost_rate);
+			$('#quote').val(JSON.parse(data.user[0].flexible).cost);
+			console.log("正在使用内部报价");
+			// console.log("费率"+data.user[0].cost_rate);
+			if(data.user[0].cost_rate == 0){
+				throw "你的费率设置不完整，无法报工"
+			}
+		}catch(e){
+			layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
+			layer.load(2, {shade: [0.1,'#fff']});					
+		}
+	}else{
+		layer.msg('没有读取到你的身份信息，请确认！', {icon: 2, time:2000});
+	}
+}
+
+
+
 
 function getQueryVariable(variable)
 {

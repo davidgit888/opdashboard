@@ -137,7 +137,26 @@
 		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
 		var index = layer.load(1, {shade: [0.1,'#fff']});
 		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
-			checkUser(data);
+
+			_checkbox = $("[type='radio']").not("[disabled]");
+			var cat;
+			_checkbox.each(function () {
+		    // 判断是否选中
+			   var delFlag = $(this).is(":checked");
+			   if (delFlag) {
+				   cat  = $(this).val();
+			   }
+			});
+
+			// console.log(cat);
+			// console.log(['质量工时','计提工时'].indexOf(cat));
+
+			if (['质量工时','计提工时','其他辅助工时'].indexOf(cat)>=0){
+				checkUser(data);				
+			}else{
+				checkUser1(data);
+			}
+
 			// if(data.user){				
 			// 	try{
 			// 		$('#original_group').val(data.user[0].original_group);
@@ -227,6 +246,7 @@
 		   activated_id  = $(this).val();
 	   }
 	});
+	// get_basic_info();
 	//获取api数据
 	$.getJSON("/jzgs/getBorrowType/", function(data){
 		target = data['category'];

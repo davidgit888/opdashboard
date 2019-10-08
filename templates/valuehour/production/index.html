@@ -507,8 +507,8 @@ async function get_data(begin, end){
               shiji_splitted_zhizao ='制造:'+zhizao+'h';
               console.log('2'+shiji_splitted_zhizao);
               $("#machine_jiazhi").html(api.column( 5 ).data().sum().toFixed(1));
-              total_value += api.column( 5 ).data().sum();
-              total_queren += api.column( 6 ).data().sum();
+              total_value1 = api.column( 5 ).data().sum();
+              total_queren1 = api.column( 6 ).data().sum();
               $("#machine_queren").html(api.column( 6 ).data().sum().toFixed(1));
               var pbm_manif = api.cells(function(index, data, node){
                 return api.row(index).data()['confirmed'] == 0 ? true : false;
@@ -530,7 +530,7 @@ async function get_data(begin, end){
               {data: 'date'}
           ]
       });
-      total_chanchu = total_queren;
+      total_chanchu1 = total_queren1;
       //machine end
 
       //assistance begin
@@ -548,8 +548,10 @@ async function get_data(begin, end){
               qiuhe = parseFloat(zhizao)+parseFloat(fuzhu);
               $("#title_qiuhe").html(qiuhe.toFixed(1) +'H')
               $("#fuzhu_jiazhi").html(api.column( 7 ).data().sum().toFixed(1));
-              total_value += api.column( 7 ).data().sum();
-              total_queren += api.column( 8 ).data().sum();
+              total_value2 = api.column( 7 ).data().sum();
+              total_queren2 = api.column( 8 ).data().sum();
+              total_value = total_value1 + total_value2;
+              total_queren = total_queren1 + total_queren2;
               $("#title_jiazhi").html(total_value.toFixed(1)+'H');
               $("#title_queren").html(total_queren.toFixed(1)+'H');
               $("#fuzhu_queren").html(api.column( 8 ).data().sum().toFixed(1));
@@ -570,9 +572,10 @@ async function get_data(begin, end){
               $.each(pbm_assi, function(i,v){
                 pbm_dates.push(v);
               });
-      			  total_chanchu += sub_chanchu_zhiliang;
-      			  total_chanchu += sub_chanchu_jiti;
-      			  total_chanchu += sub_chanchu_waibu;
+      			  total_chanchu2 = sub_chanchu_zhiliang;
+      			  total_chanchu3 = sub_chanchu_jiti;
+      			  total_chanchu4 = sub_chanchu_waibu;
+      			  total_chanchu = total_chanchu1 + total_chanchu2 + total_chanchu3 + total_chanchu4;
       			  $("#title_chanchu").html(total_chanchu.toFixed(1)+'H');
               //end sum
           },
@@ -651,7 +654,6 @@ async function get_data(begin, end){
 	  }
 
       //get date pbm end
-
       layer.close(index);   
   //end
 }
