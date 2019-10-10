@@ -907,7 +907,10 @@ def uploadFiles(request):
 		assis_id = request.POST.get('id')
 		f = request.FILES['file']
 		baseName = os.path.abspath(os.path.dirname(__file__))
-		path = baseName.replace('jzgs','files')
+		basePath = os.path.dirname(baseName)
+		basePath1 = os.path.dirname(basePath)
+		path = os.path.join(basePath1,"files")
+		# path = baseName.replace('jzgs','files')
 		ext = f.name.split('.')[1]
 		if ext not in ['jpg','png','zip','7z','xlsx','csv','pdf','doc','ppt','rar','msg','txt','docx','xls','tif','gif','jpeg','xlsm']:
 			return HttpResponse('Failed, file type is not allowed to upload')
@@ -925,7 +928,10 @@ def downloadFile(request):
 	assis_id = request.GET.get('id')
 	fileName = Assistance.objects.get(id=assis_id, is_active=True).attach
 	baseName = os.path.abspath(os.path.dirname(__file__))
-	path = baseName.replace('jzgs','files')
+	basePath = os.path.dirname(baseName)
+	basePath1 = os.path.dirname(basePath)
+	path = os.path.join(basePath1,"files")
+	# path = baseName.replace('jzgs','files')
 	name = fileName.split('__')[1]
 	response = FileResponse(open(os.path.join(path,fileName), 'rb'))
 	response['content_type'] = "application/octet-stream"
