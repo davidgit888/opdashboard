@@ -72,6 +72,7 @@
 <!--                             <th class="column-title" >测头 </th> -->
                             <th class="column-title" >工步 </th>
                             <th class="column-title" >价值工时 </th>
+                            <th class="column-title" >标准工时 </th>
                             <th class="column-title" >填报工时 </th>
                             <th class="column-title" >数量 </th>
                             <th class="column-title no-link last" width="100"><span class="nobr">操作 </span></th>
@@ -498,10 +499,11 @@
           /*<button class="btn btn-success btn-xs" id="machine_'+item.id+'" onClick = "toedit($(this))"><i class="fa fa-pencil"></i> Edit </button>*/
 			   var str = ""; 
 			   $.each(data.machine, function(i, item) {
+            old_standard = JSON.parse((item.flexible))['old_standard'] ? JSON.parse((item.flexible))['old_standard'] : '未记录';
 			   		if (item.confirmed){
-					str = str +'<tr><td name="sfg_id">'+item.sfg+'</td><td>'+item.product_type+probif(return_null(item.prob))+'</td><td>'+item.op_id__op_id+'</td><td>'+doublenbr(item.standard)+'</td><td><span class="badge label-info bg-green">'+item.real_time+'</span></td><td>'+item.qty+'</td><td><i class="fa fa-lock" style="font-size:16px;"></i>&nbsp已审核 </td></tr>';	   			
+					str = str +'<tr><td name="sfg_id">'+item.sfg+'</td><td>'+item.product_type+probif(return_null(item.prob))+'</td><td>'+item.op_id__op_id+'</td><td>'+doublenbr(item.standard)+'</td><td>'+old_standard+'</td><td><span class="badge label-info bg-green">'+item.real_time+'</span></td><td>'+item.qty+'</td><td><i class="fa fa-lock" style="font-size:16px;"></i>&nbsp已审核 </td></tr>';	   			
 			   		}else{
-					str = str +'<tr><td name="sfg_id">'+item.sfg+'</td><td>'+item.product_type+probif(return_null(item.prob))+'</td><td>'+item.op_id__op_id+'</td><td>'+doublenbr(item.standard)+'</td><td><span class="badge label-info bg-green">'+item.real_time+'</span></td><td>'+item.qty+'</td><td><button class="btn btn-danger btn-xs" id="machine_'+item.id+'" onClick = "todelete($(this))"><i class="fa fa-trash-o"></i> Delete </button> </td></tr>';			   			
+					str = str +'<tr><td name="sfg_id">'+item.sfg+'</td><td>'+item.product_type+probif(return_null(item.prob))+'</td><td>'+item.op_id__op_id+'</td><td>'+doublenbr(item.standard)+'</td><td>'+old_standard+'</td><td><span class="badge label-info bg-green">'+item.real_time+'</span></td><td>'+item.qty+'</td><td><button class="btn btn-danger btn-xs" id="machine_'+item.id+'" onClick = "todelete($(this))"><i class="fa fa-trash-o"></i> Delete </button> </td></tr>';			   			
 			   		}
 
 				total_hours = total_hours + item.real_time;

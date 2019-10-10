@@ -52,6 +52,7 @@ def saveManHours(request):
 	# user_id = data['user_id']
 	user_id = request.user.id
 	exit_qty = manHourSurplus(sfg,op)
+	old_standard = data['old_standard']
 	if exit_qty == 0 and op !=11:
 		return HttpResponse(json.dumps('保存失败, 数量已经是1'))
 	# try:
@@ -62,10 +63,10 @@ def saveManHours(request):
 	else:
 		f_user = User.objects.get(id=user_id)
 		f_op = Op.objects.get(op_id=op)
-		queryOld = Report(sfg_id=sfg,type_name=product_type,op_id=f_op,prob=prob,qty=qty,user=f_user,standard_tiem=standard,
+		queryOld = Report(sfg_id=sfg,type_name=product_type,op_id=f_op,prob=prob,qty=qty,user=f_user,standard_tiem=old_standard,
 					real_time=real_time,date=date_time,groups=work_group)
 		queryOld.save()
-		flex = '{"old_report_id":'+str(queryOld.id)+"}"
+		flex = '{"old_report_id":'+str(queryOld.id)+',"old_standard":'+old_standard+"}"
 		query = ManHours(contract=contract, sfg=sfg, product_type=product_type, op=f_op, prob=prob, qty=qty, username=f_user, 
 			standard=standard, real_time=real_time, quote=quote, cost_rate=cost_rate, date=date_time, original_group=original_group,
 			work_group=work_group, is_active=True, flexible=flex)
@@ -1097,6 +1098,21 @@ def updateCostRateInUserInfo():
 	for i in range(len(assis)):
 		cost_rate = float(df[df['user_id']==assis[i]['username']]['cost_rate'])
 		Assistance.objects.filter(id=assis[i]['id']).update(cost_rate=cost_rate)
+
+def updateReportStandardTime(from_date, to_date):
+	data = list(Report.objects.filter(date__range=[from_date, to_date]).values('id','user','standard_tiem','type_name',
+		'op_id__op_id','prob','qty'))
+	for i in range(len(data)):
+		product_type = data[i]['type_name']
+		op = data[i]['op_id__op_id']
+		if data[i]['prob'] == '':
+			prob = None
+		else:
+			prob = Prob.objects.get(prob_info=data[i]['prob'])
+		standard = float(TypeStandard.objects.get(op_id=op,type_name=product_type,prob_info=prob).standard_time)
+		standard = standard * data[i]['qty']
+		Report.objects.filter(id=data[i]['id']).update(standard_tiem=standard)
+	return "yes"
 
 ### test base.html with menu list access ####
 ###### Main Page #######

@@ -110,8 +110,10 @@
 		                          <th>订单</th>
 		                          <th>SFG</th>
 		                          <th>产品类型</th>
+                              <th>工步</th>
 		                          <th>数量</th>
 		                          <th>填报工时</th>
+                              <th>标准工时</th>
 		                          <th>价值工时</th>
 		                          <th>确认工时</th>
 		                          <th>用户名</th>
@@ -501,33 +503,38 @@ async function get_data(begin, end){
           data: target['machines'],
           drawCallback: function () {
               var api = this.api();
-              $("#machine_tianbao").html(api.column( 4 ).data().sum().toFixed(1));
-              zhizao = api.column( 4 ).data().sum().toFixed(1);
+              $("#machine_tianbao").html(api.column( 5 ).data().sum().toFixed(1));
+              zhizao = api.column( 5 ).data().sum().toFixed(1);
               // $("#title_zhizao").html(zhizao+'H');
               shiji_splitted_zhizao ='制造:'+zhizao+'h';
               console.log('2'+shiji_splitted_zhizao);
-              $("#machine_jiazhi").html(api.column( 5 ).data().sum().toFixed(1));
-              total_value1 = api.column( 5 ).data().sum();
-              total_queren1 = api.column( 6 ).data().sum();
-              $("#machine_queren").html(api.column( 6 ).data().sum().toFixed(1));
+              $("#machine_jiazhi").html(api.column( 7 ).data().sum().toFixed(1));
+              total_value1 = api.column( 7 ).data().sum();
+              total_queren1 = api.column( 8 ).data().sum();
+              $("#machine_queren").html(api.column( 8 ).data().sum().toFixed(1));
               var pbm_manif = api.cells(function(index, data, node){
                 return api.row(index).data()['confirmed'] == 0 ? true : false;
-              }, 8, {search : 'applied'}).data();
+              }, 10, {search : 'applied'}).data();
               $.each(pbm_manif, function(i,v){
                 pbm_dates.push(v);
               });
           },
-          "aaSorting" : [[7, "asc"],[8,"asc"]],
+          "aaSorting" : [[9, "asc"],[10,"asc"]],
           columns: [
               {data: 'contract'},
               {data: 'sfg'},
               {data: 'product_type'},
+              {data: 'op_id__op_id'},
               {data: 'qty'},
               {data: 'real_time'},
+              {data: 'flexible', render: function(data, type, row){
+                return JSON.parse(data)['old_standard'] ? JSON.parse(data)['old_standard'] : '未记录';
+              }},
               {data: 'standard', render: $.fn.dataTable.render.number('', '.', 2, '')},
               {data: 'confirmed'},
               {data: 'username'},
               {data: 'date'}
+
           ]
       });
       total_chanchu1 = total_queren1;

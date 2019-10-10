@@ -134,7 +134,7 @@
 			'contract':'订单', 'sfg':'SFG', 'product_type':'产品类型', 'op_id__op_id':'工步','prob':'测头','qty':'数量',
 			'quote':'报价','original_group':'原始班组','work_group':'工作班组', 'a_type':'种类', 'a_category':'类别', 
 			'a_subject':'科目', 'b_category':'分类别','b_subject':'分科目','expense':'期间费用','comments':'备注','attach':'附件',
-			'over_time_type':'加班类型','is_paid':'申请加班费','groups':'班组','cost_rate':'费率','flexible':'质量报告单号'
+			'over_time_type':'加班类型','is_paid':'申请加班费','groups':'班组','cost_rate':'费率','flexible':'质量报告单号', 'flexible1':'标准工时'
 		};
 		if(dic[v]){
 			return dic[v];
@@ -258,6 +258,11 @@
 				console.log(e);
 			}
 		}
+
+		if(jsondata['sfg']){
+			medium_json['flexible1'] = JSON.parse(jsondata['flexible']).old_standard ? JSON.parse(jsondata['flexible']).old_standard : '未记录';
+		}	
+
 
 		if(jsondata['a_type'] == '外部工时'){
 			if(medium_json['attach']){
@@ -866,7 +871,7 @@
 			maxmin: false,
 			shadeClose: true,
 			shade:0.5,
-			area: ['1000px', '500px'],
+			area: ['1000px', '600px'],
 			content: '{% url "valuehour:add_info" %}?v='+v+'&cat='+b_category+'&sub='+b_subject+'&com='+comments+'&exp='+expense,
 			scrollbar:false,
 	  	});

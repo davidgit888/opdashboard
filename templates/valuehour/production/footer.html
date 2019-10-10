@@ -104,17 +104,6 @@
             q = 4;
           }
 
-
-          // document.getElementById("baogong").href = "{% url 'valuehour:baogong' %}?date="+today;
-          // function addhref(){
-          //   alert("sdfsdf");
-          //   $(this).href = '?date=2019-09-20';
-          // }
-          // document.getElementById("baogong").onclick = window.open('/jzgs/baogong/');         
-
-
-					// $('#user_name').html('{{ request.user.last_name }}{{ request.user.first_name }}');
-					// $('#banner_name').html('{{ request.user.last_name }}{{ request.user.first_name }}');
           $.ajaxSettings.async = false; 
           $.getJSON('/jzgs/getWorkerOpProb/', function(data){
             role = data.role;

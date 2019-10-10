@@ -193,19 +193,28 @@
 
 	function get_info(a, b){
 	$.getJSON("/jzgs/getBorrowType/", function(data){
-		services = [];
-		project1 = [];
-		project2 = [];
-		choices = ['事业部','具体项目1','具体项目2']
+		// services = [];
+		// project1 = [];
+		// project2 = [];
+		// choices = ['事业部','具体项目1','具体项目2']
+		// console.log(data.borrow);
+		choices = [];
 		$.each(data.borrow, function(i, v){
-			if(v.b_category =='事业部'){
-				services.push(v.b_subject);
-			}else if(v.b_category == '具体项目1'){
-				project1.push(v.b_subject);
-			}else if(v.b_category == '具体项目2'){
-				project2.push(v.b_subject);
-			};
+			if(choices.indexOf(v['b_category']) < 0){
+				choices.push(v['b_category']);				
+			}
 		});
+		// console.log(choices);
+		// return false;
+		// $.each(data.borrow, function(i, v){
+		// 	if(v.b_category =='事业部'){
+		// 		services.push(v.b_subject);
+		// 	}else if(v.b_category == '具体项目1'){
+		// 		project1.push(v.b_subject);
+		// 	}else if(v.b_category == '具体项目2'){
+		// 		project2.push(v.b_subject);
+		// 	};
+		// });
 		cat = '';
 		$.each(choices, function(i,v){
 			cat = cat + '<option>'+v+'</option>';
@@ -291,38 +300,38 @@
 	// }
 
 	function change_choice(vv){	
+		$.ajaxSettings.async = false;
 		$.getJSON("/jzgs/getBorrowType/", function(data){
-			services = [];
-			project1 = [];
-			project2 = [];
-			choices = ['事业部','具体项目1','具体项目2'];			
-			// console.log(JSON.stringify(data.borrow));
+			// services = [];
+			// project1 = [];
+			// project2 = [];
+			// console.log('changing');
+
+			choices = [];
+			dic = {};
 			$.each(data.borrow, function(i, v){
-				// alert(v.b_category);
-				// alert(v.b_subject);
-				if(v.b_category =='事业部'){
-					services.push(v.b_subject);
-				}else if(v.b_category == '具体项目1'){
-					project1.push(v.b_subject);
-				}else if(v.b_category == '具体项目2'){
-					project2.push(v.b_subject);
-				};
+				if(choices.indexOf(v['b_category']) < 0){
+					choices.push(v['b_category']);				
+				}
+			});
+			// console.log(choices);
+			$.each(choices, function(i, v){
+				dic[v] = [];
+			});
+
+			$.each(data.borrow, function(i, v){
+				dic[v.b_category].push(v.b_subject);
 			});	
-			//alert(services);
+
 		});
 
-		if (vv=='事业部'){
-			target =  services;
-		}else if(vv=='具体项目1'){
-			target = project1;
-		}else if (vv=='具体项目2'){
-			target = project2;
-		}
+		target = dic[vv];
 		choice_string = '';
 		$.each(target, function(i,v){
 			choice_string = '<option>'+v+'</option>' + choice_string;
 		});
 		$("#sub_category").html('<option value="">请选择</option>'+choice_string);
+		$.ajaxSettings.async = true;
 	};
 	
 	$(document).ready(function(){

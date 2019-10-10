@@ -5,6 +5,7 @@
   <div class="x_content">
       <br />
       <form id="accomplish" data-parsley-validate class="form-horizontal form-label-left">
+      	<span class="section">信息补充/修正</span>
         <div class="form-group">
           <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">大类</label>
           <div class="col-md-6 col-sm-6 col-xs-12">
@@ -26,6 +27,7 @@
             <input id="expense" class="date-picker form-control col-md-7 col-xs-12" type="number" step="0.1" name="expense" required="required">
           </div>
         </div>
+        <!--
         <div class="form-group">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">附件上传<span class="badge bg-red" style="display: none;" id="unuploaded">未上传</span><span class="badge bg-green" style="display: none;" id="uploaded">已上传</span></label>
           <div class="col-md-6 col-sm-6 col-xs-12">
@@ -37,6 +39,7 @@
 			  </div>
           </div>
         </div>
+    -->
         <div class="form-group">
           <label class="control-label col-md-3 col-sm-3 col-xs-12">备注</label>
           <div class="col-md-6 col-sm-6 col-xs-12">
@@ -44,14 +47,32 @@
                             data-parsley-validation-threshold="10" required="required"></textarea>
           </div>
         </div>
-        <div class="ln_solid"></div>
+
         <div class="form-group">
           <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
             <!--<button class="btn btn-primary" type="button">Cancel</button>
                 <button class="btn btn-primary" type="reset">Reset</button>-->
-            <button type="submit" class="btn btn-success">Submit</button>
+            <button type="submit" class="btn btn-success">提交</button>
           </div>
         </div>
+
+        </br>
+		<span class="section">附件上传/替换</span>
+        </br>
+
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">附件上传/替换<span class="badge bg-red" style="display: none;" id="unuploaded">未上传</span><span class="badge bg-green" style="display: none;" id="uploaded">已上传</span></label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+			 <div class="input-group">
+				<input type="file" class="form-control" name="attach" onchange="fileChange(this);" id="attach">
+				<span class="input-group-btn">
+				<button type="button" class="btn btn-primary" onclick="postData()">上传/替换</button>
+				</span>
+			  </div>
+          </div>
+        </div>
+
+
 
       </form>
     </div>
@@ -117,12 +138,20 @@
 		category = window.parent.document.getElementById("b_category__"+id).innerText;
 		subject = window.parent.document.getElementById("b_subject__"+id).innerText;
 		comments = window.parent.document.getElementById("comments__"+id).innerText;
-		try{
-			attach = window.parent.document.getElementById("attach__"+id).innerText;
-			$("#unuploaded").css("display", "");
-		}catch(e){
+		attach = window.parent.document.getElementById("attach__"+id).innerText;
+		if(attach){
 			$("#uploaded").css("display", "");
+		}else{
+			$("#unuploaded").css("display", "");
 		}
+		// try{
+		// 	attach = window.parent.document.getElementById("attach__"+id).innerText;
+		// 	$("#unuploaded").css("display", "");
+		// 	console.log(attach);
+		// }catch(e){
+		// 	$("#uploaded").css("display", "");
+		// 	console.log(e);
+		// }
 		$("#expense").val(expense);
 		$("#message").val(eval("'" + comments + "'"));
 		// $("#category option[value='"+category+"']").attr("selected", true);
@@ -155,6 +184,8 @@
 	        processData: false,
 	        success:function(res){
 	        	layer.msg('提交成功！', {icon: 1, time:600});
+	        	$("#uploaded").css("display", "");
+	        	$("#unuploaded").css("display", "none");	        	
 	        	window.parent.add_attach(id);
 	            console.log(res);
 	        },
@@ -224,16 +255,23 @@
 			services = [];
 			project1 = [];
 			project2 = [];
-			choices = ['事业部','具体项目1','具体项目2']
+			// choices = ['事业部','具体项目1','具体项目2']
+			// $.each(data.borrow, function(i, v){
+			// 	if(v.b_category =='事业部'){
+			// 		services.push(v.b_subject);
+			// 	}else if(v.b_category == '具体项目1'){
+			// 		project1.push(v.b_subject);
+			// 	}else if(v.b_category == '具体项目2'){
+			// 		project2.push(v.b_subject);
+			// 	};
+			// });
+			choices = [];
 			$.each(data.borrow, function(i, v){
-				if(v.b_category =='事业部'){
-					services.push(v.b_subject);
-				}else if(v.b_category == '具体项目1'){
-					project1.push(v.b_subject);
-				}else if(v.b_category == '具体项目2'){
-					project2.push(v.b_subject);
-				};
+				if(choices.indexOf(v['b_category']) < 0){
+					choices.push(v['b_category']);				
+				}
 			});
+
 			cat = '';
 			$.each(choices, function(i,v){
 				cat = cat + '<option>'+v+'</option>';
@@ -249,39 +287,59 @@
 
 
 	function change_choice(vv){		//alert(vv);
-
+		$.ajaxSettings.async = false;
 		$.getJSON("/jzgs/getBorrowType/", function(data){
-			services = [];
-			project1 = [];
-			project2 = [];
-			choices = ['事业部','具体项目1','具体项目2'];			
-			// console.log(JSON.stringify(data.borrow));
+			// services = [];
+			// project1 = [];
+			// project2 = [];
+			choices = [];
+			dic = {};
+
 			$.each(data.borrow, function(i, v){
-				// alert(v.b_category);
-				// alert(v.b_subject);
-				if(v.b_category =='事业部'){
-					services.push(v.b_subject);
-				}else if(v.b_category == '具体项目1'){
-					project1.push(v.b_subject);
-				}else if(v.b_category == '具体项目2'){
-					project2.push(v.b_subject);
-				};
+				if(choices.indexOf(v['b_category']) < 0){
+					choices.push(v['b_category']);				
+				}
+			});
+
+			$.each(choices, function(i, v){
+				dic[v] = [];
+			});
+
+			$.each(data.borrow, function(i, v){
+				dic[v.b_category].push(v.b_subject);
 			});	
+
+
+			// console.log(JSON.stringify(data.borrow));
+			// $.each(data.borrow, function(i, v){
+			// 	// alert(v.b_category);
+			// 	// alert(v.b_subject);
+			// 	if(v.b_category =='事业部'){
+			// 		services.push(v.b_subject);
+			// 	}else if(v.b_category == '具体项目1'){
+			// 		project1.push(v.b_subject);
+			// 	}else if(v.b_category == '具体项目2'){
+			// 		project2.push(v.b_subject);
+			// 	};
+			// });	
 			//alert(services);
 		});
 
-		if (vv=='事业部'){
-			target =  services;
-		}else if(vv=='具体项目1'){
-			target = project1;
-		}else if (vv=='具体项目2'){
-			target = project2;
-		}
+		// if (vv=='事业部'){
+		// 	target =  services;
+		// }else if(vv=='具体项目1'){
+		// 	target = project1;
+		// }else if (vv=='具体项目2'){
+		// 	target = project2;
+		// }
+		// target = dic[vv] ? dic[vv] : '';
+		target = dic[vv];
 		choice_string = '';
 		$.each(target, function(i,v){
 			choice_string = '<option>'+v+'</option>' + choice_string;
 		});
 		$("#sub_category").html('<option value="">请选择</option>'+choice_string);
+		$.ajaxSettings.async = true;
 	};
 /*	
 	function get_standard(qty){
@@ -335,6 +393,7 @@
 			e.preventDefault();
 			var form = $(this);
 			if (form.parsley( 'isValid' )){
+				layer.msg('提交成功！', {icon: 1});
 				makep();
 			};
 		});

@@ -264,7 +264,10 @@
 				datas[this.name] = this.value;
 			});
 			datas['standard'] =  datas['standard_basic'] * datas['quote'] / datas['cost_rate'];
+			datas['old_standard'] = datas['standard_basic']
 			delete datas['standard_basic'];
+			// console.log(datas)
+			// return false;
 			var form = $(this);
 			// alert(JSON.stringify(datas));
 			// return false;
