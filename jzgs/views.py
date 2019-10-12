@@ -90,13 +90,13 @@ def manHourSurplus(sfg, op):
 	"""
 	f_op = Op.objects.get(op_id=op)
 	# data = ManHours.objects.values('qty').filter(is_active=1, date=date, username=user, sfg=sfg)
-	data = ManHours.objects.values('qty').filter(is_active=True, sfg=sfg,op=f_op)
+	# data = ManHours.objects.values('qty').filter(is_active=True, sfg=sfg,op=f_op)
+	data = Report.objects.values('qty').filter(sfg_id=sfg,op_id=f_op)
 	all_qty = 0
 	if(data):
 		for i in range(len(data)):
 			all_qty += data[i]['qty']
-	else:
-		all_qty = 0
+
 	return round(1-all_qty,2)
 
 

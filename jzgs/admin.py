@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 import pandas as pd
 import unicodecsv as csv
+import json
+from .constant import exclude_name
 
 # Register your models here.
 class UploadExcel(forms.Form):
@@ -17,30 +19,33 @@ class ManHoursAdmin(admin.ModelAdmin):
     list_display = ('contract','sfg','product_type','op','prob','username','full_name','qty','standard', 'real_time','confirmed','date','original_group','work_group')
     search_fields = ['contract','sfg','username__username','username__last_name','date','original_group','work_group']
     date_hierarchy = 'date'
-    list_filter = ('work_group', 'original_group','is_active')
+    list_filter = ('work_group', 'original_group','op')
 
     staff_fieldsets = (
-    (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','quote','cost_rate','date','original_group','work_group')}),
+    (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','date','original_group','work_group')}),
     # (('个人信息'), {'fields': ('last_name', 'first_name', 'email')}),
     # # No permissions
     # (('重要日期'), {'fields': ('last_login', 'date_joined')}),
     # (('权限'), {'fields': ('is_active','is_staff','groups',)}),
         )
-    
+    actions = ["export_as_excel"]
     def full_name(self, obj):
         return ("%s%s" % (obj.username.last_name, obj.username.first_name))
     full_name.short_description = "姓名" 
 
     def export_as_excel(self, request, queryset):
         meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
+        field_names = [field.name for field in meta.fields if field.name not in exclude_name ]
+        # return HttpResponse(json.dumps(field_names))
+        # field_names = [i for i in field_names if i not in exclude_name]
         #field_names.append('full_name')
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-        field_verbose_names = [field.verbose_name for field in meta.fields]
+        field_verbose_names = [field.verbose_name for field in meta.fields if field.name not in exclude_name]
         writer.writerow(field_verbose_names[1:])
-        for obj in queryset:
+        query = queryset.filter(is_active=True)
+        for obj in query:
             row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
            
         return response
@@ -72,19 +77,25 @@ class AssistanceAdmin(admin.ModelAdmin):
     list_display = ('contract','full_name','a_type','a_category','a_subject','real_time','standard','confirmed','b_category','b_subject','work_group','original_group','username','date')
     search_fields = ['contract','a_type','a_category','a_subject','b_category','b_subject','work_group','original_group','username__username','username__last_name','date']
     date_hierarchy = 'date'
-    list_filter = ('work_group', 'original_group')
-    
+    list_filter = ('work_group', 'original_group','a_type','a_subject')
+
+    staff_fieldsets = (
+    (('基本信息'), {'fields': ('contract','a_type','a_category','a_subject','b_category','username','comments','standard', 'real_time',
+        'confirmed','date','original_group','work_group','b_subject','expense')}),
+    )
+    actions = ["export_as_excel"]
     def full_name(self, obj):
         return ("%s%s" % (obj.username.last_name, obj.username.first_name))
     full_name.short_description = "姓名" 
     def export_as_excel(self, request, queryset):
         meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
+        exclude_name.append('attach')
+        field_names = [field.name for field in meta.fields if field.name not in exclude_name ]
         #field_names.append('full_name')
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
         writer = csv.writer(response,dialect='excel',encoding='GB18030')
-        field_verbose_names = [field.verbose_name for field in meta.fields]
+        field_verbose_names = [field.verbose_name for field in meta.fields if field.name not in exclude_name ]
         writer.writerow(field_verbose_names[1:])
         for obj in queryset:
             row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
@@ -99,11 +110,39 @@ class AssistanceAdmin(admin.ModelAdmin):
         else:
             return query
 
+    def change_view(self, request, *args, **kwargs):
+        # for non-superuser
+        if not request.user.is_superuser:
+            try:
+                self.fieldsets = self.staff_fieldsets
+                response = super(AssistanceAdmin, self).change_view(request, *args, **kwargs)
+            finally:
+                # Reset fieldsets to its original value
+                self.fieldsets = AssistanceAdmin.fieldsets
+            return response
+        else:
+            return super(AssistanceAdmin, self).change_view(request, *args, **kwargs)
+
 class AssisTypeAdmin(admin.ModelAdmin):
-    fields = ['a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active','flexible','create_user']
+    fields = ['a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active','create_user']
     list_display = ('a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active')
     search_fields = ['a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active']
-    
+    staff_fieldsets = (
+    (('基本信息'), {'fields': ('a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active')}),
+    )
+
+    def change_view(self, request, *args, **kwargs):
+        # for non-superuser
+        if not request.user.is_superuser:
+            try:
+                self.fieldsets = self.staff_fieldsets
+                response = super(AssisTypeAdmin, self).change_view(request, *args, **kwargs)
+            finally:
+                # Reset fieldsets to its original value
+                self.fieldsets = AssisTypeAdmin.fieldsets
+            return response
+        else:
+            return super(AssisTypeAdmin, self).change_view(request, *args, **kwargs)
 
 class UserInfomationAdmin(admin.ModelAdmin):
     fields = ['user_id','staff_no','duty','email','work_group','original_group','mobile','cost_rate','quote','is_active','flexible','permissions']
@@ -164,7 +203,7 @@ class UserInfomationAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         query = super(UserInfomationAdmin, self).get_queryset(request)
         if request.user.id != 1:
-            filtered_queryset = query.exclude(user_id = 1)
+            filtered_queryset = query.exclude(user_id__in= [1,82])
             return filtered_queryset
         else:
             return query
@@ -181,7 +220,7 @@ class UserInfomationAdmin(admin.ModelAdmin):
             row = writer.writerow([getattr(obj, field) for field in field_names[1:]])
            
         return response
-    actions = ["export_as_excel"]
+    # actions = ["export_as_excel"]
 
     export_as_excel.short_description = "下载"
 
@@ -189,7 +228,7 @@ class UserInfomationAdmin(admin.ModelAdmin):
 class BorrowTypeAdmin(admin.ModelAdmin):
     fields = ['b_category','b_subject']
     list_display = ('b_category','b_subject')
-    search_fields = ['b_category','b_subjec']
+    search_fields = ['b_category','b_subject']
 
 
 class PermissionsAdmin(admin.ModelAdmin):

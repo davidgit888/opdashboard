@@ -566,16 +566,16 @@ async function get_data(begin, end){
               //begin sum
   			  var sub_chanchu_zhiliang = api.cells( function ( index, data, node ) {
   				    return api.row( index ).data()['a_type'] == '质量工时' ? true : false;
-  				}, 8, { search: 'applied' } ).data().sum();
+  				}, 8 ).data().sum();
   			  var sub_chanchu_jiti = api.cells(function(index, data, node){
   			  	return api.row(index).data()['a_type'] =='计提工时' ? true : false;
-  			  }, 8, {search:'applied'} ).data().sum();
+  			  }, 8 ).data().sum();
   			  var sub_chanchu_waibu = api.cells(function(index, data, node){
   			  	return api.row(index).data()['a_type'] =='外部工时' ? true : false;
-  			  }, 8, {search:'applied'} ).data().sum();
+  			  }, 8 ).data().sum();
               var pbm_assi = api.cells(function(index, data, node){
                 return api.row(index).data()['confirmed'] == 0 ? true : false;
-              }, 13, {search : 'applied'}).data();
+              }, 13).data();
               $.each(pbm_assi, function(i,v){
                 pbm_dates.push(v);
               });
