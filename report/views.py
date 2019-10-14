@@ -1970,9 +1970,12 @@ def get_performance(request,all_users_id, today):
 
 # 业绩表 popup
 def perform_pop(request):
-    date = request.GET.get('date')
-    #return HttpResponse(date)
-    # all_user_ids, all_op_id, user_groups = analysis_op_user(request)
+    ## old ##
+    today = request.GET.get('date')
+    ### new ###
+    if not today:
+        today = date.today()
+
     is_manager = is_report_manager(request)
     is_electronic = False
     orginal_group = get_groups(request)
@@ -1984,14 +1987,14 @@ def perform_pop(request):
     elif is_electronic:
         # if electric manager, group is a list and get all user id in that date
         group = ['数据-电气','数据-检验']
-        all_user_ids = user_work_group_ids(group,date)
+        all_user_ids = user_work_group_ids(group,today)
      
     else:
         # forman can see only work group
         group = user_work_group(request)
-        all_user_ids = user_work_group_ids(group,date)
+        all_user_ids = user_work_group_ids(group,today)
     # get perform list for all users
-    p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, date)
+    p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, today)
 
     return render(request, 'report/perform_pop.html', {
         'p_perform_list':p_perform_list,

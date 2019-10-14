@@ -7,83 +7,11 @@
 <link href="{% static 'css/table.css' %}" rel="stylesheet">
 <script src="{% static 'js/jquery.floatThead.js' %}"></script>
 <script>
-	  //show qty that is not 1 in schedule module
-    function showQty(data,id){
-        //document.getElementById(id).style.display = "block";
-        document.getElementById(id).innerHTML = data;
-        document.getElementById(id).style.background = 'orange';
-        //console.log(data);
-        
-    }
 
-    function hideQty(data,id){
-        //document.getElementById(id).style.display = "none";
-        //window.alert=function(){};
-        document.getElementById(id).innerHTML = data.toString();
-        document.getElementById(id).style.background = 'yellow';
-    }
-    // form schedule data
-    // var schedule = '{{schedule_json|safe}}';
-    // if(schedule){
-    //     var data = $.parseJSON(schedule);
-
-    
-    //     var dataLength = Object.keys(data)['length'];
-    //     for(j=0;j<10;j++){
-    //     var a = {};
-        
-    //         for(i=0;i<dataLength-3;i++){
-                
-    //             a[Object.keys(data[0])[i]]='---';
-    //             a['sfg_id']='---';
-    //             a['type_name']='---';
-    //             a['sfg_comments']='---';
-                
-    //         };
-    //         data.push(a);
-    //     };
-    // }
-
-    {% comment %} $(document).ready(function(){ 
-       
-        
-        //alert(Object.keys(data[0])['length']);  
-    }); {% endcomment %}
-
-    
     var today = new Date();
     var today_year = today.getFullYear();
-    // schedule
-    function support_time_log(){
-        document.forms[1].action = '/report/report_analysis/';
-        
-    }
-    // performance check
-    function performance_total(){
-        document.forms[0].action = '/report/report_analysis/';
-    }
-    // search doc info by date
-    function search_docinfo(){
-        //var from_date = $("#docinfo_from_date").val()
-        //var to_date = $("#docinfo_to_date").val()
-        var sfg = $("#d_sfg").val()
-        if(sfg){
-            url = '/report/search_docinfo/?sfg='+sfg //from_date='+from_date+'&to_date='+to_date
-        newwindow=window.open(url,'_blank');
-        if (window.focus) {newwindow.focus()}
-        }
-        else{
-            alert('请输入SFG');
-        }
-        
-    }
-    //save classified document 
-    function classify_doc(){
-        url = '/report/create_docinfo/'
-        newwindow=window.open(url,'_blank');
-        if (window.focus) {newwindow.focus()}
-           
-    }
+
+
 
     // filter schedule keywords
     $(function () {
@@ -212,117 +140,30 @@
     var data2_qty = '{{data2_qty|safe}}';
     var sche_qty = $.parseJSON(data2_qty);
     // var op_list = '{{op_list|safe}}';
-    var op_list =[];
-    '{% for i in op_list %}'
-        op_list.push('{{i.op_name}}');
-    '{% endfor %}'
+    // var op_list =[];
+    // '{% for i in op_list %}'
+    //     op_list.push('{{i.op_name}}');
+    // '{% endfor %}'
 
-    var sfg_list = '{{sfg_list|safe}}';
-    var sfg_list = $.parseJSON(sfg_list);
-    var sfg_list_length = Object.keys(sfg_list["sfg_id"])['length']
-    var sfgs = '{{sfgs|safe}}';
+    // var sfg_list = '{{sfg_list|safe}}';
+    // var sfg_list = $.parseJSON(sfg_list);
+    // var sfg_list_length = Object.keys(sfg_list["sfg_id"])['length']
+    // var sfgs = '{{sfgs|safe}}';
 
     // form schedule data
-    var sfgall = []
-    if(sfgs){
-        for(i=0;i<sfg_list_length;i++){
-
-            var sfg_items = {};
-            sfg_items['sfg_id']=sfg_list['sfg_id'][i]
-            if(sfg_list['comments'][i]==null){
-                sfg_items['sfg_comments']='N';
-            }else{
-                sfg_items['sfg_comments']=sfg_list['comments'][i];
-            }
-            sfg_items['type_name']=sfg_list['type_name'][i];
-            for(k=0;k<op_list.length;k++){
-                try{
-                    sfg_items[k+10]=sche_users[op_list[k]][sfg_items['sfg_id']];
-                    sfg_items[k+100]=sche_date[op_list[k]][sfg_items['sfg_id']];
-                    sfg_items[k+1000]=sche_qty[op_list[k]][sfg_items['sfg_id']];
-                }
-                catch(err){
-                    sfg_items[k+10]='---';
-                    sfg_items[k+100]='---';
-                    sfg_items[k+1000]=0;
-                }
-            }
-            sfgall.push(sfg_items);
-        };
-
-        var data=sfgall;
-        for(j=0;j<10;j++){
-        var a = {};
-        
-            for(i=0;i<Object.keys(data)['length']-3;i++){
-                
-                a[Object.keys(data[0])[i]]='---';
-                a['sfg_id']='---';
-                a['type_name']='---';
-                a['sfg_comments']='---';
-                
-            };
-            data.push(a);
-        };
-    }
 
     
 
-    $(document).ready(function(){
-
-        if(tab && activeLi ){
-            if(tab == 'None' && activeLi == 'None'){
-                $('#liKpi').css('background','orange');
-                $('#dKpi').css('display','inline-block');
-            }else{
-                $('#'+tab).css('display','inline-block');
-                $('#'+activeLi).css('background','orange');
-            }
-
-        }else{
-            $('#liKpi').css('background','orange');
-            $('#dKpi').css('display','inline-block');
-        }
-    })
     //var produce_log = new Array();
     
     window.onload = function (){
         //Show and hide li 
-        var allLi = document.getElementsByTagName('li');
+
         //var today = '{{p_date}}';
         //var p_date = document.getElementById('p_perform_today');
         //var p_date='{{p_date}}';
         
         $("#p_perform_today").attr('value',p_date);
-        
-        //alert(p_date);
-        
-        
-        var allDiv = $('#main_content').children("div")
-        for(i=0;i<allLi.length;i++){
-            allLi[i].index = i;
-            allLi[i].onclick = function (){
-                //allLi[i].style.background='#6AC1F7';
-                
-                for(i=0;i<allLi.length;i++){
-                    allLi[i].style.background='#6AC1F7';
-                    allDiv[i].style.display='none';
-                }
-                
-                this.style.background='orange';
-                allDiv[this.index].style.display='block';
-                
-                
-            //alert(allLi.length);
-            //alert(allDiv.length);
-                
-            //li.style.background='orange';
-            //li.style.display='block';
-            
-            }
-        }
-        //scrolify($('#performance_table'), 650);
-        
 
         // sort tables date
         
@@ -342,16 +183,7 @@
 
             });
         });
-
-        $("#a_submit").click(function(){
-            
-            var date = $('#a_month option:selected').val();
-            var group =$('#a_group option:selected').val();
-            var year = $('#a_year option:selected').val();
-            url = '/report/group_statistic/?date='+date+'&group='+group+'&year='+year
-            newwindow=window.open(url,'_blank');
-            if (window.focus) {newwindow.focus()}
-        });   
+ 
 
         $("#p_submit").click(function(){
             
@@ -400,49 +232,6 @@
 
         });
 
-            //form schedule table
-        if(data){
-
-
-
-            for(i=0;i<data.length;i++){
-            var allRows = '';
-            if(data[i]['sfg_id'] != '---'){
-
-            
-                allRows += '<tr><td>'+data[i]['sfg_id']+'</td><td>'+data[i]['type_name']+'</td>'+'<td>'+data[i]['sfg_comments']+'</td>';
-            }
-            else{
-                allRows += '<tr><td contenteditable="true">'+data[i]['sfg_id']+'</td><td contenteditable="true">'+data[i]['type_name']+'</td>'+'<td contenteditable="true">'+data[i]['sfg_comments']+'</td>';
-            }
-            for(j=0;j<(Object.keys(data[0])['length']-3)/3;j++){
-                if(data[i][j+1000]>=1){
-                    allRows +='<td  style="background:#00EC00">'+data[i][j+10]+'</td>';
-                    allRows +='<td  style="background:#00EC00">'+data[i][j+100]+'</td>';
-                }
-                else if(data[i][j+10]=='---'){
-                    allRows +='<td contenteditable="true">'+data[i][j+10]+'</td>';
-                    allRows +='<td contenteditable="true">'+data[i][j+100]+'</td>';
-                }
-                else{
-                    ///// old data
-                    //allRows +='<td style="background:yellow">'+data[i][j+10]+'</td>';
-                    var user = "'"+data[i][j+10]+"'";
-                    allRows += '<td  id="'+(i*100000+j)+'" style="background:yellow" onmouseover="showQty('+data[i][j+1000]+','+(i*100000+j)+
-                        ')" onmouseout="hideQty('+user.toString()+ ','+(i*100000+j)+
-                        ')">'+data[i][j+10]+'</td>';
-                    ////new 
-                    allRows +='<td  style="background:yellow"> '+data[i][j+100]+'</td>';
-                }
-                
-            }
-            allRows += '</tr>';
-            $('#tblNeedsScrolling tbody ').append(allRows);
-            //console.log(i);
-       
-            
-            } 
-        }
         //alert(allRows);
         //});
         $("#tblNeedsScrolling tbody tr td:nth-child(3)").click(function(){
@@ -463,102 +252,16 @@
             
         });
 
-        for(i=0;i<10;i++){
-            $("#a_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
-            $("#m_year").append("<option value='" + (today_year -i) + "'>" + (today_year - i) + "</option>");
-        }
-
-        $('#action-toggle').change(function() {
-            var checkboxes = $(this).closest('table').find(':checkbox');
-            checkboxes.prop('checked', $(this).is(':checked'));
-        });
 
 
       
-        var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
-                    // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
-                    var blob = new Blob([html], { type: "application/vnd.ms-excel" });
-                    var a = document.getElementsByTagName("a")[0];
-                    // 利用URL.createObjectURL()方法为a元素生成blob URL
-                    a.href = URL.createObjectURL(blob);
-                    // 设置文件名
-                    a.download = "生产进度.xls";
+
     }
     // end of window.onload 
 
 
-    {% comment %} function syncscroll(obj)
-        {
-        //y.innerHTML = obj.scrollTop;
-        //x.innerHTML = obj.scrollLeft;
-        scroll1.children[0].style.position = "relative";
-        scroll2.children[0].style.position = "relative";
-        scroll1.children[0].style.left = "-"+obj.scrollLeft;
-        scroll2.children[0].style.top =  "-"+obj.scrollTop;
-        
-        } {% endcomment %}
 
-    // export Schedule table to excel
-    // function exportSchedule(){
-    //       //download excel
-    //     {% comment %} var html = "<html><head><meta charset='utf-8' /></head><body>" + document.getElementById("tblNeedsScrolling").outerHTML + "</body></html>";
-    //                 // 实例化一个Blob对象，其构造函数的第一个参数是包含文件内容的数组，第二个参数是包含文件类型属性的对象
-    //                 var blob = new Blob([html], { type: "application/vnd.ms-excel" });
-    //                 var a = document.getElementsByTagName("a")[0];
-    //                 // 利用URL.createObjectURL()方法为a元素生成blob URL
-    //                 a.href = URL.createObjectURL(blob);
-    //                 // 设置文件名
-    //                 a.download = "生产进度.xls"; {% endcomment %}
 
-    //     var tab_text="<table border='2px'><tr bgcolor='#87AFC6'>";
-    //     var textRange; var j=0;
-    //     tab = document.getElementById('tblNeedsScrolling'); // id of table
-
-    //     for(j = 0 ; j < tab.rows.length ; j++) 
-    //     {     
-    //         tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
-    //         //tab_text=tab_text+"</tr>";
-    //     }
-
-    //     tab_text=tab_text+"</table>";
-    //     tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
-    //     tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
-    //     tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
-
-    //     var ua = window.navigator.userAgent;
-    //     var msie = ua.indexOf("MSIE "); 
-
-    //     if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
-    //     {
-    //         txtArea1.document.open("txt/html","replace");
-    //         txtArea1.document.write(tab_text);
-    //         txtArea1.document.close();
-    //         txtArea1.focus(); 
-    //         sa=txtArea1.document.execCommand("SaveAs",true,"生产进度.xls");
-    //     }  
-    //     else                 //other browser not tested on IE 11
-    //         sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));  
-
-    //     return (sa);
-    // }
-
-    // Freeze the header of table
-
-{% comment %} 
-        $(document).ready(function() {
-        scrolify($('#tblNeedsScrolling'), 640); // 160 is height
-        }); {% endcomment %}
-    
-    // make schedule table's head to floate
-   {% comment %} $(document).ready(function() {
-            var $table = $('#tblNeedsScrolling');
-            $table.floatThead({
-            scrollContainer: function($table){
-                return $table.closest('.wrapper');
-            }
-            });
-        
-    });  {% endcomment %}
 
     
     $('body').on('mousewheel',function(){
@@ -577,12 +280,7 @@
     });
 
     
-    $(document).ready(function(){
-        $("#schedule_date_p").html('<strong>开始日期: </strong><u><span style="color:coral">'+'{{from_date}}'+'</u></span>, <strong>结束日期: </strong><u><span style="color:coral">'
-        +'{{to_date}}'+'</span></u>');
-        //$("#schedule_to_date_p").html('结束日期'+'{{to_date}}');
-    })
-
+ 
     
 
 </script>
@@ -674,7 +372,7 @@
             <div style='position:relative;left:30%;'>
                 <fieldset style = 'width:500px' style='position:relative;left:30%;'>
                     <legend>查询</legend>
-                    <form onsubmit='performance_total()' action="/report/" method="post" >
+                    <form  action="#" method="post" >
                             {% csrf_token %}
                             <p>日期: <input id='p_perform_today' name='p_perform_today' type="text" onclick="fPopCalendar(event,this,this)" value = '' readonly="readonly" > 
                             <input type='hidden' value='dKpi'>

@@ -41,4 +41,5 @@ urlpatterns = [
     path('getReportWuhao/', views.getReportWuhao),
     path('getScheduleGantt/', views.getScheduleGantt),
     path('getScheduleMaterial/', views.getScheduleMaterial),
+    path('getTraceLogTable/', views.getTraceLogTable),
 ]

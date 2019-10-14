@@ -1183,6 +1183,11 @@ def getScheduleGantt(request):
 def getScheduleMaterial(request):
 	return redirect("/report/getScheduleMaterial/")
 
+def getTraceLogTable(request):
+	number = TraceLog.objects.count()
+	return render(request, 'jzgs/tracelog.html',{
+		'totalPage':number,
+		})
 
 # @login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):

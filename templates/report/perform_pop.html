@@ -11,19 +11,10 @@
         var cd_time=6;
         if(p_save_status=='No'){
             var rows = document.getElementById("performance_table").rows;
-            //alert(rows.length);
-            //var row = rows[1];
-            //alert(row);
-            //var length = row.cells.length;
-            //alert(length);
             var cell_check=$(".is_checked")
             for(j=1;j<rows.length;j++){
-
-            
                     row = rows[j]
-                    if (cell_check[j-1].checked){
-                        
-                        
+                    if (cell_check[j-1].checked){               
                         var user = row.cells[1].innerText;
                         var natural_time = row.cells[2].innerText;
                         var perfom = row.cells[3].innerText;
@@ -161,8 +152,9 @@
             var date = $('#p_perform_today').val();
             //alert(date);
             url = '/report/perform_pop/?date='+date
-            newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
-            if (window.focus) {newwindow.focus()}
+            window.location.href=url;
+            // newwindow=window.open(url,'windowName','height=800,width=1500,top=100, left=200');
+            // if (window.focus) {newwindow.focus()}
         });   
         //toggle all checkbox
         $('#action-toggle').change(function() {
@@ -219,7 +211,6 @@
                                 <th class= 'tableHead' width=100>外借工时</th>
                                 <th class= 'tableHead' width=100>工效比</th>
                                 <th class= 'tableHead' width=100>工时有效率</th>
-                                
                                 <th class= 'tableHead' width=100 >Date</th>
                                 <th width=100>username</th>
                                 <th width=100>原班组</th>
@@ -227,13 +218,9 @@
                                 <th width=100>Validate</th>
                                 {% comment %} <th style="visibility:hidden" >Validate</th>
                                 <th style="visibility:hidden" >Validate</th> {% endcomment %}
-                                
-                                
-
                             </tr>                    
                         </thead>
                         <tbody>
-                        
                                 {% for  i in p_perform_list  %}
                                     <tr  class="{% cycle 'row1' 'row2' %}">
                                         <td><input type='checkbox' class='is_checked'></td>
@@ -241,7 +228,7 @@
                                         {% if i.p_natural > 8 %}
                                             <td style='background:#3498DB' width=100>{{i.p_natural}}</td>
                                         
-                                        {% elif i.p_natural < 8  %}
+                                        {% elif i.p_natural < 7.5  %}
                                             <td style='background:#FF5733' width=100>{{i.p_natural}}</td>
                                         {% else %}
                                             <td style='background:lime' width=100>{{i.p_natural}}</td>
