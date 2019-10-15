@@ -24,6 +24,7 @@ from time import sleep
 import time
 import math
 from django.template.defaulttags import register
+from jzgs.models import UserInfomation
 
 @register.filter(name = 'filter_is_manager')
 def filter_is_manager(request):
@@ -1953,14 +1954,29 @@ def get_performance(request,all_users_id, today):
         # a['p_sup_log'] = supportive_logs,
         a['username'] = User.objects.get(id=all_users_id[i]).id
         # if check:
-        gourp_user = User.objects.get(id=all_users_id[i]).groups
-        for j in gourp_user.select_related():
+        # gourp_user = User.objects.get(id=all_users_id[i]).groups
+        # for j in gourp_user.select_related():
             
-            if '数据' in j.name:
-                a['group'] = j.name
-                break
-        user_group = UserGroups.objects.get(user=all_users_id[i])
-        a['work_group'] = user_group.work_group.group_name
+        #     if '数据' in j.name:
+        #         a['group'] = j.name
+        #         break
+        ######### get original group #########
+        original_group = UserInfomation.objects.filter(user_id=all_users_id[i])
+        if original_group:
+            a['group'] = original_group[0].original_group
+        else:
+            a['group'] = ""
+        # user_group = UserGroups.objects.get(user=all_users_id[i])
+
+        ######### get work group according to UserInfomation ###########
+        user_group = UserInfomation.objects.filter(user_id=all_users_id[i])
+
+        if user_group:
+            a['work_group'] = user_group[0].work_group.group_name
+        else:
+            a['work_group'] = ""
+
+            ########### end #######
         # else:
         #     a['group'] = forman_group
         

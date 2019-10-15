@@ -353,6 +353,45 @@ def saveTraceLog(user, username, action, detail, comments):
 	except Exception as e:
 		query = TraceLog(user=f_user, username=username, action_log = "Trace Log Failed", detail_message="Reason is: "+json.dumps(e.args), 
 			comments=detail)
+		query.save()
+
+def userFullname(user):
+	if isinstance(user,list):
+		data = User.objects.filter(id__in=user)
+		full_name = []
+		if len(data) != 0:
+			for i in range(len(data)):
+				full_name.append(data[i].get_full_name())
+		else:
+			full_name='None'
+	else:
+		data = User.objects.filter(id=user)
+		if len(data) != 0:
+			full_name = data[0].get_full_name()
+		else:
+			full_name = "None"
+	return full_name
+
+def deletePerformance(date, user):
+	full_name = userFullname(user)
+	if isinstance(user, list):
+		data = GroupPerform.objects.filter(username__in=user, date=date)
+		username = 2
+	else:
+		data = GroupPerform.objects.filter(username=user, date=date)
+		username = user
+	if len(data) !=0:
+		try:
+			data.delete()
+			saveTraceLog(username, "success", "Performance Delete", "success" , full_name )
+			# return "success"
+		except Exception as e:
+			saveTraceLog(username, "Faild", "Performance Delete","Faild"+json.dumps(e.args),full_name)
+			# return "Faild"
+	# return "no Data"
+	else:
+		saveTraceLog(username, "No Data", "Try to delete Performance", "No Action", "")
+	
 
 @login_required(login_url='/accounts/login/')
 def updateWorkerValue(request):
@@ -390,6 +429,9 @@ def updateWorkerValue(request):
 					old_report = json.loads(ManHours.objects.get(id=info_id).flexible)
 					old_report_id = old_report['old_report_id']
 					Report.objects.filter(id=old_report_id).delete()
+					user_id = ManHours.objects.filter(id=info_id)[0].username.id
+					date = ManHours.objects.filter(id=info_id)[0].date
+					deletePerformance(date, user_id)
 					saveTraceLog(request.user.id, user, "ManHours Delete","Success",data)
 					# return HttpResponse(json.dumps('success'))
 					message = "success"
@@ -420,6 +462,9 @@ def updateWorkerValue(request):
 					old_assist_id = old_assist['old_supportive_id']
 					SupportiveTime.objects.filter(id=old_assist_id).delete()
 					saveTraceLog(request.user.id, user, "Old SupportiveTime Delete","Success",data)
+					user_id = Assistance.objects.filter(id=info_id)[0].username.id
+					date = Assistance.objects.filter(id=info_id)[0].date
+					deletePerformance(date, user_id)
 					# return HttpResponse(json.dumps('success'))
 					message = "success"
 				except Exception as e:

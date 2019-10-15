@@ -195,8 +195,8 @@ class OverTime(models.Model):
 
 class TraceLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
-    username = models.CharField(max_length=4,verbose_name='用户', null=True, default='', blank=True)
-    action_log =  models.CharField(max_length=30,verbose_name='动作', null=True, default='', blank=True)
+    username = models.CharField(max_length=50,verbose_name='用户', null=True, default='', blank=True)
+    action_log =  models.CharField(max_length=50,verbose_name='动作', null=True, default='', blank=True)
     detail_message =  models.CharField(max_length=200,verbose_name='详情', null=True, default='', blank=True)
     comments = models.CharField(max_length=200,verbose_name='备注', null=True, default='', blank=True)    
     date = models.DateTimeField(auto_now=True)
