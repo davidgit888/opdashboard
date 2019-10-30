@@ -715,6 +715,32 @@ def assistValue(user, date, work_group):
 		data.append(a)		
 	return data
 
+def getUserInfoByManAssis(request):
+	date = request.GET.get('date')
+	work_group = userWorkGroup(request.user.id)
+	is_manager = isManager(request.user.id)
+	if is_manager:
+		man_ids = ManHours.objects.filter(date=date).values('username')
+		ass_ids = Assistance.objects.filter(date=date).values('username')
+	else:
+		man_ids = ManHours.objects.filter(date=date, work_group=work_group).values('username')
+		ass_ids = Assistance.objects.filter(date=date, work_group=work_group).values('username')
+	ids = []
+	for i in man_ids:
+		ids.append(i['username'])
+	for i in ass_ids:
+		ids.append(i['username'])
+	ids = list(set(ids))
+	data = []
+	for i in ids:
+		a = {}
+		item = User.objects.get(id=i)
+		a['user_id'] = i 
+		a['full_name'] = item.last_name + item.first_name
+		data.append(a)
+	return HttpResponse(json.dumps(data))
+
+
 def overtimeValue(user, date, work_group):
 	if work_group == 0:
 		if isinstance(date, list):
@@ -757,12 +783,15 @@ def sumManValue(from_date, to_date, work_group, value_type):
 	"""
 	if isinstance(work_group, int):
 		# get only on user's value
-		hours = ManHours.objects.filter(date__range=(from_date,to_date),username=work_group, is_active=True).values(value_type)
-
+		hours = ManHours.objects.filter(date__range=(from_date,to_date),username=work_group, is_active=True).exclude(confirmed=0).values(value_type)
+	elif isinstance(work_group, list):
+		hours = ManHours.objects.filter(date__range=(from_date,to_date),work_group__in=work_group, 
+			is_active=True).exclude(confirmed=0).values(value_type)
 	elif work_group != "ALL":
-		hours = ManHours.objects.filter(date__range=(from_date,to_date),work_group=work_group, is_active=True).values(value_type)
+		hours = ManHours.objects.filter(date__range=(from_date,to_date),work_group=work_group, is_active=True).exclude(confirmed=0).values(value_type)
+	
 	else:
-		hours = ManHours.objects.filter(date__range=(from_date,to_date), is_active=True).values(value_type)
+		hours = ManHours.objects.filter(date__range=(from_date,to_date), is_active=True).exclude(confirmed=0).values(value_type)
 
 	data = pd.DataFrame(list(hours))
 	if len(data) == 0:
@@ -775,11 +804,15 @@ def sumAssisValue(from_date, to_date, work_group, value_type):
 	""" get B for recover rate
 	"""
 	if isinstance(work_group, int):
-		hours = Assistance.objects.filter(date__range=(from_date,to_date),username=work_group, a_type__in=value_type, is_active=True).values('confirmed')
+		hours = Assistance.objects.filter(date__range=(from_date,to_date),username=work_group, a_type__in=value_type, is_active=True).exclude(confirmed=0).values('confirmed')
+	elif isinstance(work_group, list):
+		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group__in=work_group, a_type__in=value_type, 
+			is_active=True).exclude(confirmed=0).values('confirmed')
+
 	elif work_group != "ALL":
-		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group=work_group, a_type__in=value_type, is_active=True).values('confirmed')
+		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group=work_group, a_type__in=value_type, is_active=True).exclude(confirmed=0).values('confirmed')
 	else:
-		hours = Assistance.objects.filter(date__range=(from_date,to_date), a_type__in=value_type, is_active=True).values('confirmed')
+		hours = Assistance.objects.filter(date__range=(from_date,to_date), a_type__in=value_type, is_active=True).exclude(confirmed=0).values('confirmed')
 	data = pd.DataFrame(list(hours))
 	if len(data) == 0:
 		total = 0
@@ -792,8 +825,12 @@ def sumBorrowValue(from_date, to_date, work_group):
 	"""
 	if isinstance(work_group, int):
 		hours = Assistance.objects.filter(date__range=(from_date,to_date),username=work_group, a_type__in=['外部工时','质量工时','计提工时'], is_active=True).values('confirmed')
+	elif isinstance(work_group, list):
+		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group__in=work_group, 
+			a_type__in=['外部工时','质量工时','计提工时'], is_active=True).values('confirmed')
 	elif work_group != "ALL":
 		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group=work_group, a_type__in=['外部工时','质量工时','计提工时'], is_active=True).values('confirmed')
+	
 	else:
 		hours = Assistance.objects.filter(date__range=(from_date,to_date), a_type__in=['外部工时','质量工时','计提工时'], is_active=True).values('confirmed')
 	data = pd.DataFrame(list(hours))
@@ -809,8 +846,11 @@ def sumExpenseValue(from_date, to_date, work_group):
 	"""
 	if isinstance(work_group, int):
 		hours = Assistance.objects.filter(date__range=(from_date,to_date),username=work_group, is_active=True).values('flexible')
+	elif isinstance(work_group, list):
+		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group__in=work_group, is_active=True).values('flexible')
 	elif work_group != "ALL":
 		hours = Assistance.objects.filter(date__range=(from_date,to_date),work_group=work_group, is_active=True).values('flexible')
+
 	else:
 		hours = Assistance.objects.filter(date__range=(from_date,to_date), is_active=True).values('flexible')
 	data = list(hours)
@@ -830,14 +870,15 @@ def calRecoverate(from_date, to_date, work_group):
 	calculate recoverate for foreman 
 	"""
 	b = sumAssisValue(from_date, to_date, work_group,['辅助制造工时','其他辅助工时'])
-	a = sumManValue(from_date, to_date, work_group,'confirmed')
+	a = sumManValue(from_date, to_date, work_group,'standard')
 	c = sumBorrowValue(from_date, to_date, work_group)
+	a1 = sumManValue(from_date, to_date, work_group,'confirmed')
 	# e = sumExpenseValue(from_date, to_date, work_group)
-	if a+b+c == 0:
+	if a1+b+c == 0:
 		recover_rate = 0
 	else:
-		recover_rate = (a+c)/(a+b+c)
-	# return "a: is "+str(a) + "b: "+str(b)+"c: "+str(c)+"e: "+str(e)
+		recover_rate = (a+c)/(a1+b+c)
+	# return "a: is "+str(a) + "b: "+str(b)+"c: "+str(c)+ 'a1: is '+str(a1)
 	return round(recover_rate,2)
 
 def getSimulation(request):
@@ -909,6 +950,7 @@ def getRecoverate(request):
 	recoverate = {}
 	is_foreman = isForeman(user_id)
 	is_manager = isManager(user_id)
+	is_electric = isElectric(user_id)
 	all_work_groups = allWorkGroups()
 	# return HttpResponse(str(quarter+year))
 	from_date, to_date = fromToDate(quarter, year)
@@ -918,10 +960,31 @@ def getRecoverate(request):
 			recoverate[i]=total
 		total = calRecoverate(from_date, to_date, 'ALL')
 		recoverate['ALL'] = total
+	elif is_electric:
+		elec = calRecoverate(from_date, to_date, '数据-电气')
+		test = calRecoverate(from_date, to_date, '数据-检验')
+		all_data = calRecoverate(from_date, to_date, ['数据-电气','数据-检验'])
+		recoverate['电气'] = elec
+		recoverate['检验'] = test
+		recoverate['ALL'] = all_data
 	elif is_foreman:
 		work_group = userWorkGroup(user_id)
 		recoverate[work_group] = calRecoverate(from_date, to_date, work_group)
+	else:
+		return HttpResponse("无权限查看")
 	return HttpResponse(json.dumps(recoverate))
+
+@login_required(login_url='/accounts/login/')
+def getUnconfirmed(request):
+	man = ManHours.objects.filter(confirmed=0).values('date')
+	ass = Assistance.objects.filter(confirmed=0).values('date')
+	all_date = []
+	for i in range(len(man)):
+		all_date.append(man[i]['date'].strftime("%Y-%m-%d"))
+	for i in range(len(ass)):
+		all_date.append(ass[i]['date'].strftime("%Y-%m-%d"))
+	all_date = list(set(all_date))
+	return HttpResponse(json.dumps(all_date))
 
 @login_required(login_url='/accounts/login/')
 def getWorkerValue(request):

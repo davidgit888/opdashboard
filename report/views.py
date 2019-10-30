@@ -499,9 +499,17 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-# get login user's work groups in UserGroup table
+# get login user's work groups in UserInfomation table
 def user_work_group(request):
-    user = UserGroups.objects.filter(user=request.user.id)
+    ########### Old user Work Group ###########
+    # user = UserGroups.objects.filter(user=request.user.id)
+    # if user:
+    #     user_group = user[0].work_group.group_name
+    #     return user_group
+    # else:
+    #     return "没有分组"
+    ########　end Old user Work Group  #######
+    user = UserInfomation.objects.filter(user_id=request.user.id)
     if user:
         user_group = user[0].work_group.group_name
         return user_group

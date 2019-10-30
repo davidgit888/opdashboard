@@ -28,6 +28,7 @@ class ManHours(models.Model):
     last_fix_status = models.CharField(max_length=1000, default='',verbose_name='最后修改状态')
     is_active = models.BooleanField(default = False)
     flexible = models.TextField(null = True, blank = True, verbose_name='浮动列',default='')
+    old_perform = models.IntegerField(verbose_name='业绩', default=0)
 
     def __str__(self):
         return '%s %s %s %s %s %s' %(self.contract, self.sfg, self.product_type,self.username,self.confirmed,self.date)
@@ -62,6 +63,7 @@ class Assistance(models.Model):
     last_fix_status = models.CharField(max_length=1000, default='',verbose_name='最后修改状态')
     is_active = models.BooleanField(default = False)
     flexible = models.TextField(null = True, blank = True, verbose_name='浮动列',default='')
+    old_perform = models.IntegerField(verbose_name='业绩', default=0)
     def __str__(self):
         return '%s %s %s %s %s %s' %(self.contract, self.a_type, self.a_subject,self.real_time,self.quote,self.cost_rate)
     class Meta:

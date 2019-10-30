@@ -435,7 +435,6 @@ function parse_data_worker(url){
                   assistances=detail.assistance;
                   overtimes=detail.overtime;  
 
-
                   try{
 				      //begin overtime change
 				      for (var i =0; i<overtimes.length; i++){
@@ -477,15 +476,15 @@ async function get_data(begin, end){
 
   //judge role
   current_role = get_role();
-  console.log(current_role);
+  // console.log(current_role);
   if ( current_role == '报工平台-员工'){
     target = await parse_data_worker(url);
     paicha_str = 'baogong';
-    console.log("走员工数据");
+    // console.log("走员工数据");
   }else{
     target = await parse_data_management(url);
     paicha_str = 'shenhe';
-    console.log("走班组长数据");
+    // console.log("走班组长数据");
   };
   // console.log(target);
 
@@ -495,8 +494,10 @@ async function get_data(begin, end){
       pbm_dates = [];
       shiji_splitted_zhizao = '';
       shiji_splitted_qita = '';
-      console.log('1'+shiji_splitted);
+      total_value_new = 0;
+       // console.log('1--static');
       //treat machine
+      $.fn.dataTable.ext.errMode = 'none';
       $("#datatable-responsive").dataTable().fnClearTable();
       $("#datatable-responsive").dataTable().fnDestroy();
       $('#datatable-responsive').DataTable({                  
@@ -507,10 +508,15 @@ async function get_data(begin, end){
               zhizao = api.column( 5 ).data().sum().toFixed(1);
               // $("#title_zhizao").html(zhizao+'H');
               shiji_splitted_zhizao ='制造:'+zhizao+'h';
-              console.log('2'+shiji_splitted_zhizao);
+              // console.log('2'+shiji_splitted_zhizao);
               $("#machine_jiazhi").html(api.column( 7 ).data().sum().toFixed(1));
               total_value1 = api.column( 7 ).data().sum();
               total_queren1 = api.column( 8 ).data().sum();
+              //更改价值工时计算方法
+              total_value_new = api.cells(function(index, data, node){
+                return api.row(index).data()['confirmed'] == 0 ? false : true;
+              }, 7, {search : 'applied'}).data().sum();
+              //更改完毕
               $("#machine_queren").html(api.column( 8 ).data().sum().toFixed(1));
               var pbm_manif = api.cells(function(index, data, node){
                 return api.row(index).data()['confirmed'] == 0 ? true : false;
@@ -528,16 +534,20 @@ async function get_data(begin, end){
               {data: 'qty'},
               {data: 'real_time'},
               {data: 'flexible', render: function(data, type, row){
-                return JSON.parse(data)['old_standard'] ? JSON.parse(data)['old_standard'] : '未记录';
+             	return JSON.parse(data)['old_standard'];
+             	 // ? JSON.parse(data)['old_standard'] : '未记录'; 
               }},
-              {data: 'standard', render: $.fn.dataTable.render.number('', '.', 2, '')},
+              {data: 'standard', render: function(data, type, row){
+              	return data.toFixed(2);
+              }
+          		},
               {data: 'confirmed'},
               {data: 'username'},
               {data: 'date'}
 
           ]
       });
-      total_chanchu1 = total_queren1;
+      total_chanchu1 = total_value_new;
       //machine end
 
       //assistance begin
@@ -549,7 +559,7 @@ async function get_data(begin, end){
               var api = this.api();
               fuzhu = api.column( 6 ).data().sum().toFixed(1);
               shiji_splitted_qita = '&nbsp|&nbsp其他:'+fuzhu+'h';
-              console.log('3'+shiji_splitted_qita);
+              // console.log('3'+shiji_splitted_qita);
               $("#fuzhu_tianbao").html(fuzhu);
               // $("#title_fuzhu").html(fuzhu+'H');
               qiuhe = parseFloat(zhizao)+parseFloat(fuzhu);
@@ -638,11 +648,11 @@ async function get_data(begin, end){
       //overtime end 
 
       $("#shiji_splitted").html('<span class="count_bottom">'+shiji_splitted_zhizao+shiji_splitted_qita+'</span>');
-      console.log('4'+shiji_splitted_zhizao + shiji_splitted_qita);
+      // console.log('4'+shiji_splitted_zhizao + shiji_splitted_qita);
 
       //getting date pbm
       pbm_dates = unique(pbm_dates);
-      console.log(pbm_dates);
+      // console.log(pbm_dates);
       pbm_dates.sort();
       pbm_dates = pbm_dates.slice(0,9);
       nbr = pbm_dates.length;

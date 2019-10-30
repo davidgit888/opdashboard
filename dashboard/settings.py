@@ -29,7 +29,7 @@ STATICFILES_DIRS = (
 SECRET_KEY = 'kr(@i-=228r=m!(flo+graqz!62hhjhrtfa*b@$bqfjtb_i=#m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -98,6 +98,11 @@ TEMPLATES = [
         },
     },
 ]
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
 
 WSGI_APPLICATION = 'dashboard.wsgi.application'
 

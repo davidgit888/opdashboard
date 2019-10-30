@@ -37,7 +37,7 @@
   <!--<body class="nav-sm">--->
   	<script>
       if(localStorage.getItem("sidebar")){
-        console.log(localStorage.getItem("sidebar"));
+        // console.log(localStorage.getItem("sidebar"));
       }else{
         localStorage.setItem("sidebar", "sm");
       }
@@ -50,7 +50,8 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="{% url 'valuehour:testBase' %}" class="site_title"><img src="/static/valuehour/production/images/logo.png" alt="" height="44px;" width="44px;" style="margin-right:6px; margin-left:3px;"><span style="font-size: 15px;">生产制造信息平台-{{sys_env|safe}}</span></a>
+              <a href="{% url 'valuehour:testBase' %}" class="site_title"><img src="/static/valuehour/production/images/logo.png" alt="" height="44px;" width="44px;" style="margin-right:6px; margin-left:3px;"><span style="font-size: 15px;">
+              生产信息平台-{{sys_env|safe}}</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -110,7 +111,7 @@
                 <!-- {{json}} -->
               </div>
               <script type="text/javascript">
-               
+
               </script>
             </div>
             <!-- /sidebar menu -->
@@ -162,12 +163,12 @@
                 </li>
 
                 <li role="presentation" class="dropdown">
-                  <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+                  <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false" id="alert_nbr">
                     <i class="fa fa-envelope-o"></i>
-                    <span class="badge bg-green"></span>
+                    
                   </a>
                   <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
-                    <li>
+              <!--       <li>
                       <a>
                         <span class="image"><img src="/static/valuehour/production/images/img.jpg" alt="Profile Image" /></span>
                         <span>
@@ -198,7 +199,7 @@
                           <i class="fa fa-angle-right"></i>
                         </a>
                       </div>
-                    </li>
+                    </li> -->
                   </ul>
                 </li>
               </ul>

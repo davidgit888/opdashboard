@@ -14,14 +14,14 @@
         <div class="form-group">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">SFG ID</label>
           <div class="col-md-6 col-sm-6 col-xs-12">
-            <input type="text" id="sfg" name="sfg" required="required" class="form-control col-md-7 col-xs-12" onChange="get_info($(this).val()); get_rest()">
+            <input type="text" id="sfg" name="sfg" required="required" class="form-control col-md-7 col-xs-12" onChange="get_standard($('#quantity').val()); get_info($(this).val()); get_rest()">
           </div>
         </div>
         <div class="form-group">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">机型</label>
           <div class="col-md-6 col-sm-6 col-xs-12">
 <!--             <input type="text" id="machine" name="product_type" required="required" class="form-control col-md-7 col-xs-12" readonly="readonly"> -->
-            <select class="select2_group form-control" id="machine" name="product_type" required="required"> </select>
+            <select class="select2_group form-control" id="machine" name="product_type" required="required" onChange="get_standard($('#quantity').val()); get_rest()"> </select>
           </div>
         </div>
         <div class="form-group">

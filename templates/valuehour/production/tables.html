@@ -551,15 +551,15 @@
 			   });
 			   $("#borrow_hour").html(str2);
 			   //获取总工时
-			   total_H = '制造:'+total_hours.toFixed(1)+'H';
-			   total_E = '加班:'+extra_hours.toFixed(1)+'H';
+			   total_H = '制造:'+total_hours.toFixed(2)+'H';
+			   total_E = '加班:'+extra_hours.toFixed(2)+'H';
 			   
 			   $("#total_hours").html(total_H);
 			   $("#extra_hours").html(total_E);
 			   
 			   //判断是否可以报工
 			   if(data.activate){
-			   cansub = data.activate;			   	
+			   cansub = data.activate;
 				}else{
 				cansub = 1;
 				}

@@ -65,7 +65,31 @@
             })
             
             // alert(data)
-        }
+        };
+        unconfirmed_date = '';
+  
+        $.getJSON("/jzgs/getUnconfirmed/", function(data){
+            unconfirmed_date = data;
+            
+        });
+
+        
+                    
+      $(document).ready(function() {
+        await get_date(); 
+        console.log(unconfirmed_date);
+        console.log('get_date');
+        // alert("haha");
+        alert_str = '';
+        nbr = unconfirmed_date.length;
+        $.each(unconfirmed_date, function(i,v){
+          alert_str += '<li><a href="/jzgs/shenhe'+'/?date='+v+'" target="_blank"><span class="image"><img src="/static/valuehour/production/images/alert.png" alt="Profile Image" /></span><span>  <span>该日期有未确认的工时</span> <span class="time">点击去确认</span> </span><span class="message">'+v+'</span></a>  </li> '
+        })
+       
+        $("#menu1").html(alert_str);
+          $("#alert_nbr").html('<i class="fa fa-envelope-o"></i><span class="badge bg-red">'+nbr+'</span>');     
+
+      });
 
     </script>
     <!-- jQuery -->

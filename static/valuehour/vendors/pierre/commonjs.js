@@ -89,6 +89,7 @@ function get_standard(qty){
 	product_type = $("#machine").val();
 	op = $("#operation").val();
 	prob = $("#prob").val();
+	console.log("refreshing");
 	// if(!prob){
 	// 	prob='';
 	// 	$("#having_prob").html('<input type="text" id="prob" name="prob" hidden="hidden">');

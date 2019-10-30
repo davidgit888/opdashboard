@@ -40,7 +40,8 @@
           result = data;
           for (k in data)
           {
-            $("#this_quarter").html(data[k]*100+'%');
+            $("#this_quarter").html(data[k].toFixed(2)*100+'%');
+            console.log(data[k].toFixed(2)*100);
             $("#whole_year_title").html('<i class="fa fa-line-chart"></i>全年Recover Rate');
             $("#this_quarter_title").html('<i class="fa fa-line-chart"></i> <a href="javascript:void(0)" id="quarter" class="green"></a>&nbspRecover Rate');
             //暂时放季度的指标，TODO
@@ -53,7 +54,7 @@
       $.getJSON("/jzgs/getRecoverate/?year="+year+"&quarter=9", function(data){//begin JSON
         if(data){//begin if
           for (j in data){//begin for
-            $("#whole_year").html(data[j]*100+'%');
+            $("#whole_year").html(data[j].toFixed(2)*100+'%');
           }//end for
         }//end if
       });//end JSON 

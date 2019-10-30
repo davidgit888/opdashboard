@@ -1,2 +1,0 @@
-﻿        {"SFG":1667,"OP":"滑架","STANDARD":3.5,"REAL":4.2, "TYPE":"TORO PERFORMANCE 20.33.15", "QTY":2},
-        {"SFG":1669,"OP":"底座","STANDARD":7.6,"REAL":5.6, "TYPE":"TORO ADVANTAGE 20.35.25", "QTY":1}

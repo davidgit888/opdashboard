@@ -24,6 +24,8 @@ urlpatterns = [
     path('uploadFiles/', views.uploadFiles, name='uploadFiles'),
     path('downloadFile/', views.downloadFile, name='downloadFile'),
     path('getSimulation/', views.getSimulation, name='getSimulation'),
+    ## api
+    path('getUnconfirmed/', views.getUnconfirmed),
     ## template
     path('', views.index, name = 'valuehour'),
     path('baogong/', views.employee, name = 'baogong'),
@@ -42,4 +44,6 @@ urlpatterns = [
     path('getScheduleGantt/', views.getScheduleGantt),
     path('getScheduleMaterial/', views.getScheduleMaterial),
     path('getTraceLogTable/', views.getTraceLogTable),
+    path('getUserFullname/',views.getUserInfoByManAssis),
+
 ]

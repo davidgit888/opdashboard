@@ -620,8 +620,8 @@
 
 		 user_dic = {};
 
-		$.getJSON('/jzgs/getWorkerOpProb/', '',function(data){
-			person_detail = data.user;
+		$.getJSON('/jzgs/getUserFullname/?date='+actual, '',function(data){
+			person_detail = data;
 			person_dic = {};
 			$.each(person_detail, function(i, v){
 				person_dic[v.user_id] = v.full_name;
