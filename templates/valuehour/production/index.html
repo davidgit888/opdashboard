@@ -42,7 +42,7 @@
             <a href="javascript:void(0);" id="ups"><i class="fa fa-toggle-up"></i></a>              
               <span class="count_top green" id="this_quarter_title"><i class="fa fa-yen"></i> <a href="javascript:void(0)" id="quarter" class="green"></a>价值工时</span>  
             <a href="javascript:void(0);" id="downs"><i class="fa fa-toggle-down"></i></a>           
-              <div class="count green" id="this_quarter">---</div>
+              <div class="count green" id="this_quarter" data-toggle="modal" data-target=".bs-example-modal-sm">---</div>
               <span class="count_bottom">&nbsp</span>
 
             </div>
@@ -225,6 +225,29 @@
                 <div class="clearfix"></div>
               </div>
             </div>
+
+            <!--test new -->
+            <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Small modal</button> -->
+
+			<div class="modal fade bs-example-modal-sm in" tabindex="-1" role="dialog" aria-hidden="true" style="display: none; padding-right: 16px;">
+                    <div class="modal-dialog modal-sm">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                          </button>
+                          <h4 class="modal-title" id="myModalLabel2">分班组Recover Rate</h4>
+                        </div>
+                        <div class="modal-body">
+                        	content to be created dynamically!
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+            <!-- test new end -->
 
           </div>
           <br />

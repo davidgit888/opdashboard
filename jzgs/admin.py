@@ -73,8 +73,11 @@ class ManHoursAdmin(admin.ModelAdmin):
 
 
 class AssistanceAdmin(admin.ModelAdmin):
-    fields = ['contract','a_type','a_category','a_subject','real_time','quote','cost_rate','standard','confirmed','b_category','b_subject','expense','work_group','original_group','username','comments','date','flexible']
-    list_display = ('contract','full_name','a_type','a_category','a_subject','real_time','standard','confirmed','b_category','b_subject','work_group','original_group','username','date')
+    fields = ['contract','a_type','a_category','a_subject','real_time','quote','cost_rate','standard','confirmed','b_category',
+    'b_subject','expense','work_group','original_group','username','comments','date','flexible','is_active','last_fix_user',
+    'last_fix_status','old_perform']
+    list_display = ('contract','full_name','a_type','a_category','a_subject','real_time','standard','confirmed','b_category',
+        'b_subject','work_group','original_group','username','date','last_fix_date')
     search_fields = ['contract','a_type','a_category','a_subject','b_category','b_subject','work_group','original_group','username__username','username__last_name','date']
     date_hierarchy = 'date'
     list_filter = ('work_group', 'original_group','a_type','a_subject')

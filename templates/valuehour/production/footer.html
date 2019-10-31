@@ -38,10 +38,13 @@
       $.getJSON("/jzgs/getRecoverate/?year="+year+"&quarter="+q, function(data){        
         if(data){
           result = data;
+          if ('ALL' in data){
+            data = {'ALL':result['ALL']};
+          }
           for (k in data)
           {
             $("#this_quarter").html(data[k].toFixed(2)*100+'%');
-            console.log(data[k].toFixed(2)*100);
+            // console.log(data[k].toFixed(2)*100);
             $("#whole_year_title").html('<i class="fa fa-line-chart"></i>全年Recover Rate');
             $("#this_quarter_title").html('<i class="fa fa-line-chart"></i> <a href="javascript:void(0)" id="quarter" class="green"></a>&nbspRecover Rate');
             //暂时放季度的指标，TODO
@@ -52,6 +55,9 @@
       })//
 
       $.getJSON("/jzgs/getRecoverate/?year="+year+"&quarter=9", function(data){//begin JSON
+        if('ALL' in data){
+          data = {'ALL':data['ALL']};
+        }
         if(data){//begin if
           for (j in data){//begin for
             $("#whole_year").html(data[j].toFixed(2)*100+'%');
@@ -149,12 +155,13 @@
                 up("plus", "feiyuangong");
               });
 
-              if(role == '报工平台-主管' || role =='报工平台-经理'){
+              if(role == '报工平台-主管' || role =='报工平台-经理' || 'ALL' in res_mam){
                 string = '';
                 $.each(res_mam, function(i, v){
-                  string += i+' : '+v*100+'%\n';
+                  string += '<p>'+i+' : '+v*100+'%</p>';
                 });
-                $("#this_quarter").attr("title", '***本季度***班组情况：\n'+string);
+                // $("#this_quarter").attr("title", '***本季度***班组情况：\n'+string);
+                $(".modal-body").html('<h4>本季度分班组Recover Rate</h4>'+string);
               }
             }
             }

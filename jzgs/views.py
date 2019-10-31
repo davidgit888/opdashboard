@@ -719,7 +719,11 @@ def getUserInfoByManAssis(request):
 	date = request.GET.get('date')
 	work_group = userWorkGroup(request.user.id)
 	is_manager = isManager(request.user.id)
-	if is_manager:
+	is_electric = isElectric(request.user.id)
+	if is_electric and not is_manager:
+		man_ids = ManHours.objects.filter(date=date, work_group__in=['数据-电气','数据-检验']).values('username')
+		ass_ids = Assistance.objects.filter(date=date, work_group__in=['数据-电气','数据-检验']).values('username')		
+	elif is_manager:
 		man_ids = ManHours.objects.filter(date=date).values('username')
 		ass_ids = Assistance.objects.filter(date=date).values('username')
 	else:
@@ -976,8 +980,22 @@ def getRecoverate(request):
 
 @login_required(login_url='/accounts/login/')
 def getUnconfirmed(request):
-	man = ManHours.objects.filter(confirmed=0).values('date')
-	ass = Assistance.objects.filter(confirmed=0).values('date')
+	user_id = request.user.id
+	work_group = userWorkGroup(user_id)
+	is_manager = isManager(user_id)
+	is_foreman = isForeman(user_id)
+	is_electric = isElectric(user_id)
+	if is_manager:
+		man = ManHours.objects.filter(confirmed=0).values('date')
+		ass = Assistance.objects.filter(confirmed=0).values('date')
+	elif is_electric:
+		man = ManHours.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验']).values('date')
+		ass = Assistance.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验']).values('date')		
+	elif is_foreman:
+		man = ManHours.objects.filter(confirmed=0, work_group=work_group).values('date')
+		ass = Assistance.objects.filter(confirmed=0, work_group=work_group).values('date')	
+	else:
+		return HttpResponse('None')	
 	all_date = []
 	for i in range(len(man)):
 		all_date.append(man[i]['date'].strftime("%Y-%m-%d"))
@@ -988,6 +1006,9 @@ def getUnconfirmed(request):
 
 @login_required(login_url='/accounts/login/')
 def getWorkerValue(request):
+	"""
+	get all worker's man value hours
+	"""
 	user_id = request.user.id
 	quarter = request.GET.get('quarter')
 	year = request.GET.get('year')
