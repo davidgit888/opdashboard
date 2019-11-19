@@ -986,16 +986,17 @@ def getUnconfirmed(request):
 	is_foreman = isForeman(user_id)
 	is_electric = isElectric(user_id)
 	if is_manager:
-		man = ManHours.objects.filter(confirmed=0).values('date')
-		ass = Assistance.objects.filter(confirmed=0).values('date')
+		man = ManHours.objects.filter(confirmed=0, is_active=True).values('date')
+		ass = Assistance.objects.filter(confirmed=0, is_active=True).values('date')
 	elif is_electric:
-		man = ManHours.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验']).values('date')
-		ass = Assistance.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验']).values('date')		
+		man = ManHours.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验'], is_active=True).values('date')
+		ass = Assistance.objects.filter(confirmed=0, work_group__in=['数据-电气','数据-检验'], is_active=True).values('date')		
 	elif is_foreman:
-		man = ManHours.objects.filter(confirmed=0, work_group=work_group).values('date')
-		ass = Assistance.objects.filter(confirmed=0, work_group=work_group).values('date')	
+		man = ManHours.objects.filter(confirmed=0, work_group=work_group, is_active=True).values('date')
+		ass = Assistance.objects.filter(confirmed=0, work_group=work_group, is_active=True).values('date')	
 	else:
-		return HttpResponse('None')	
+		a = []
+		return HttpResponse(json.dumps(a))	
 	all_date = []
 	for i in range(len(man)):
 		all_date.append(man[i]['date'].strftime("%Y-%m-%d"))

@@ -8,6 +8,7 @@ import pandas as pd
 import unicodecsv as csv
 import json
 from .constant import exclude_name
+from. views import orginalGroups
 
 # Register your models here.
 class UploadExcel(forms.Form):
@@ -19,7 +20,7 @@ class ManHoursAdmin(admin.ModelAdmin):
     list_display = ('contract','sfg','product_type','op','prob','username','full_name','qty','standard', 'real_time','confirmed','date','original_group','work_group')
     search_fields = ['contract','sfg','username__username','username__last_name','date','original_group','work_group']
     date_hierarchy = 'date'
-    list_filter = ('work_group', 'original_group','op')
+    list_filter = ('work_group', 'original_group','op','is_active')
 
     staff_fieldsets = (
     (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','date','original_group','work_group')}),
@@ -54,7 +55,9 @@ class ManHoursAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         query = super(ManHoursAdmin, self).get_queryset(request)
         if request.user.id != 1:
-            filtered_queryset = query.filter(is_active = True)
+            
+            groups = orginalGroups(request.user.id)
+            filtered_queryset = query.filter(is_active = True, original_group__in=groups)
             return filtered_queryset
         else:
             return query
@@ -80,7 +83,7 @@ class AssistanceAdmin(admin.ModelAdmin):
         'b_subject','work_group','original_group','username','date','last_fix_date')
     search_fields = ['contract','a_type','a_category','a_subject','b_category','b_subject','work_group','original_group','username__username','username__last_name','date']
     date_hierarchy = 'date'
-    list_filter = ('work_group', 'original_group','a_type','a_subject')
+    list_filter = ('work_group', 'original_group','a_type','a_subject','is_active')
 
     staff_fieldsets = (
     (('基本信息'), {'fields': ('contract','a_type','a_category','a_subject','b_category','username','comments','standard', 'real_time',
@@ -108,7 +111,8 @@ class AssistanceAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         query = super(AssistanceAdmin, self).get_queryset(request)
         if request.user.id != 1:
-            filtered_queryset = query.filter(is_active = True)
+            groups = orginalGroups(request.user.id)
+            filtered_queryset = query.filter(is_active = True, original_group__in=groups)
             return filtered_queryset
         else:
             return query
