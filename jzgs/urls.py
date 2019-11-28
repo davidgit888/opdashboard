@@ -26,6 +26,9 @@ urlpatterns = [
     path('getSimulation/', views.getSimulation, name='getSimulation'),
     ## api
     path('getUnconfirmed/', views.getUnconfirmed),
+    path('getAgeCoefficient/', views.getAgeCoefficient),
+    path('getProductCoefficient/',views.getProductCoefficient),
+    path('getOpCoefficient/', views.getOpCoefficient),
     ## template
     path('', views.index, name = 'valuehour'),
     path('baogong/', views.employee, name = 'baogong'),

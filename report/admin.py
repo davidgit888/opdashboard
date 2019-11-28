@@ -241,10 +241,11 @@ class TypeStandarAdmin(admin.ModelAdmin):
 
 
 class SfmProdAdmin(admin.ModelAdmin):
-    fields = ['sfg_id','type_name']
-    list_display = ('sfg_id','type_name')
+    fields = ['sfg_id','type_name','attribute']
+    list_display = ('sfg_id','type_name','attribute')
     search_fields = ['sfg_id','type_name']
 
+    list_filter = ('attribute',)
     def get_actions(self, request):
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
@@ -304,9 +305,9 @@ class ProbAdmin(admin.ModelAdmin):
 
 
 class OpAdmin(admin.ModelAdmin):
-    fields = ['op_id','op_name']
-    list_display = ('op_id','op_name')
-    search_fields = ['op_id','op_name']
+    fields = ['op_id','op_name','value_para']
+    list_display = ('op_id','op_name','value_para')
+    search_fields = ['op_id','op_name','value_para']
     def get_actions(self, request):
         actions = super().get_actions(request)
         if 'delete_selected' in actions:

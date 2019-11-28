@@ -14,7 +14,7 @@
         <div class="form-group">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">SFG ID</label>
           <div class="col-md-6 col-sm-6 col-xs-12">
-            <input type="text" id="sfg" name="sfg" required="required" class="form-control col-md-7 col-xs-12" onChange="get_standard($('#quantity').val()); get_info($(this).val()); get_rest()">
+            <input type="text" id="sfg" name="sfg" required="required" class="form-control col-md-7 col-xs-12" onChange="get_info($(this).val()); get_standard($('#quantity').val()); get_rest()">
           </div>
         </div>
         <div class="form-group">
@@ -117,27 +117,14 @@
 	<script>
 
 
-		//获取url参数
-	// function getQueryVariable(variable)
-	// {
-	// 	   var query = window.location.search.substring(1);
-	// 	   var vars = query.split("&");
-	// 	   for (var i=0;i<vars.length;i++) {
-	// 			   var pair = vars[i].split("=");
-	// 			   if(pair[0] == variable){return pair[1];}
-	// 	   }
-	// 	   return('');
-	// }
-	
-	
-
 	function get_info(sfgid){
 		$("#machine").val('');
 		var index = layer.load(3, {shade: [0.1,'#fff']});
+		$.ajaxSettings.async = false;
 		$.getJSON("/jzgs/getProductType/?sfg="+sfgid.replace(/\&/g, "%26"), function(data){
 			if(data.length ==1){
-			$("#machine").html('<option>'+data[0]+'</option>');			
-			layer.close(index);				
+			$("#machine").html('<option>'+data[0]+'</option>');
+			layer.close(index);
 		}else if(data.length >1){
 			options = '';
 			for (i in data){
@@ -149,54 +136,19 @@
 			$("#restnbr").html('');
 			$("#machine").html('');
 			$("#sfg").val('');
+			$("#quantity").val();
+
 			layer.close(index);
 			layer.msg('没有查找到SFG,请重试', {icon: 2, time:2000});
 		};
 		});
+		$.ajaxSettings.async = true;
 	};
 	
-	// function get_standard(qty){
-	// 	product_type = $("#machine").val();
-	// 	op = $("#operation").val();
-	// 	prob = $("#prob").val();
-	// 	// if(!prob){
-	// 	// 	prob='';
-	// 	// 	$("#having_prob").html('<input type="text" id="prob" name="prob" hidden="hidden">');
-	// 	// }
-	// 	var index = layer.load(3, {shade: [0.1,'#fff']});
-	// 	$.getJSON("/jzgs/getStandardHours/?product_type="+product_type+"&op="+op+"&prob="+prob, function(data){
-	// 		//alert(data.standard);
-	// 		standard_hour = data;
-	// 		$("#standard_hour").val(Math.round(standard_hour*qty*100)/100);
-	// 	});
-	// 	layer.close(index);
-	// };
-
-	// function get_rest(){
-	// 	op = $("#operation").val();
-	// 	sfg = $("#sfg").val();
-	// 	if (!(op && sfg)){
-	// 		$("#restnbr").html('');
-	// 		return false;
-	// 	}
-	// 	var index = layer.load(3, {shade: [0.1,'#fff']});
-	// 	$.getJSON('/jzgs/getManHoursSurplus/?sfg='+sfg+'&op='+op, function(data){
-	// 		resthour = data;
-	// 		if((resthour || resthour == 0) && op!=11){
-	// 		$("#restnbr").html('');				
-	// 		$("#restnbr").html('(<span class="badge bg-green">剩：'+resthour+'</span>)');				
-	// 	}else if(op == 11){
-	// 		$("#restnbr").html('');
-	// 	};
-	// 	});	
-	// 	layer.close(index);
-	// };
-
-
 	//获取基本信息	
 	function get_basic_info(){
-		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
 		var index = layer.load(1, {shade: [0.1,'#fff']});
+		$.ajaxSettings.async = false;
 		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
 			if(data.prob){
 				prob = '';
@@ -217,70 +169,79 @@
 				layer.msg('没有读取到你的工步清单数据，请确认！', {icon: 2, time:2000});
 			};
 			checkUser(data);
-			// if(data.user){
-			// 	try{
-			// 		$('#cost_rate').val(data.user[0].cost_rate);
-			// 		$('#quote').val(data.user[0].quote);
-			// 		$('#original_group').val(data.user[0].original_group);
-			// 		$('#work_group').val(data.user[0].work_group);
-			// 		if(data.user[0].cost_rate == 0){
-			// 			// throw "你的费率设置不完整，无法报工"
-			// 			//删除这个
-			// 			$('#cost_rate').val(20);
-			// 		}
-			// 	}catch(e){
-			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
-			// 		layer.load(2, {shade: [0.1,'#fff']});
-			// 	}
-
-			// }else{
-			// 	layer.msg('你的后台数据配置不完整，请联系管理员!', {icon: 2, time:2000});
-			// }
 			layer.close(index);
 		});
+		$.ajaxSettings.async = true;
 	};	
 	
-	// function makep(){
-	// 	window.parent.getmachine();
-	// 	var index = parent.layer.getFrameIndex(window.name);
-	// 	setTimeout(function(){
-	// 	  parent.layer.close(index);
-	// 	}, 1000);		
-	// }
 	
 	$(document).ready(function(){
 	   get_basic_info();
-	   //get_info();
 		//get date from url parameter
 		$("#input_date").val(getQueryVariable("date"));
 		$("#input_date").attr("readonly", "readonly");
 		//validation before submit
 		$("#machining").submit(function(e){
 			e.preventDefault();
+			reset();
+			get_standard($("#quantity").val());
 			$("#contract").val($("#sfg").val());
+
+			//adding coefficient
+			var type_co = 0;
+			var operation_co = 0;
+			var year_co = 0;
+			try{
+
+				//如果小部件
+				if($("#operation").val()<=12){
+					type_co = 1;
+					operation_co = getBssoCoeff($("#machine").val());
+					year_co = getOpeYearCoeff()[1];
+				}else{
+					type_co = getMachineCoeff($("#machine").val());
+					oper_year_co = getOpeYearCoeff($("#operation").val());
+					operation_co = oper_year_co[0];
+					year_co = oper_year_co[1];
+				}
+
+				if(!type_co || !operation_co || !year_co){
+					throw '后台数据配置不完整';
+				}
+
+			}catch(e){
+				layer.msg('后台数据配置不完整，请联系管理员!'+e, {icon: 2, time:4000});
+				layer.load(2, {shade: [0.1,'#fff']});
+				return false;
+			}
+
+			console.log("正式系统后取消此Console");
+			console.log(type_co);
+			console.log(operation_co);
+			console.log(year_co);
+			console.log("正式系统后取消此Console");
+
 			t = $(this).serializeArray();
 			datas = {};
 			$.each(t, function(){
 				datas[this.name] = this.value;
 			});
-			datas['standard'] =  datas['standard_basic'] * datas['quote'] / datas['cost_rate'];
+			datas['standard_no_coefficient'] = datas['standard_basic'] * datas['quote'] / datas['cost_rate'];
+			datas['standard'] = (datas['standard_basic'] * datas['quote'] / datas['cost_rate']) * type_co * operation_co * year_co;
 			datas['old_standard'] = datas['standard_basic']
 			delete datas['standard_basic'];
-			// console.log(datas)
-			// return false;
+			console.log(datas);
 			var form = $(this);
-			// alert(JSON.stringify(datas));
-			// return false;
 			if (form.parsley( 'isValid' )){
 				//ajax提交Form数据
 				$.ajax({
 						type:'post',
-						//url:"{% url 'valuehour:get_machine' %}",
 						url:"/jzgs/saveManHours/",
 						data:{'data':JSON.stringify(datas)},
 						dataType:'json',
 						error:function(response){
 							layer.msg('接收失败，错误代码:'+response, {icon: 2, time:2000});
+							console.log(response);
 							makep();
 						},
 						success:function(response){

@@ -346,40 +346,7 @@ return arr;
 }
 
 function parse_data_management(url){
-  // url = "/jzgs/getManAssiOverValue/?date="+begin+"&end_date="+end;
-  // $.ajaxSetup({async:false});
-  // $.getJSON(url, function(data){
-  //     machines = [];
-  //     assistances = [];
-  //     overtimes = [];
-  //     $.each(data, function(i, v){
-  //       if(v.machine){
-  //         machines=machines.concat(v.machine);
-  //       }
-  //       if(v.assistance){
-  //         assistances=assistances.concat(v.assistance);
-  //       }
-  //       if(v.overtime){
-  //         overtimes=overtimes.concat(v.overtime);
-  //       }
-  //     });
-  //     //end each
-  //     for (var i =0; i<overtimes.length; i++){
-  //     	if (overtimes[i]['is_paid'] == '0'){
-  //     		console.log("否");
-  //     		overtimes[i]['is_paid'] = '否';
-  //     	}else if(overtimes[i]['is_paid'] == '1'){
-  //     		console.log("是");
-  //     		overtimes[i]['is_paid'] = '是';
-  //     	}
-  //     }
-
-  // });
-  // $.ajaxSetup({async:true});
-  // // console.log({'machines':machines, 'assistances':assistances, 'overtimes':overtimes});
-  // return {'machines':machines, 'assistances':assistances, 'overtimes':overtimes};
-
-  return new Promise(function(resolve, reject){
+   return new Promise(function(resolve, reject){
     //begin all
 
   my = $.getJSON(url, function(data){
@@ -426,25 +393,6 @@ function parse_data_management(url){
 }
 
 function parse_data_worker(url){
-  // machines = [];
-  // assistances = [];
-  // overtimes = [];
-  // $.ajaxSetup({async:false});
-  // $.getJSON(url, function(data){
-  //         if(data){
-  //           for(v in data){
-  //             detail = data[v];
-  //             machines= detail.machine;
-  //             assistances=detail.assistance;
-  //             overtimes=detail.overtime;           
-  //           }
-  //         }
-  //       }); 
-  // $.ajaxSetup({async:true});
-  // //end
-  // return {'machines':machines, 'assistances':assistances, 'overtimes':overtimes};
-
-
   return new Promise(function(resolve, reject){
   //begin promise
       machines = [];

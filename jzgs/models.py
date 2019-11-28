@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from report.models import Op, WorkGroups
+import datetime
 # Create your models here.
 
 class ManHours(models.Model):
@@ -105,6 +106,7 @@ class UserInfomation(models.Model):
     flexible = models.TextField(null = True, blank = True, verbose_name='浮动列',default='')
     is_active = models.BooleanField(default = False,verbose_name='是否生效')
     permissions = models.ManyToManyField(to="Permissions", blank=True, verbose_name="个人权限")
+    hiredate = models.DateField(auto_now=False, default=datetime.date.today(), verbose_name='入职时间')
     def __str__(self):
         return '%s %s %s %s %s %s' %(self.user_id, self.staff_no, self.duty,self.email,self.work_group,self.original_group)
     class Meta:
@@ -153,3 +155,35 @@ class GroupPermissions(models.Model):
 #     class Meta:
 #         verbose_name = '用户权限'
 #         verbose_name_plural = '用户权限'
+class AgeParameters(models.Model):
+    """Parameters for work age"""
+    age = models.FloatField(max_length=4,verbose_name='工龄',default=0)
+    para = models.FloatField(max_length=4,verbose_name='系数',default=0)
+
+
+    def __str__(self):
+        return '%s %s ' %(self.age, self.para)
+    class Meta:
+        verbose_name = '工龄系数'
+        verbose_name_plural = '工龄系数'
+
+class ProductParameters(models.Model):
+    """Parameters for product"""
+    product = models.CharField(max_length=50,verbose_name='产品线',default='')
+    para = models.FloatField(max_length=4,verbose_name='系数',default=0)
+
+    def __str__(self):
+        return '%s %s ' %(self.product, self.para)
+    class Meta:
+        verbose_name = '产品线系数'
+        verbose_name_plural = '产品线系数'
+
+class AssemblyParameters(models.Model):
+    """Parameters for 11 小部件"""
+    attribute = models.CharField(max_length=50, verbose_name='属性', default='')
+    para = models.FloatField(max_length=4, verbose_name='系数', default=1)
+    def __str__(self):
+        return '%s %s ' %(self.attribute, self.para)
+    class Meta:
+        verbose_name = '小部件系数'
+        verbose_name_plural = '小部件系数'

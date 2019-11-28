@@ -894,6 +894,39 @@
 		}
 	};
 
+function getallRest(){
+	rest = [];
+	trs = document.querySelectorAll('tr');
+	for(index in trs){
+		try{
+			if(!trs[index].getAttribute("name") && !trs[index].className){
+			rest.push(trs[index]);
+			}
+		}catch(e){
+		console.log("error");
+		}
+	}
+	return rest;
+}
+
+function makeRest(){
+	rest = getallRest();
+	if (rest == false){
+		layer.msg('没有查找到休息项目！', {icon: 1, time:1500});
+		return false;
+	}
+	for(index in rest){
+		target = rest[index].children[5].children[0];
+		if (!target.value){
+			target.value = 0.001;
+			target.onchange();
+		}
+	}
+	layer.msg('已经批量填写并选中休息！', {icon: 1, time:1500});
+}
+
+
+
 $(function(){
     H_qqServer={};
     H_qqServer.clickOpenServer = function () {
@@ -928,10 +961,11 @@ $(function(){
 		<button style="position:inherit; bottom:83px; width:30px; opacity: 1;" id="open_side" class="btn btn-default btn-xs"><br><i class="fa fa-angle-double-left"><br><br>展<br><br>开</i><br><br></button>
 	</div>
 	  <div class="btn-group-vertical" style="position:fixed; right:98px; ">
-		<button class="btn btn-success" type="button" style="position:inherit;  bottom:200px; width:100px; opacity: 1;" onClick="getall()">工时确认</button>
-		<button class="btn btn-default" type="button" style=" position:inherit;  bottom:168px; width:100px; opacity: 1;" onClick="tg()"><i id="openclose" style="margin-right:3px;" class="fa fa-angle-double-down green"> </i>展开折叠</button>
-		<button class="btn btn-default" type="button" style=" position:inherit;  bottom:136px; width:100px; opacity: 1;" onClick="hilight()"><i id="hilight" style="margin-right:3px;"> </i>只待确认</button>
-		<button class="btn btn-default" type="button" style="position:inherit;  bottom:104px; width:100px; opacity: 1;" onClick="onlypbm()"><i id="onlypbm" style="margin-right:3px;"> </i>只待补充</button>
-		<button style="position:inherit; bottom:83px; width: 100px; opacity: 1;" id="close_side" class="btn btn-default btn-xs"><i class="fa fa-angle-double-right"></i>&nbsp折叠</button>
+		<button class="btn btn-success" type="button" style="position:inherit;  bottom:240px; width:100px; opacity: 1;" onClick="getall()">工时确认</button>
+		<button class="btn btn-default" type="button" style=" position:inherit;  bottom:208px; width:100px; opacity: 1;" onClick="tg()"><i id="openclose" style="margin-right:3px;" class="fa fa-angle-double-down green"> </i>展开折叠</button>
+		<button class="btn btn-default" type="button" style=" position:inherit;  bottom:176px; width:100px; opacity: 1;" onClick="hilight()"><i id="hilight" style="margin-right:3px;"> </i>只待确认</button>
+		<button class="btn btn-default" type="button" style="position:inherit;  bottom:144px; width:100px; opacity: 1;" onClick="onlypbm()"><i id="onlypbm" style="margin-right:3px;"> </i>只待补充</button>
+		<button class="btn btn-default" type="button" style="position:inherit;  bottom:112px; width:100px; opacity: 1;" onClick="makeRest()"><i id="onlypbm" style="margin-right:3px;"> </i>休息审核</button>
+		<button style="position:inherit; bottom:91px; width: 100px; opacity: 1;" id="close_side" class="btn btn-default btn-xs"><i class="fa fa-angle-double-right"></i>&nbsp折叠</button>
 	  </div>
 {% endblock %}

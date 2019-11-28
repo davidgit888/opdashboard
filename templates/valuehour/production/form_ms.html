@@ -64,6 +64,7 @@
         <input type="text" id="quote" name="quote" hidden="hidden">
         <input type="text" id="original_group" name="original_group" hidden="hidden">
         <input type="text" id="work_group" name="work_group" hidden="hidden">
+        <input type="text" id="machine" name="machine" hidden="hidden">
       </form>
     </div>
   </div>
@@ -114,39 +115,9 @@
 		var index = layer.load(1, {shade: [0.1,'#fff']});
 		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
 			checkUser(data);
-			// if(data.user){
-			// 	try{
-			// 		$('#cost_rate').val(data.user[0].cost_rate);
-			// 		$('#quote').val(JSON.parse(data.user[0].flexible).cost);
-			// 		$('#original_group').val(data.user[0].original_group);
-			// 		$('#work_group').val(data.user[0].work_group);	
-			// 		if(data.user[0].cost_rate == 0){
-			// 			throw "你的费率设置不完整，无法报工"
-			// 		}				
-			// 	}catch(e){
-			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
-			// 		layer.load(2, {shade: [0.1,'#fff']});
-			// 	}
-			// }else{
-			// 	layer.msg('没有读取到你的身份信息，请确认！', {icon: 2, time:2000});
-			// }
 			layer.close(index);
 		});
 	};	
-
-	// function get_cat(name){
-	// 	$.getJSON("/jzgs/getBorrowType/", function(data){
-	// 		target = data['category'];
-	// 		result = '';
-	// 		$.each(target, function(i, v){
-	// 			if(v['a_subject'] == name){
-	// 				result = v['a_category'];
-	// 			}
-	// 		})
-	// 		console.log(name);
-	// 		return name;
-	// 	});
-	// }
 
 	function get_types(){
 	//获取api数据
@@ -162,34 +133,15 @@
 	});			
 	};
 
-	// function calculate(){
-	// 	$("#standard_hour").val("");
-	// 	real = $("#real_time").val();
-	// 	quote = $("#quote").val();
-	// 	cost_rate = $("#cost_rate").val();
-	// 	result = real * quote / cost_rate;
-	// 	$("#standard_hour").val(result.toFixed(2));
-	// }	
-	
-		//获取url参数
-	// function getQueryVariable(variable)
-	// {
-	// 	   var query = window.location.search.substring(1);
-	// 	   var vars = query.split("&");
-	// 	   for (var i=0;i<vars.length;i++) {
-	// 			   var pair = vars[i].split("=");
-	// 			   if(pair[0] == variable){return pair[1];}
-	// 	   }
-	// 	   return('');
-	// }
-
 	function get_info(sfgid){
 		var index = layer.load(3, {shade: [0.1,'#fff']});
 		$.getJSON("/jzgs/getProductType/?sfg="+sfgid.replace(/\&/g, "%26"), function(data){
 			if(data.length>0){
-			layer.close(index);	
-			layer.msg('正确的SFG', {icon: 1, time:1000});			
+				$("#machine").val(data[0]);
+				layer.close(index);	
+				layer.msg('正确的SFG', {icon: 1, time:1000});			
 		}else{
+			$("#machine").val('');
 			layer.close(index);
 			layer.msg('没有查找到SFG,请重试', {icon: 2, time:1000});
 			$("#sfg").val('');
@@ -197,47 +149,69 @@
 		});
 	};	
 
-	// function makep(){
-	// 	window.parent.getmachine();
-	// 	var index = parent.layer.getFrameIndex(window.name);
-	// 	setTimeout(function(){
-	// 	  parent.layer.close(index);
-	// 	}, 1000);		
-	// }
-	
 	$(document).ready(function(){
 	     get_basic_info();
 	     get_types();
-	     res = window.parent.findallsfg();
-	     if (res){
-	     	string = '';
-	     	$.each(res, function(i, v){
-	     		string = string + '<option>'+v+'</option>';
-	     	});
-	     	$("#sfg").html('<option value="">请填写相关SFG</option>'+string);
-	     };
+	     //res = window.parent.findallsfg();
+	     // if (res){
+	     // 	string = '';
+	     // 	$.each(res, function(i, v){
+	     // 		string = string + '<option>'+v+'</option>';
+	     // 	});
+	     // 	$("#sfg").html('<option value="">请填写相关SFG</option>'+string);
+	     // };
 		//get date from url parameter
 		$("#input_date").val(getQueryVariable("date"));
 		$("#input_date").attr("readonly", "readonly");
 		//validation before submit
 		$("#maniassis").submit(function(e){
 			e.preventDefault();
+
+			//adding coefficient
+			type_co = 0;
+			year_co = 0;
+			try{
+				type_co = getMachineCoeff($("#machine").val());
+				oper_year_co = getOpeYearCoeff();
+				year_co = oper_year_co[1];
+				//Test here to correct year
+				if(!type_co || !year_co){
+					throw '后台数据配置不完整';
+				}
+			}catch(e){
+				layer.msg('后台数据配置不完整，请联系管理员:\n'+e.message, {icon: 2, time:4000});
+				layer.load(2, {shade: [0.1,'#fff']});
+				return false;
+			}
+			console.log("正式系统后删除此Console");
+			console.log(type_co);
+			console.log(year_co);
+			console.log("正式系统后删除此Console");
+			//结束机型+工步系数
+
+			reset();
+			calculate();
+
+
 			t = $(this).serializeArray();
 			datas = {};
 			$.each(t, function(){
 				datas[this.name] = this.value;
 			})
-			//datas['contract'] = 'ABC';
-			//datas['a_category'] = '';
-			// datas['standard'] = 0;
-			//datas['cost_rate'] = '';
-			//datas['quote'] = '';
 			datas['expense'] = 0;
 			datas['quality_no'] = '';
-			//datas['original_group'] = '';
-			//datas['work_group'] = '';
 			datas['b_category'] = '';
 			datas['b_subject'] = '';
+			datas['standard_no_coefficient'] = datas['standard'];
+			datas['standard'] = datas['standard_no_coefficient'] * type_co * year_co;
+			delete datas['machine'];
+
+			console.log(datas);
+			console.log('----');
+			console.log(type_co);
+			console.log(year_co);
+			console.log('----');
+
 			var form = $(this);
 			if (form.parsley( 'isValid' )){
 				//ajax提交Form数据

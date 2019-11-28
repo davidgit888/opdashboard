@@ -1,5 +1,5 @@
 from django.contrib import admin,messages
-from .models import ManHours,Assistance,AssisType, UserInfomation, BorrowType,Permissions,GroupPermissions
+from .models import ManHours,Assistance,AssisType, UserInfomation, BorrowType,Permissions,GroupPermissions, ProductParameters, AgeParameters, AssemblyParameters
 from django import forms
 from django.urls import path
 from django.http import HttpResponse
@@ -152,9 +152,11 @@ class AssisTypeAdmin(admin.ModelAdmin):
             return super(AssisTypeAdmin, self).change_view(request, *args, **kwargs)
 
 class UserInfomationAdmin(admin.ModelAdmin):
-    fields = ['user_id','staff_no','duty','email','work_group','original_group','mobile','cost_rate','quote','is_active','flexible','permissions']
+    fields = ['user_id','staff_no','duty','email','work_group','original_group','mobile','cost_rate','quote','is_active','flexible',
+    'permissions','hiredate']
     list_display = ('user_id','staff_no','duty','email','work_group','original_group','mobile','is_active')
-    search_fields = ['user_id__username','staff_no','duty','user_id__last_name','email','work_group__group_name','original_group','mobile','cost_rate','quote','is_active']
+    search_fields = ['user_id__username','staff_no','duty','user_id__last_name','email','work_group__group_name','original_group',
+    'mobile','cost_rate','quote','is_active']
     filter_horizontal = ('permissions',)
     list_filter = ('work_group', 'original_group','duty')
     staff_fieldsets = ((('基本信息'), {'fields': ('user_id','staff_no','duty','email','work_group','original_group','mobile','is_active')}),)
@@ -251,11 +253,20 @@ class GroupPermissionsAdmin(admin.ModelAdmin):
     filter_horizontal = ('permissions',)
 
 
-# class UserPermissionsAdmin(admin.ModelAdmin):
-#     fields = ['user','permissions']
-#     list_display = ('user','permissions')
-#     search_fields = ['user__username','permissions__title']
+class AgeParametersAdmin(admin.ModelAdmin):
+    fields = ['age','para']
+    list_display = ('age','para')
+    search_fields = ['age','para']
 
+class ProductParametersAdmin(admin.ModelAdmin):
+    fields = ['product','para']
+    list_display = ('product','para')
+    search_fields = ['product','para']
+
+class AssemblyParametersAdmin(admin.ModelAdmin):
+    fields = ['attribute','para']
+    list_display = ('attribute','para')
+    search_fields = ['attribute','para']
 
 admin.site.register(ManHours, ManHoursAdmin)
 admin.site.register(Assistance, AssistanceAdmin)
@@ -264,4 +275,6 @@ admin.site.register(UserInfomation, UserInfomationAdmin)
 admin.site.register(BorrowType, BorrowTypeAdmin)
 admin.site.register(Permissions, PermissionsAdmin)
 # admin.site.register(UserPermissions, UserPermissionsAdmin)
-admin.site.register(GroupPermissions, GroupPermissionsAdmin)
+admin.site.register(AgeParameters, AgeParametersAdmin)
+admin.site.register(ProductParameters, ProductParametersAdmin)
+admin.site.register(AssemblyParameters, AssemblyParametersAdmin)

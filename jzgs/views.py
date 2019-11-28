@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,FileResponse,Http404
 import json
-from .models import ManHours, Assistance, AssisType, UserInfomation,BorrowType,GroupPermissions,Permissions
+from .models import ManHours, Assistance, AssisType, UserInfomation,BorrowType,GroupPermissions,Permissions,ProductParameters,AgeParameters,AssemblyParameters
 from django.contrib.auth.models import User
 from report.models import Op, Report,TypeStandard,Prob,SfmProd,GroupOp,OverTime,WorkGroups,SupportiveTime,TraceLog, GroupPerform,CoefficientSupport
 from django.contrib.auth.decorators import login_required
@@ -16,11 +16,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.encoding import escape_uri_path
 # Create your views here.
 
-@login_required(login_url='/accounts/login/') 
+#@login_required(login_url='/accounts/login/') 
 def index(request):
 	return render(request, 'valuehour/production/index.html')
 
-# @login_required(login_url='/accounts/login/') 
+# #@login_required(login_url='/accounts/login/') 
 # def test(request):
 # 	sfg = request.POST.get('sfg')
 # 	op = request.POST.get('op')
@@ -31,7 +31,7 @@ def index(request):
 # 	}
 # 	return HttpResponse(json.dumps(data))
 
-@login_required(login_url='/accounts/login/') 
+#@login_required(login_url='/accounts/login/') 
 def saveManHours(request):
 	"""制造工时"""
 	data = request.POST.get('data')
@@ -53,6 +53,7 @@ def saveManHours(request):
 	user_id = request.user.id
 	exit_qty = manHourSurplus(sfg,op)
 	old_standard = data['old_standard']
+	standard_no_coefficient = data['standard_no_coefficient']
 	if exit_qty == 0 and op !=11:
 		return HttpResponse(json.dumps('保存失败, 数量已经是1'))
 	# try:
@@ -66,7 +67,7 @@ def saveManHours(request):
 		queryOld = Report(sfg_id=sfg,type_name=product_type,op_id=f_op,prob=prob,qty=qty,user=f_user,standard_tiem=old_standard,
 					real_time=real_time,date=date_time,groups=work_group)
 		queryOld.save()
-		flex = '{"old_report_id":'+str(queryOld.id)+',"old_standard":'+old_standard+"}"
+		flex = '{"old_report_id":'+str(queryOld.id)+',"old_standard":'+old_standard+',"standard_no_coefficient":'+str(standard_no_coefficient)+"}"
 		query = ManHours(contract=contract, sfg=sfg, product_type=product_type, op=f_op, prob=prob, qty=qty, username=f_user, 
 			standard=standard, real_time=real_time, quote=quote, cost_rate=cost_rate, date=date_time, original_group=original_group,
 			work_group=work_group, is_active=True, flexible=flex)
@@ -78,7 +79,7 @@ def saveManHours(request):
 
 	# 	return HttpResponse(json.dumps(e.args))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getManHoursSurplus(request):
 	sfg = request.GET.get('sfg')
 	op = request.GET.get('op')
@@ -117,12 +118,17 @@ def userInfo(user):
 		result['original_group'] = data[i].original_group
 		result['work_group'] = data[i].work_group.group_name
 		result['flexible'] = data[i].flexible
+		hiredate = data[i].hiredate
+		days = (datetime.date.today() - hiredate).days
+		if days != 0:
+			years = int(days/365)
+		else:
+			years = 0
+		result['year'] = years
 		items.append(result)
-
-
 	return items
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getStandardHours(request):
 	"""Get standard value hours
 	"""
@@ -139,7 +145,7 @@ def getStandardHours(request):
 		standard_time = ' '
 	return HttpResponse(json.dumps(standard_time))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getProductType(request):
 	"""
 	get Product type by sfg id
@@ -154,7 +160,7 @@ def getProductType(request):
 		product_type = None
 	return HttpResponse(json.dumps(product_type))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getBorrowType(request):
 	assis = AssisType.objects.filter(is_active=True).values('a_type','a_category','a_subject')
 	borrow = BorrowType.objects.values('b_category','b_subject')
@@ -163,7 +169,7 @@ def getBorrowType(request):
 	data['borrow'] = list(borrow)
 	return HttpResponse(json.dumps(data))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getWorkerOpProb(request):
 	user_id = request.user.id
 	prob_list = porbList(user_id) 
@@ -197,7 +203,51 @@ def getWorkerOpProb(request):
 	result['role'] = user_role
 	return HttpResponse(json.dumps(result))
 
+#@login_required(login_url='/accounts/login/')
+def getAgeCoefficient(request):
+	data = list(AgeParameters.objects.all().values('age','para'))
+	return HttpResponse(json.dumps(data))
+
+#@login_required(login_url='/accounts/login/')
+def getProductCoefficient(request):
+	data = list(ProductParameters.objects.all().values('product','para'))
+	return HttpResponse(json.dumps(data))
+
+def getOpCoefficient(request):
+	assembly = request.GET.get('type')
+	attribute = SfmProd.objects.filter(type_name=assembly)
+	if len(attribute) != 0:
+		para = AssemblyParameters.objects.filter(attribute=attribute[0].attribute)
+		if len(para) != 0:
+			return HttpResponse(json.dumps(para[0].para))
+		else:
+			return HttpResponse('No parameters')
+	else:
+		return HttpResponse('No results')
+
 ##### used functions ########
+
+def useridsByForeman(is_foreman, is_electric, is_worker, is_manager, work_group):
+	"""return user's id according to work_groups by foreman's or manager, or user work group and role
+	"""
+	if is_foreman and not is_electric:
+		user_ids = userIdByWorkGroup(work_group)
+		users = userInfo(user_ids) 
+	elif is_worker:
+		users = userInfo([user_id])
+	elif is_manager:
+		user_ids = User.objects.all().values('id')
+		user_ids = changeDictToList(user_ids,'id')
+		users = userInfo(user_ids)
+	elif is_electric and is_foreman:
+		user_ids = userIdByWorkGroup(work_group)
+		user_ids += userIdByWorkGroup('数据-检验')
+		users = userInfo(user_ids) 
+
+	else:
+		users = []
+	return users
+
 def allWorkGroups():
 	""" Get all Work Groups
 	"""
@@ -231,7 +281,7 @@ def opsList(user_id):
 	op = GroupOp.objects.filter(group_name=work_group)
 	op_list = []
 	for i in range(len(op)):
-		a = {'op_id':op[i].op_id.op_id,'op_name':op[i].op_id.op_name}
+		a = {'op_id':op[i].op_id.op_id,'op_name':op[i].op_id.op_name,'coefficient':op[i].op_id.value_para}
 		op_list.append(a)
 	return op_list
 
@@ -261,7 +311,7 @@ def userIdByWorkGroup(work_group):
 	ids = changeDictToList(list(ids),'user_id')
 	return ids
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def saveAssistance(request):
 	data = request.POST.get('data')
 	data = json.loads(data)
@@ -279,6 +329,7 @@ def saveAssistance(request):
 	comments = data['comments']
 	b_category = data['b_category']
 	b_subject = data['b_subject']
+	standard_no_coefficient = data['standard_no_coefficient']
 	try:
 		expense_hour = data['expense_hour']
 	except:
@@ -292,7 +343,7 @@ def saveAssistance(request):
 	old_id = saveOldSupportiveTime(f_user, a_type, a_subject, real_time, comments, date, work_group)
 	if old_id == 0:
 		return HttpResponse("Failed")
-	flex = {"old_supportive_id":old_id,"quality_no":quality_no,"expense_hour":expense_hour}
+	flex = {"old_supportive_id":old_id,"quality_no":quality_no,"expense_hour":expense_hour,"standard_no_coefficient":standard_no_coefficient}
 	query = Assistance(contract=contract, a_type=a_type, a_category=a_category, a_subject=a_subject, real_time=real_time,quote=quote,
 		cost_rate=cost_rate, standard=standard, expense=expense, original_group=original_group, work_group=work_group,
 		username=f_user, date=date, is_active=True, comments = comments, flexible=json.dumps(flex), b_category=b_category,
@@ -393,7 +444,7 @@ def deletePerformance(date, user):
 		saveTraceLog(username, "No Data", "Try to delete Performance", "No Action", "")
 	
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def updateWorkerValue(request):
 	"""update and delete ManHours and Assistance
 	"""
@@ -431,7 +482,7 @@ def updateWorkerValue(request):
 					Report.objects.filter(id=old_report_id).delete()
 					user_id = ManHours.objects.filter(id=info_id)[0].username.id
 					date = ManHours.objects.filter(id=info_id)[0].date
-					deletePerformance(date, user_id)
+					# deletePerformance(date, user_id)
 					saveTraceLog(request.user.id, user, "ManHours Delete","Success",data)
 					# return HttpResponse(json.dumps('success'))
 					message = "success"
@@ -464,7 +515,7 @@ def updateWorkerValue(request):
 					saveTraceLog(request.user.id, user, "Old SupportiveTime Delete","Success",data)
 					user_id = Assistance.objects.filter(id=info_id)[0].username.id
 					date = Assistance.objects.filter(id=info_id)[0].date
-					deletePerformance(date, user_id)
+					# deletePerformance(date, user_id)
 					# return HttpResponse(json.dumps('success'))
 					message = "success"
 				except Exception as e:
@@ -482,7 +533,7 @@ def updateWorkerValue(request):
 
 	return HttpResponse(json.dumps(message))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def saveOvertime(request):
 	"""save over time
 	"""
@@ -550,7 +601,7 @@ def userIdByWorkGroupDate(user_id, date):
 	result = list(set(result))
 	return result
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getManAssiOverValue(request):
 	""" get all manhour, assitance and overtime
 	"""
@@ -942,7 +993,7 @@ def fromToDate(quarter, year):
 		to_date = today.replace(year=year,month=12,day=31)
 	return from_date, to_date
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getRecoverate(request):
 	user_id = request.user.id
 	quarter = request.GET.get('quarter')
@@ -978,7 +1029,7 @@ def getRecoverate(request):
 		return HttpResponse("无权限查看")
 	return HttpResponse(json.dumps(recoverate))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getUnconfirmed(request):
 	user_id = request.user.id
 	work_group = userWorkGroup(user_id)
@@ -1005,7 +1056,7 @@ def getUnconfirmed(request):
 	all_date = list(set(all_date))
 	return HttpResponse(json.dumps(all_date))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getWorkerValue(request):
 	"""
 	get all worker's man value hours
@@ -1030,7 +1081,7 @@ def getWorkerValue(request):
 	return HttpResponse(json.dumps(a))
 
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def uploadFiles(request):
 	if request.method == 'POST':
 		# try:
@@ -1053,7 +1104,7 @@ def uploadFiles(request):
 	# except Exception as e:
 		# 	return HttpResponse(json.dumps(e.args))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def downloadFile(request):
 	assis_id = request.GET.get('id')
 	fileName = Assistance.objects.get(id=assis_id, is_active=True).attach
@@ -1094,27 +1145,27 @@ def removeDuplicateJson(data):
 	return result
 
 ##### templates #####
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def employee(request):
 	return render(request, 'valuehour/production/tables.html') # 员工报工页面
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def foreman(request):
 	return render(request, 'valuehour/production/tables_dynamic.html') # 班组长审核页面
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def machineSubmit(request):
 	return render(request, 'valuehour/production/form_machine.html') # 员工报制造工时
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def assisSubmit(request):
 	return render(request, 'valuehour/production/form_assis.html') # 员工报辅助工时
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def extraSubmit(request):
 	return render(request, 'valuehour/production/form_borrow.html') # 员工加班时
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getMachine(request):
 	try:
 		if request.method == 'POST':
@@ -1128,16 +1179,16 @@ def getMachine(request):
 	except Exception as e:
 		return HttpResponse(e)
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def test1(request):
 	return render(request, 'valuehour/production/base.html')
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def addInfo(request):
 	return render(request, 'valuehour/production/form_accomplish.html')
 
 ##### test #######
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def jsonTest(request):
 	data = request.POST.get('data')
 	data = json.loads(data)
@@ -1147,13 +1198,13 @@ def jsonTest(request):
 		item_list.append(i['id'])
 	return HttpResponse(json.dumps(item_list))
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getMs(request):
 	return render(request, 'valuehour/production/form_ms.html')
 
 
 ##### test templates #######
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def testIndex(request):
 	aaa=[]
 	data = {}
@@ -1185,6 +1236,9 @@ def testIndex(request):
 
 def testPage(request):
 	return render(request, 'jzgs/page.html')
+
+
+##### update information manually #########
 
 def updateCostReateInManAssis():
 	""" update the standard time if cost_rate has changed
@@ -1250,9 +1304,39 @@ def updateReportStandardTime(from_date, to_date):
 		Report.objects.filter(id=data[i]['id']).update(standard_tiem=standard)
 	return "yes"
 
+def addTimeSupportive(from_date, to_date):
+	""" add time to Supportive"""
+	data = SupportiveTime.objects.filter(date__range=[from_date, to_date]).values('id','user_id','date')
+	df = pd.DataFrame(list(data))
+	df = df.drop_duplicates(subset=['user_id','date'],keep='last')
+	df = df.reset_index(drop=True)
+	for i in range(len(df)):
+		rest = SupportiveTime.objects.filter(id=df['id'][i])
+		if(len(rest))!= 0:
+			a = rest[0].rest
+			a += 0.5
+			rest.update(rest=a)
+		else:
+			print('No len')
+
+def addTimeGroupperform(from_date, to_date):
+	"""add support time to GroupPerform"""
+	data = GroupPerform.objects.filter(date__range=[from_date, to_date]).values('id')
+	for i in range(len(data)):
+		a = GroupPerform.objects.filter(id=data[i]['id'])
+		b = a[0].supportive_time
+		b = round(b+0.5, 2)
+		# print(b)
+		a.update(supportive_time=b)
+
+
+
+
+####### end update manually ######
+
 ### test base.html with menu list access ####
 ###### Main Page #######
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def testBase(request):
 	# all_perms = list(Permissions.objects.values('title').distinct())
 	user_perms = userMenuList(request.user.id)
@@ -1300,16 +1384,16 @@ def testHeader(request):
 	return render(request, 'jzgs/header.html')
 
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getReportWuhao(request):
 	return render(request, 'jzgs/report_wuhao.html')
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getScheduleGantt(request):
 	return redirect('/report/getScheduleTable/')
 
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def getScheduleMaterial(request):
 	return redirect("/report/getScheduleMaterial/")
 
@@ -1319,19 +1403,19 @@ def getTraceLogTable(request):
 		'totalPage':number,
 		})
 
-# @login_required(login_url='/accounts/login/')
+# #@login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
 
-# @login_required(login_url='/accounts/login/')
+# #@login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
-# @login_required(login_url='/accounts/login/')
+# #@login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
-# @login_required(login_url='/accounts/login/')
+# #@login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')

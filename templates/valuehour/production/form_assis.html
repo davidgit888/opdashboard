@@ -59,17 +59,6 @@
           </div>
         </div>
 
-<!--         <div class="form-group">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">附件上传</label>
-          <div class="col-md-6 col-sm-6 col-xs-12">
-			 <div class="input-group">
-				<input type="file" class="form-control" name="attach">
-				<span class="input-group-btn">
-				<button type="button" class="btn btn-primary">Go!</button>
-				</span>
-			  </div>
-          </div>
-        </div> -->
         <div class="ln_solid"></div>
         <div class="form-group">
           <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" style="margin-left:43%">
@@ -99,12 +88,6 @@
     <!-- bootstrap-progressbar -->
     <script src="/static/valuehour/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
     <!-- iCheck -->
-<!-- 	<script>
-	window.iCheck = {
-	  tap: false
-	}
-	console.log(window.iCheck);
-	</script> -->
     <script src="/static/valuehour/vendors/iCheck/icheck.min.js"></script>
     <!-- bootstrap-daterangepicker -->
     <script src="/static/valuehour/vendors/moment/min/moment.min.js"></script>
@@ -135,7 +118,6 @@
 
 	//获取基本信息	
 	function get_basic_info(){
-		//$.getJSON("/static/valuehour/production/api/basic_info.json",function(data){
 		var index = layer.load(1, {shade: [0.1,'#fff']});
 		$.getJSON("/jzgs/getWorkerOpProb/",function(data){
 
@@ -149,73 +131,24 @@
 			   }
 			});
 
-			// console.log(cat);
-			// console.log(['质量工时','计提工时'].indexOf(cat));
-
 			if (['质量工时','计提工时','其他辅助工时'].indexOf(cat)>=0){
 				checkUser(data);				
 			}else{
 				checkUser1(data);
 			}
-
-			// if(data.user){				
-			// 	try{
-			// 		$('#original_group').val(data.user[0].original_group);
-			// 		$('#work_group').val(data.user[0].work_group);
-			// 		$('#cost_rate').val(data.user[0].cost_rate);
-			// 		$('#quote').val(JSON.parse(data.user[0].flexible).cost);
-			// 		if(data.user[0].cost_rate == 0){
-			// 			throw "你的费率设置不完整，无法报工"
-			// 		}
-			// 	}catch(e){
-			// 		layer.msg('你的后台数据配置不完整，请联系管理员:'+e, {icon: 2, time:2000});
-			// 		layer.load(2, {shade: [0.1,'#fff']});					
-			// 	}
-			// }else{
-			// 	layer.msg('没有读取到你的身份信息，请确认！', {icon: 2, time:2000});
-			// }
 			layer.close(index);
 		});
 	};	
 
-	// function get_cat(name){
-	// 	$.getJSON("/jzgs/getBorrowType/", function(data){
-	// 		target = data['category'];
-	// 		result = '';
-	// 		$.each(target, function(i, v){
-	// 			if(v['a_subject'] == name){
-	// 				result = v['a_category'];
-	// 			}
-	// 		})
-	// 		console.log(name);
-	// 		return name;
-	// 	});
-	// }
-
 	function get_info(a, b){
 	$.getJSON("/jzgs/getBorrowType/", function(data){
-		// services = [];
-		// project1 = [];
-		// project2 = [];
-		// choices = ['事业部','具体项目1','具体项目2']
-		// console.log(data.borrow);
 		choices = [];
 		$.each(data.borrow, function(i, v){
 			if(choices.indexOf(v['b_category']) < 0){
 				choices.push(v['b_category']);				
 			}
 		});
-		// console.log(choices);
-		// return false;
-		// $.each(data.borrow, function(i, v){
-		// 	if(v.b_category =='事业部'){
-		// 		services.push(v.b_subject);
-		// 	}else if(v.b_category == '具体项目1'){
-		// 		project1.push(v.b_subject);
-		// 	}else if(v.b_category == '具体项目2'){
-		// 		project2.push(v.b_subject);
-		// 	};
-		// });
+
 		cat = '';
 		$.each(choices, function(i,v){
 			cat = cat + '<option>'+v+'</option>';
@@ -224,27 +157,7 @@
 		});
 	};
 
-	// function calculate(){
-	// 	$("#standard_hour").val("");
-	// 	real = $("#real_time").val();
-	// 	quote = $("#quote").val();
-	// 	cost_rate = $("#cost_rate").val();
-	// 	result = real * quote / cost_rate;
-	// 	$("#standard_hour").val(result.toFixed(2));
-	// }	
-	
-		//获取url参数
-	// function getQueryVariable(variable)
-	// {
-	// 	   var query = window.location.search.substring(1);
-	// 	   var vars = query.split("&");
-	// 	   for (var i=0;i<vars.length;i++) {
-	// 			   var pair = vars[i].split("=");
-	// 			   if(pair[0] == variable){return pair[1];}
-	// 	   }
-	// 	   return('');
-	// }
-	
+
 	function get_types(){
 	//type 的radio button切换
 	_checkbox = $("[type='radio']").not("[disabled]");
@@ -292,22 +205,9 @@
 	  $("#real_time").val("");
 	});	
 	
-	// function makep(){
-	// 	window.parent.getmachine();
-	// 	var index = parent.layer.getFrameIndex(window.name);
-	// 	setTimeout(function(){
-	// 	  parent.layer.close(index);
-	// 	}, 1000);		
-	// }
-
 	function change_choice(vv){	
 		$.ajaxSettings.async = false;
 		$.getJSON("/jzgs/getBorrowType/", function(data){
-			// services = [];
-			// project1 = [];
-			// project2 = [];
-			// console.log('changing');
-
 			choices = [];
 			dic = {};
 			$.each(data.borrow, function(i, v){
@@ -345,6 +245,10 @@
 		//validation before submit
 		$("#assistance_outprod").submit(function(e){
 			e.preventDefault();
+			//check before send
+			resetInner();
+			calculate();
+			//end check
 			t = $(this).serializeArray();
 			datas = {};
 			$.each(t, function(){
@@ -361,7 +265,9 @@
 				datas['b_category'] = '';
 				datas['b_subject'] = '';
 			}
+			datas['standard_no_coefficient'] = datas['standard'];
 
+			console.log(datas);
 
 			var form = $(this);
 

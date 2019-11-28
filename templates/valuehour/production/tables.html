@@ -473,7 +473,6 @@
 		}
 
 		$.getJSON(url, function(data) {
-
 		
 			   //计算总工时
 			   total_hours = 0;
@@ -487,6 +486,12 @@
           $(".fa.fa-chevron-up").not('span').attr("class","fa fa-chevron-down");
           $(".x_panel").css("height", "auto");
           $(".x_content").css("display", "none");
+          $("#total_hours").html('0.0H');
+          $("#extra_hours").html('0.0H');
+          $("#machine_hour").html('No Data');
+          $("#maniassis_hour").html('No Data');
+          $("#assis_hour").html('No Data');
+          $("#borrow_hour").html('No Data');
           return false;
          }else{
           $(".fa.fa-chevron-down").not('span').attr("class","fa fa-chevron-up");
@@ -569,22 +574,7 @@
 			   if (cansub !== 1){
 				   $('button').attr('disabled', 'disabled');
 				   res = $('.btn btn-default btn-xs').html();
-			   }
-
-		   
-			   //初始状态时候折叠
-     //     console.log(total_hours);
-     //     console.log(extra_hours);
-     //     console.log("here----here");
-			  //  if (total_hours ==0 && extra_hours ==0) {
-			  //  		$(".fa.fa-chevron-up").not('span').attr("class","fa fa-chevron-down");
-					// $(".x_panel").css("height", "auto");
-					// $(".x_content").css("display", "none");
-			  //  }else{
-			  //  		$(".fa.fa-chevron-down").not('span').attr("class","fa fa-chevron-up");
-					// $(".x_panel").removeClass("height");
-					// $(".x_content").css("display", "block");	
-					// }			   
+			   }   
 		});
 		layer.close(index);		
 	}
