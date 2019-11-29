@@ -116,6 +116,7 @@
 	<script src="/static/valuehour/vendors/pierre/commonjs.js"></script>
 	<script>
 
+
 	//获取基本信息	
 	function get_basic_info(){
 		var index = layer.load(1, {shade: [0.1,'#fff']});
@@ -234,6 +235,22 @@
 		$("#sub_category").html('<option value="">请选择</option>'+choice_string);
 		$.ajaxSettings.async = true;
 	};
+
+	//获取选中项
+	function getChecked(){
+		_checkbox = $("[type='radio']").not("[disabled]");
+		var cat;
+		_checkbox.each(function () {
+	    // 判断是否选中
+		   var delFlag = $(this).is(":checked");
+		   if (delFlag) {
+			   cat  = $(this).val();
+		   }
+		});
+		return cat;
+	}
+
+
 	
 	$(document).ready(function(){
 	     get_types();
@@ -246,7 +263,12 @@
 		$("#assistance_outprod").submit(function(e){
 			e.preventDefault();
 			//check before send
-			resetInner();
+			if(getChecked()=='外部工时'){
+				resetInner();				
+			}else{
+				reset();
+			}
+
 			calculate();
 			//end check
 			t = $(this).serializeArray();

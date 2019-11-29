@@ -206,11 +206,11 @@
 				}
 
 				if(!type_co || !operation_co || !year_co){
-					throw '后台数据配置不完整';
+					throw '系数读取错误';
 				}
 
 			}catch(e){
-				layer.msg('后台数据配置不完整，请联系管理员!'+e, {icon: 2, time:4000});
+				layer.msg('后台数据配置不完整，请联系管理员：'+e, {icon: 2, time:4000});
 				layer.load(2, {shade: [0.1,'#fff']});
 				return false;
 			}

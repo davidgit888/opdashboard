@@ -894,16 +894,27 @@
 		}
 	};
 
+function judgeRest(tnodes){
+	res = 0;
+	tags = tnodes.children[6].children;
+	for (index in tags){
+		if(tags[index].textContent == '科目:休息'){
+			res +=1;
+		}
+	}
+	return res;
+}
+
 function getallRest(){
 	rest = [];
 	trs = document.querySelectorAll('tr');
-	for(index in trs){
+	for(item in trs){
 		try{
-			if(!trs[index].getAttribute("name") && !trs[index].className){
-			rest.push(trs[index]);
+			if(!trs[item].getAttribute("name") && !trs[item].className && judgeRest(trs[item])>0){
+				rest.push(trs[item]);
 			}
 		}catch(e){
-		console.log("error");
+		console.log(e);
 		}
 	}
 	return rest;

@@ -164,7 +164,7 @@ function getMachineCoeff(product_type){
 				});
 			}else{
 				data.forEach(function(item){
-					if(item['product'] == 'Global'){
+					if(item['product'].toLowerCase() == 'global'){
 						type_co = item['para'];
 					}
 				})
@@ -213,8 +213,6 @@ function getYearCoeff(year){
 		for(item in data){
 			if(year == data[item]['age']){
 				year_co = data[item]['para'];
-			}else{
-				throw '工龄设置有问题，请联系管理员';
 			}
 		}
 	});
