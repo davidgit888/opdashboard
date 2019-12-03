@@ -14,13 +14,15 @@ import uuid
 import os
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.encoding import escape_uri_path
+import calendar
+from op.models import InstalledCmm, DeliveredCmm
 # Create your views here.
 
-#@login_required(login_url='/accounts/login/') 
+@login_required(login_url='/accounts/login/') 
 def index(request):
 	return render(request, 'valuehour/production/index.html')
 
-# #@login_required(login_url='/accounts/login/') 
+# @login_required(login_url='/accounts/login/') 
 # def test(request):
 # 	sfg = request.POST.get('sfg')
 # 	op = request.POST.get('op')
@@ -31,7 +33,7 @@ def index(request):
 # 	}
 # 	return HttpResponse(json.dumps(data))
 
-#@login_required(login_url='/accounts/login/') 
+@login_required(login_url='/accounts/login/') 
 def saveManHours(request):
 	"""制造工时"""
 	data = request.POST.get('data')
@@ -74,12 +76,21 @@ def saveManHours(request):
 		query.save()
 		
 		message = json.dumps("success")
+		if op == 51:
+			from_date, to_date = monthDateRange(date_time)
+			qty = getMonthlyOpQty(from_date, to_date, 51)
+			updateInstalledCmm(qty, date_time)
+		if op == 142:
+			from_date, to_date = monthDateRange(date_time)
+			qty = getMonthlyOpQty(from_date, to_date, 142)
+			updateDeliveredCmm(qty, date_time)
+
 		return HttpResponse(message)
 	# except Exception as e:
 
 	# 	return HttpResponse(json.dumps(e.args))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getManHoursSurplus(request):
 	sfg = request.GET.get('sfg')
 	op = request.GET.get('op')
@@ -128,7 +139,7 @@ def userInfo(user):
 		items.append(result)
 	return items
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getStandardHours(request):
 	"""Get standard value hours
 	"""
@@ -145,7 +156,7 @@ def getStandardHours(request):
 		standard_time = ' '
 	return HttpResponse(json.dumps(standard_time))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getProductType(request):
 	"""
 	get Product type by sfg id
@@ -160,7 +171,7 @@ def getProductType(request):
 		product_type = None
 	return HttpResponse(json.dumps(product_type))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getBorrowType(request):
 	assis = AssisType.objects.filter(is_active=True).values('a_type','a_category','a_subject')
 	borrow = BorrowType.objects.values('b_category','b_subject')
@@ -169,7 +180,7 @@ def getBorrowType(request):
 	data['borrow'] = list(borrow)
 	return HttpResponse(json.dumps(data))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getWorkerOpProb(request):
 	user_id = request.user.id
 	prob_list = porbList(user_id) 
@@ -203,12 +214,12 @@ def getWorkerOpProb(request):
 	result['role'] = user_role
 	return HttpResponse(json.dumps(result))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getAgeCoefficient(request):
 	data = list(AgeParameters.objects.all().values('age','para'))
 	return HttpResponse(json.dumps(data))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getProductCoefficient(request):
 	data = list(ProductParameters.objects.all().values('product','para'))
 	return HttpResponse(json.dumps(data))
@@ -226,6 +237,45 @@ def getOpCoefficient(request):
 		return HttpResponse('No results')
 
 ##### used functions ########
+def monthStrToDate(date):
+	if isinstance(date, str):
+		date = datetime.datetime.strptime(date,'%Y-%m-%d')
+	return date
+
+def getMonthlyOpQty(from_date, to_date, op):
+	""" get total qty in a month according to 51 and 142 op"""
+	data = Report.objects.filter(date__range=[from_date, to_date],op_id__op_id=op).values('sfg_id','qty')
+	data = pd.DataFrame(list(data),columns=['sfg_id','qty'])
+	df = data.groupby('sfg_id').sum()	
+	total = df[df['qty']>0.5].count()
+	return total['qty']
+
+def monthDateRange(date):
+	"""get first and last date """
+	date = monthStrToDate(date)
+	dateLength = calendar.monthrange(date.year, date.month)
+	from_date = date.replace(day=1)
+	to_date = date.replace(day=dateLength[1])
+	return from_date, to_date
+
+
+def updateInstalledCmm(qty, date):
+	"""update InstalledCmm table """
+	date = monthStrToDate(date)
+	month = date.month
+	year = date.year
+	month = calendar.month_abbr[month]
+	InstalledCmm.objects.filter(Year=year).update(**{month:qty})
+
+
+def updateDeliveredCmm(qty, date):
+	"""update DeliveredCmm table """
+	date = monthStrToDate(date)
+	month = date.month
+	year = date.year
+	month = calendar.month_abbr[month]
+	DeliveredCmm.objects.filter(Year=year).update(**{month:qty})
+
 
 def useridsByForeman(is_foreman, is_electric, is_worker, is_manager, work_group):
 	"""return user's id according to work_groups by foreman's or manager, or user work group and role
@@ -311,7 +361,7 @@ def userIdByWorkGroup(work_group):
 	ids = changeDictToList(list(ids),'user_id')
 	return ids
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def saveAssistance(request):
 	data = request.POST.get('data')
 	data = json.loads(data)
@@ -444,7 +494,7 @@ def deletePerformance(date, user):
 		saveTraceLog(username, "No Data", "Try to delete Performance", "No Action", "")
 	
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def updateWorkerValue(request):
 	"""update and delete ManHours and Assistance
 	"""
@@ -533,7 +583,7 @@ def updateWorkerValue(request):
 
 	return HttpResponse(json.dumps(message))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def saveOvertime(request):
 	"""save over time
 	"""
@@ -601,7 +651,7 @@ def userIdByWorkGroupDate(user_id, date):
 	result = list(set(result))
 	return result
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getManAssiOverValue(request):
 	""" get all manhour, assitance and overtime
 	"""
@@ -993,7 +1043,7 @@ def fromToDate(quarter, year):
 		to_date = today.replace(year=year,month=12,day=31)
 	return from_date, to_date
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getRecoverate(request):
 	user_id = request.user.id
 	quarter = request.GET.get('quarter')
@@ -1029,7 +1079,7 @@ def getRecoverate(request):
 		return HttpResponse("无权限查看")
 	return HttpResponse(json.dumps(recoverate))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getUnconfirmed(request):
 	user_id = request.user.id
 	work_group = userWorkGroup(user_id)
@@ -1056,7 +1106,7 @@ def getUnconfirmed(request):
 	all_date = list(set(all_date))
 	return HttpResponse(json.dumps(all_date))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getWorkerValue(request):
 	"""
 	get all worker's man value hours
@@ -1081,7 +1131,7 @@ def getWorkerValue(request):
 	return HttpResponse(json.dumps(a))
 
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def uploadFiles(request):
 	if request.method == 'POST':
 		# try:
@@ -1104,7 +1154,7 @@ def uploadFiles(request):
 	# except Exception as e:
 		# 	return HttpResponse(json.dumps(e.args))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def downloadFile(request):
 	assis_id = request.GET.get('id')
 	fileName = Assistance.objects.get(id=assis_id, is_active=True).attach
@@ -1145,27 +1195,27 @@ def removeDuplicateJson(data):
 	return result
 
 ##### templates #####
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def employee(request):
 	return render(request, 'valuehour/production/tables.html') # 员工报工页面
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def foreman(request):
 	return render(request, 'valuehour/production/tables_dynamic.html') # 班组长审核页面
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def machineSubmit(request):
 	return render(request, 'valuehour/production/form_machine.html') # 员工报制造工时
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def assisSubmit(request):
 	return render(request, 'valuehour/production/form_assis.html') # 员工报辅助工时
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def extraSubmit(request):
 	return render(request, 'valuehour/production/form_borrow.html') # 员工加班时
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getMachine(request):
 	try:
 		if request.method == 'POST':
@@ -1179,16 +1229,16 @@ def getMachine(request):
 	except Exception as e:
 		return HttpResponse(e)
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def test1(request):
 	return render(request, 'valuehour/production/base.html')
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def addInfo(request):
 	return render(request, 'valuehour/production/form_accomplish.html')
 
 ##### test #######
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def jsonTest(request):
 	data = request.POST.get('data')
 	data = json.loads(data)
@@ -1198,13 +1248,13 @@ def jsonTest(request):
 		item_list.append(i['id'])
 	return HttpResponse(json.dumps(item_list))
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getMs(request):
 	return render(request, 'valuehour/production/form_ms.html')
 
 
 ##### test templates #######
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def testIndex(request):
 	aaa=[]
 	data = {}
@@ -1336,7 +1386,7 @@ def addTimeGroupperform(from_date, to_date):
 
 ### test base.html with menu list access ####
 ###### Main Page #######
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def testBase(request):
 	# all_perms = list(Permissions.objects.values('title').distinct())
 	user_perms = userMenuList(request.user.id)
@@ -1384,16 +1434,16 @@ def testHeader(request):
 	return render(request, 'jzgs/header.html')
 
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getReportWuhao(request):
 	return render(request, 'jzgs/report_wuhao.html')
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getScheduleGantt(request):
 	return redirect('/report/getScheduleTable/')
 
 
-#@login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def getScheduleMaterial(request):
 	return redirect("/report/getScheduleMaterial/")
 
@@ -1403,19 +1453,19 @@ def getTraceLogTable(request):
 		'totalPage':number,
 		})
 
-# #@login_required(login_url='/accounts/login/')
+# @login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
 
-# #@login_required(login_url='/accounts/login/')
+# @login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
-# #@login_required(login_url='/accounts/login/')
+# @login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
 
-# #@login_required(login_url='/accounts/login/')
+# @login_required(login_url='/accounts/login/')
 # def getReportWuhao(request):
 # 	return render(request, 'jzgs/report_wuhao.html')
