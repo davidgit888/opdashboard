@@ -277,6 +277,7 @@ def updateDeliveredCmm(qty, date):
 	DeliveredCmm.objects.filter(Year=year).update(**{month:qty})
 
 
+
 def useridsByForeman(is_foreman, is_electric, is_worker, is_manager, work_group):
 	"""return user's id according to work_groups by foreman's or manager, or user work group and role
 	"""
@@ -1379,6 +1380,22 @@ def addTimeGroupperform(from_date, to_date):
 		# print(b)
 		a.update(supportive_time=b)
 
+def checkGroupperformWorkgroup(from_date,to_date):
+	data_r = Report.objects.filter(date__range=[from_date, to_date]).values('user__id','date','groups')
+	data_s = SupportiveTime.objects.filter(date__range=[from_date, to_date]).values('user__id','date','groups')
+	df_r = pd.DataFrame(list(data_r))
+	df_s = pd.DataFrame(list(data_s))
+	df = pd.concat([df_r,df_s], ignore_index=True)
+	df = df.drop_duplicates()
+	df = df.reset_index(drop=True)
+	data_p = GroupPerform.objects.filter(date__range=[from_date, to_date]).values('username','date','work_group','id')
+	df_p = pd.DataFrame(list(data_p))
+	for i in range(len(df)):
+		for j in range(len(df_p)):
+			if df['date'][i] == df_p['date'][j] and df['user__id'][i]==df_p['username'][j]:
+				# print('date is: '+df['date'][i]+', and user_id: '+str(df['user__id'][i]))
+				print('yes')
+	return df
 
 
 

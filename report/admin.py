@@ -190,7 +190,7 @@ class TypeStandarAdmin(admin.ModelAdmin):
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
-        writer = csv.writer(response,dialect='excel',encoding='utf-8')
+        writer = csv.writer(response,dialect='excel',encoding='GB18030')
         field_verbose_names = [field.verbose_name for field in meta.fields]
         writer.writerow(field_verbose_names[1:])
 

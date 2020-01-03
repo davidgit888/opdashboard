@@ -137,6 +137,7 @@ class AssisTypeAdmin(admin.ModelAdmin):
     staff_fieldsets = (
     (('基本信息'), {'fields': ('a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active')}),
     )
+    list_filter = ('a_type', 'a_category','a_subject','is_active')
 
     def change_view(self, request, *args, **kwargs):
         # for non-superuser
@@ -238,6 +239,7 @@ class BorrowTypeAdmin(admin.ModelAdmin):
     fields = ['b_category','b_subject']
     list_display = ('b_category','b_subject')
     search_fields = ['b_category','b_subject']
+    list_filter = ('b_category', 'b_subject')
 
 
 class PermissionsAdmin(admin.ModelAdmin):
@@ -274,7 +276,7 @@ admin.site.register(AssisType, AssisTypeAdmin)
 admin.site.register(UserInfomation, UserInfomationAdmin)
 admin.site.register(BorrowType, BorrowTypeAdmin)
 admin.site.register(Permissions, PermissionsAdmin)
-# admin.site.register(UserPermissions, UserPermissionsAdmin)
+admin.site.register(GroupPermissions, GroupPermissionsAdmin)
 admin.site.register(AgeParameters, AgeParametersAdmin)
 admin.site.register(ProductParameters, ProductParametersAdmin)
 admin.site.register(AssemblyParameters, AssemblyParametersAdmin)
