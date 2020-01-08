@@ -199,8 +199,8 @@ class TraceLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='用户名')
     username = models.CharField(max_length=50,verbose_name='用户', null=True, default='', blank=True)
     action_log =  models.CharField(max_length=50,verbose_name='动作', null=True, default='', blank=True)
-    detail_message =  models.CharField(max_length=200,verbose_name='详情', null=True, default='', blank=True)
-    comments = models.CharField(max_length=200,verbose_name='备注', null=True, default='', blank=True)    
+    detail_message =  models.CharField(max_length=300,verbose_name='详情', null=True, default='', blank=True)
+    comments = models.CharField(max_length=300,verbose_name='备注', null=True, default='', blank=True)    
     date = models.DateTimeField(auto_now=True)
     def __str__(self):
         return '%s %s %s %s %s' % (self.username,self.action_log,self.detail_message,self.comments,self.date)
@@ -209,8 +209,9 @@ class TraceLog(models.Model):
         verbose_name_plural = 'Logs'
 
 class AnnualLeave(models.Model):
+    staff_no = models.CharField(max_length=10,verbose_name='工号', default=0)
     user = models.CharField(max_length=4,verbose_name='用户')
-    leave_type = models.CharField(max_length=3,verbose_name='用户')
+    leave_type = models.CharField(max_length=3,verbose_name='休假种类')
     start_date = models.DateTimeField(verbose_name='开始日期')
     end_date = models.DateTimeField(verbose_name='截止日期')
     hours = models.FloatField(verbose_name='时间', default=0)
@@ -352,3 +353,12 @@ class UserInfo(models.Model):
         verbose_name = '用户信息'
         verbose_name_plural = '用户信息'
 
+class WorkDays(models.Model):
+    month = models.IntegerField(verbose_name='月份')
+    qty = models.FloatField( verbose_name='数量',default=0)
+    comments = models.CharField(max_length=100,verbose_name='备注',default='', blank=True)
+    def __str__(self):
+        return '%s %s %s ' %(self.month, self.qty, self.comments)
+    class Meta:
+        verbose_name = '工作日统计'
+        verbose_name_plural = '工作日统计'

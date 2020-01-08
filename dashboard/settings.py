@@ -49,11 +49,15 @@ INSTALLED_APPS = [
     'report.apps.ReportConfig',
     'smallparts.apps.SmallpartsConfig',
     'jzgs.apps.JzgsConfig',
+    'django_crontab',
     
     # 'django_crontab',
     #'OpReport.apps.OpreportConfig',
 
     
+]
+CRONJOBS = [
+    ('*/5 * * * *', 'jzgs.cron.my_scheduled_job','>>test.log'),
 ]
 
 # CORS_ORIGIN_WHITELIST = (

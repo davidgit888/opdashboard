@@ -74,7 +74,9 @@ def saveManHours(request):
 			standard=standard, real_time=real_time, quote=quote, cost_rate=cost_rate, date=date_time, original_group=original_group,
 			work_group=work_group, is_active=True, flexible=flex)
 		query.save()
-		
+		saveTraceLog(user_id, f_user.last_name+f_user.first_name, 'create ManHour', ",contract: "+str(contract)+'SFG: '+str(sfg)+
+			",product_type: "+ product_type+",op: "+str(op)+",qty: "+str(qty)+",standard: "+str(standard)+",real_time: "+str(real_time)
+			,"original_group: "+original_group+",work_group: "+ work_group+",flexible: "+flex)
 		message = json.dumps("success")
 		if op == 51:
 			from_date, to_date = monthDateRange(date_time)
@@ -400,6 +402,11 @@ def saveAssistance(request):
 		username=f_user, date=date, is_active=True, comments = comments, flexible=json.dumps(flex), b_category=b_category,
 		b_subject=b_subject)
 	query.save()
+	saveTraceLog(request.user.id, f_user.last_name+f_user.first_name,"create sup","contract: "+str(contract)+",a_type: "+
+		a_type+",a_category: "+a_category+",real_time: "+",a_subject: "+
+		a_subject + str(real_time)+",quote: "+str(quote)+
+		",standard: "+str(standard)+",b_category: "+b_category,"work_group: "+work_group+",original_group: "+
+		original_group+",comments: "+comments+",flexible: "+json.dumps(flex))
 	return HttpResponse(json.dumps('success'))
 
 def saveOldSupportiveTime(user, a_type, a_subject, real_time, comments, date, work_group):
@@ -551,10 +558,19 @@ def updateWorkerValue(request):
 				expense_hour = data['expense_hour']
 				flex = json.loads(Assistance.objects.get(id=info_id).flexible)
 				flex['expense_hour'] = expense_hour
-				Assistance.objects.filter(id=info_id, is_active=True).update(b_category = b_category, b_subject = b_subject,
-					expense = expense, comments = comments, last_fix_date = datetime.datetime.now(),
-					last_fix_user = user, last_fix_status = data, confirmed=confirmed, flexible=json.dumps(flex))
+				if len(comments) != 0:
+					Assistance.objects.filter(id=info_id, is_active=True).update(b_category = b_category, b_subject = b_subject,
+						expense = expense, comments = comments, last_fix_date = datetime.datetime.now(),
+						last_fix_user = user, last_fix_status = data, confirmed=confirmed, flexible=json.dumps(flex))
+				else:
+					Assistance.objects.filter(id=info_id, is_active=True).update(b_category = b_category, b_subject = b_subject,
+						expense = expense, last_fix_date = datetime.datetime.now(),
+						last_fix_user = user, last_fix_status = data, confirmed=confirmed, flexible=json.dumps(flex))
 				# return HttpResponse(json.dumps('success'))
+				old_assist = json.loads(Assistance.objects.get(id=info_id).flexible)
+				old_assist_id = old_assist['old_supportive_id']
+				# SupportiveTime.objects.filter(id=old_assist_id).update(comments=comments)
+				
 				message = "success"
 			if action == 'delete':
 				Assistance.objects.filter(id=info_id, is_active=True).update(is_active=False,last_fix_date = datetime.datetime.now(),

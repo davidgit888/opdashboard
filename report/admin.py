@@ -1,6 +1,6 @@
 
 from django.contrib import admin, messages
-from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus,UserInfo
+from .models import Report, SupportiveTime, TypeStandard, SfmProd, Prob, Op,CoefficientSupport,Borrow,GroupOp,GroupPerform,SfgComments,OverTime,TraceLog,AnnualLeave,WorkGroups,UserGroups,DocType,DocInfo,MaterialApprove,MaterialGet,Material,MeterialUse,MeterialSurplus,UserInfo,WorkDays
 from django.urls import path
 from django.contrib.auth.models import User
 import pandas as pd
@@ -465,8 +465,8 @@ class TraceLogAdmin(admin.ModelAdmin):
 
 
 class AnnualLeaveAdmin(admin.ModelAdmin):
-    fields = ['user','leave_type','start_date','end_date','hours','remarks']
-    list_display = ('user','leave_type','start_date','end_date','hours','remarks')
+    fields = ['staff_no','user','leave_type','start_date','end_date','hours','remarks']
+    list_display = ('staff_no','user','leave_type','start_date','end_date','hours','remarks')
     search_fields = ['user','leave_type','start_date','end_date','hours','remarks']
 
     change_list_template = "report/upload_excel.html"
@@ -496,7 +496,8 @@ class AnnualLeaveAdmin(admin.ModelAdmin):
                 #     pass
                 for i in range(len(data)):
 
-                    query = AnnualLeave(user=data['Staff_Name'][i],leave_type=data['Leave_Description'][i],start_date=data['Start_Date'][i],
+                    query = AnnualLeave(staff_no=data['Staff_No'][i],user=data['Staff_Name'][i],leave_type=data['Leave_Description'][i],
+                        start_date=data['Start_Date'][i],
                         end_date= data['End_Date'][i],hours =data['Apply_Nums'][i] ,remarks=data['Remarks'][i])
                     query.save()
 
@@ -614,7 +615,11 @@ class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id','staff_no','duty','email','work_group','department','mobile')
     search_fields = ['user_id__username','staff_no','duty','email','work_group__group_name','department','mobile']
 
-
+class WorkDaysAdmin(admin.ModelAdmin):
+    """docstring for UserInfoAdmin"""
+    fields = ['month','qty','comments']
+    list_display = ('month','qty','comments')
+    search_fields = ['month','qty','comments']
     
         
 
@@ -642,3 +647,4 @@ admin.site.register(MaterialGet,MaterialGetAdmin)
 admin.site.register(MeterialUse,MeterialUseAdmin)
 admin.site.register(MeterialSurplus,MeterialSurplusAdmin)
 admin.site.register(UserInfo,UserInfoAdmin)
+admin.site.register(WorkDays, WorkDaysAdmin)

@@ -11,16 +11,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='coefficientsupport',
-            name='vertical',
-            field=models.FloatField(blank=True, default=0, max_length=10, null=True, verbose_name='线性/垂直度修正'),
-        ),
-        migrations.AddField(
-            model_name='supportivetime',
-            name='vertical',
-            field=models.FloatField(blank=True, default=0, max_length=10, null=True, verbose_name='线性/垂直度修正'),
-        ),
+        
         migrations.AlterField(
             model_name='coefficientsupport',
             name='prob',

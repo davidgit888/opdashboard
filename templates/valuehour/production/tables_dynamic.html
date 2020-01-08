@@ -724,7 +724,7 @@
 						expense = "#expense__"+b.id;
 						json.expense = zerowhennull($(expense).text());
 						comments = "#comments__"+b.id;
-						json.comments = $(comments).text();
+						json.comments = $(comments).text();							
 						cost_rate = $("#cost_rate__"+b.id).text();
 						json.expense_hour = (json.expense / cost_rate).toFixed(2);
 						// console.log(json.expense_hour); 
@@ -737,7 +737,7 @@
 
 		if(!out_complet){
 			layer.msg('有外部工时没有填写完整，请填写完整后提交，或者暂时不提交该外部工时', {icon:2});
-			return false;			
+			return false;
 		}
 
 		if (!result_list || result_list.length == 0){
