@@ -24,5 +24,109 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': '工作日统计',
             },
         ),
-        
+        migrations.AlterModelOptions(
+            name='material',
+            options={'verbose_name': '物耗材料', 'verbose_name_plural': '物耗材料'},
+        ),
+        migrations.AlterModelOptions(
+            name='materialapprove',
+            options={'verbose_name': '物耗申请审批', 'verbose_name_plural': '物耗申请审批'},
+        ),
+        migrations.AlterModelOptions(
+            name='materialget',
+            options={'verbose_name': '物耗材料到货', 'verbose_name_plural': '物耗材料到货'},
+        ),
+        migrations.AlterModelOptions(
+            name='meterialsurplus',
+            options={'verbose_name': '物耗结余', 'verbose_name_plural': '物耗结余'},
+        ),
+        migrations.AlterModelOptions(
+            name='meterialuse',
+            options={'verbose_name': '物耗领用', 'verbose_name_plural': '物耗领用'},
+        ),
+        migrations.AddField(
+            model_name='coefficientsupport',
+            name='vertical',
+            field=models.FloatField(blank=True, default=0, max_length=10, null=True, verbose_name='线性/垂直度修正'),
+        ),
+        migrations.AddField(
+            model_name='supportivetime',
+            name='vertical',
+            field=models.FloatField(blank=True, default=0, max_length=10, null=True, verbose_name='线性/垂直度修正'),
+        ),
+        migrations.AlterField(
+            model_name='annualleave',
+            name='leave_type',
+            field=models.CharField(max_length=3, verbose_name='休假种类'),
+        ),
+        migrations.AlterField(
+            model_name='materialapprove',
+            name='qty',
+            field=models.IntegerField(default=0, verbose_name='审批数量'),
+        ),
+        migrations.AlterField(
+            model_name='materialapprove',
+            name='qty_request',
+            field=models.IntegerField(default=0, verbose_name='申请数量'),
+        ),
+        migrations.AlterField(
+            model_name='meterialuse',
+            name='year',
+            field=models.IntegerField(verbose_name='年份'),
+        ),
+        migrations.AlterField(
+            model_name='op',
+            name='op_id',
+            field=models.IntegerField(unique=True, verbose_name='工步ID'),
+        ),
+        migrations.AlterField(
+            model_name='overtime',
+            name='date',
+            field=models.DateField(default=datetime.date(2020, 1, 7)),
+        ),
+        migrations.AlterField(
+            model_name='report',
+            name='date',
+            field=models.DateField(),
+        ),
+        migrations.AlterField(
+            model_name='report',
+            name='date_time',
+            field=models.DateTimeField(auto_created=True, default=datetime.datetime(2020, 1, 7, 9, 35, 20, 115738), verbose_name='提交时间'),
+        ),
+        migrations.AlterField(
+            model_name='supportivetime',
+            name='date',
+            field=models.DateField(verbose_name='日期'),
+        ),
+        migrations.AlterField(
+            model_name='supportivetime',
+            name='date_create',
+            field=models.DateTimeField(auto_created=True, default=datetime.datetime(2020, 1, 7, 9, 35, 20, 115738), verbose_name='创建时间'),
+        ),
+        migrations.AlterField(
+            model_name='supportivetime',
+            name='groups',
+            field=models.CharField(default='', max_length=20, verbose_name='工作班组'),
+        ),
+        migrations.AlterField(
+            model_name='tracelog',
+            name='action_log',
+            field=models.CharField(blank=True, default='', max_length=50, null=True, verbose_name='动作'),
+        ),
+        migrations.AlterField(
+            model_name='tracelog',
+            name='username',
+            field=models.CharField(blank=True, default='', max_length=50, null=True, verbose_name='用户'),
+        ),
+        migrations.AlterField(
+            model_name='userinfo',
+            name='email',
+            field=models.CharField(blank=True, default='', max_length=50, verbose_name='邮箱'),
+        ),
+        migrations.AlterField(
+            model_name='userinfo',
+            name='mobile',
+            field=models.IntegerField(blank=True, verbose_name='电话'),
+        ),
     ]

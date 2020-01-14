@@ -1099,7 +1099,7 @@ def is_report_manager(request):
                 check = True
                 break
     return check
-# change date to numbers
+# change date to string
 def changeDateToString(number):
     try:
         number=number.strftime('%Y-%m-%d')
@@ -2118,14 +2118,14 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
         m_range=monthrange(year,a_month)
         from_date = today.replace(year=year,month=a_month,day=1)
         to_date = today.replace(year=year,month=a_month, day=m_range[1])
-        workDays = WorkDays.objects.filter(month=a_month)[0].qty
+        workDays = WorkDays.objects.filter(year=year,month=a_month)[0].qty
     else:
         #return HttpResponse('a_month is 0')
         from_date = today.replace(year=year, month=1,day=1)
         to_date = today.replace(year=year,month=12,day=31)
         a_month='全年'
         workDays= 0
-        workDaysData = WorkDays.objects.all()
+        workDaysData = WorkDays.objects.filter(year=year)
         
         for i in range(len(workDaysData)):
             workDays += workDaysData[i].qty
@@ -2183,64 +2183,65 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     pd_leave_total = pd.pivot_table(pd_leave,index=['user'],values=['hours'],columns=['leave_type'],aggfunc=np.sum)
     
     ########## New Code ###################
-    # for i in range(len(data)):
-    #     try:
-    #         a = pd_leave_total[pd_leave_total.index==data.index[i]]
-    #         try:
-    #             data['年休假'][i] = a['hours']['年休假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['调休假'][i] = a['hours']['调休假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['婚假'][i] = a['hours']['婚假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['产假'][i] = a['hours']['产假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['事假'][i] = a['hours']['事假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['病假'][i] = a['hours']['病假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['丧假'][i] = a['hours']['丧假'][0]
-    #         except:
-    #             pass
-    #         try:
-    #             data['其他假'][i] = a['hours']['其他假'][0]
-    #         except:
-    #             pass
-    #     except:
-    #         pass
-    # data['加班'] = 0
-    # for i in range(len(data)):
-    #     try:
-    #         a = over_time_total[over_time_total.index==data.index[i]]
-    #         try:
-    #             data['加班'][i] = a['加班工时'][0]
-    #         except:
-    #             pass
-    #     except:
-    #         pass
-    # data['统计发生工时'] = data.apply(lambda x: workDays * 8 + x['加班'] - (x['年休假'] + x['调休假'] + x['婚假'] + x['产假'] + x['事假'] + x['病假'] + x['丧假'] + x['其他假']), axis=1)
-    # total = data.sum()
-    # total.name = '总和'
-    # mean_kpi = round(total['standard_time']/total['real_time'],2)
+    for i in range(len(data)):
+        try:
+            a = pd_leave_total[pd_leave_total.index==data.index[i]]
+            try:
+                data['年休假'][i] = a['hours']['年休假'][0]
+            except:
+                pass
+            try:
+                data['调休假'][i] = a['hours']['调休假'][0]
+            except:
+                pass
+            try:
+                data['婚假'][i] = a['hours']['婚假'][0]
+            except:
+                pass
+            try:
+                data['产假'][i] = a['hours']['产假'][0]
+            except:
+                pass
+            try:
+                data['事假'][i] = a['hours']['事假'][0]
+            except:
+                pass
+            try:
+                data['病假'][i] = a['hours']['病假'][0]
+            except:
+                pass
+            try:
+                data['丧假'][i] = a['hours']['丧假'][0]
+            except:
+                pass
+            try:
+                data['其他假'][i] = a['hours']['其他假'][0]
+            except:
+                pass
+        except:
+            pass
+    data['加班'] = 0
+    for i in range(len(data)):
+        try:
+            a = over_time_total[over_time_total.index==data.index[i]]
+            try:
+                data['加班'][i] = a['加班工时'][0]
+            except:
+                pass
+        except:
+            pass
+    data['统计发生工时'] = data.apply(lambda x: workDays * 8 + x['加班'] - (x['年休假'] + x['调休假'] + x['婚假'] + x['产假'] + x['事假'] + x['病假'] + x['丧假'] + x['其他假']), axis=1)
+    data['可调休工时'] = data.apply(lambda x: x['加班'] - x['调休假'] - x['产假'] - x['丧假'], axis=1)
+    total = data.sum()
+    total.name = '总和'
+    mean_kpi = round(total['standard_time']/total['real_time'],2)
     
-    # mean_efficiency = round(total['real_time']/(total['real_time'] + total['supportive_time']),2)
-    # total['kpi'] = round(mean_kpi,2)
-    # total['efficiency'] = round(mean_efficiency,2)
+    mean_efficiency = round(total['real_time']/(total['real_time'] + total['supportive_time']),2)
+    total['kpi'] = round(mean_kpi,2)
+    total['efficiency'] = round(mean_efficiency,2)
     
-    # data = data.append(total)
-    # data.index.name='用户'
+    data = data.append(total)
+    data.index.name='用户'
     ########### End New Code ###############
     data = data.rename(columns={"natural_time": "工作时间", "performance": "个人绩效", "standard_time": "标准工时", "real_time": "制造工时",
      "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})

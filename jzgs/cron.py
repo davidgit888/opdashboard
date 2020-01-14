@@ -1,16 +1,13 @@
+import sys
+import os
+import django
 
-def test():
-	print("start write")
-	# with open('abc.txt','a+') as f:
-	# 	f.write("haha")
-	f = open("abc.txt", "a+")
-	f.write("\r\nHellow World")
-	a = open("abc.txt","r")
-	a.read()
-	print("end write")
 
-def test1():
-	print("haah")
+sys.path.append("E:\OPDashboard\prod_environment\opdashboard")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','dashboard.settings')
+django.setup()
 
-def my_scheduled_job():
-	pass
+from report.models import Report
+
+a = Report.objects.all()
+print(len(a))

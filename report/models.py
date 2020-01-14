@@ -215,7 +215,7 @@ class AnnualLeave(models.Model):
     start_date = models.DateTimeField(verbose_name='开始日期')
     end_date = models.DateTimeField(verbose_name='截止日期')
     hours = models.FloatField(verbose_name='时间', default=0)
-    remarks = models.CharField(max_length=30,verbose_name='备注')
+    remarks = models.CharField(max_length=30,verbose_name='备注', blank=True, default='')
     class Meta:
         verbose_name = '休假'
         verbose_name_plural = '休假'
@@ -354,6 +354,7 @@ class UserInfo(models.Model):
         verbose_name_plural = '用户信息'
 
 class WorkDays(models.Model):
+    year = models.IntegerField(verbose_name='年',default=2019)
     month = models.IntegerField(verbose_name='月份')
     qty = models.FloatField( verbose_name='数量',default=0)
     comments = models.CharField(max_length=100,verbose_name='备注',default='', blank=True)

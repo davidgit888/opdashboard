@@ -11,5 +11,55 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-      
+        migrations.CreateModel(
+            name='AgeParameters',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('age', models.FloatField(default=0, max_length=4, verbose_name='工龄')),
+                ('para', models.FloatField(default=0, max_length=4, verbose_name='系数')),
+            ],
+            options={
+                'verbose_name': '工龄系数',
+                'verbose_name_plural': '工龄系数',
+            },
+        ),
+        migrations.CreateModel(
+            name='AssemblyParameters',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('attribute', models.CharField(default='', max_length=50, verbose_name='属性')),
+                ('para', models.FloatField(default=1, max_length=4, verbose_name='系数')),
+            ],
+            options={
+                'verbose_name': '小部件系数',
+                'verbose_name_plural': '小部件系数',
+            },
+        ),
+        migrations.CreateModel(
+            name='ProductParameters',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('product', models.CharField(default='', max_length=50, verbose_name='产品线')),
+                ('para', models.FloatField(default=0, max_length=4, verbose_name='系数')),
+            ],
+            options={
+                'verbose_name': '产品线系数',
+                'verbose_name_plural': '产品线系数',
+            },
+        ),
+        migrations.AddField(
+            model_name='assistance',
+            name='old_perform',
+            field=models.IntegerField(default=0, verbose_name='业绩'),
+        ),
+        migrations.AddField(
+            model_name='manhours',
+            name='old_perform',
+            field=models.IntegerField(default=0, verbose_name='业绩'),
+        ),
+        migrations.AlterField(
+            model_name='userinfomation',
+            name='hiredate',
+            field=models.DateField(default=datetime.date(2020, 1, 7), verbose_name='入职时间'),
+        ),
     ]

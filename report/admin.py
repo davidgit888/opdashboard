@@ -617,9 +617,9 @@ class UserInfoAdmin(admin.ModelAdmin):
 
 class WorkDaysAdmin(admin.ModelAdmin):
     """docstring for UserInfoAdmin"""
-    fields = ['month','qty','comments']
-    list_display = ('month','qty','comments')
-    search_fields = ['month','qty','comments']
+    fields = ['year','month','qty','comments']
+    list_display = ('year','month','qty','comments')
+    search_fields = ['year','month','qty','comments']
     
         
 
