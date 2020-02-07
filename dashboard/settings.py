@@ -29,7 +29,13 @@ STATICFILES_DIRS = (
 SECRET_KEY = 'kr(@i-=228r=m!(flo+graqz!62hhjhrtfa*b@$bqfjtb_i=#m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+f = open("../database.txt")
+a = f.read()
+f.close()
+if a == 'test_dashboard':
+    DEBUG = True
+else:
+    DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -120,9 +126,7 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
-f = open("../database.txt")
-a = f.read()
-f.close()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

@@ -29,6 +29,7 @@ urlpatterns = [
     path('getAgeCoefficient/', views.getAgeCoefficient),
     path('getProductCoefficient/',views.getProductCoefficient),
     path('getOpCoefficient/', views.getOpCoefficient),
+    path('autoCalPerfromJzgs/',views.autoCalPerfromJzgs),
     ## template
     path('', views.index, name = 'valuehour'),
     path('baogong/', views.employee, name = 'baogong'),

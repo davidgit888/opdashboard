@@ -4,6 +4,7 @@ import json
 from .models import ManHours, Assistance, AssisType, UserInfomation,BorrowType,GroupPermissions,Permissions,ProductParameters,AgeParameters,AssemblyParameters
 from django.contrib.auth.models import User
 from report.models import Op, Report,TypeStandard,Prob,SfmProd,GroupOp,OverTime,WorkGroups,SupportiveTime,TraceLog, GroupPerform,CoefficientSupport
+from report.views import autoCalPerformance
 from django.contrib.auth.decorators import login_required
 import datetime
 from django.core import serializers
@@ -452,6 +453,14 @@ def saveOldSupportiveTime(user, a_type, a_subject, real_time, comments, date, wo
 	return query.id
 
 def saveTraceLog(user, username, action, detail, comments):
+	"""Save trace log
+	User: int or username,
+	username: string
+	actrion: 50 character
+	detail: str
+	comments:str
+	"""
+	# sent user id or username
 	if isinstance(user, int):
 		f_user = User.objects.get(id=user)
 	else:
@@ -512,6 +521,10 @@ def updateWorkerValue(request):
 	# return HttpResponse(json.dumps(items))
 	all_data = items['data']
 	message = ""
+	all_user_ids = []
+	# date = ManHours.objects.filter(id=int(all_data['data'][0]['id'])).date
+	# date = all_data[0]['id']
+	
 	for data in all_data:
 		try:
 			data.pop('csrfmiddlewaretoken')
@@ -522,12 +535,16 @@ def updateWorkerValue(request):
 		action = data['action']
 		user = User.objects.get(id=request.user.id).get_full_name()
 		if info_type == 'machine':
+			userId = ManHours.objects.filter(id=info_id)[0].username.id
+			performDate = ManHours.objects.filter(id=int(all_data[0]['id']))[0].date
+			all_user_ids.append(userId)
 			if action == 'update':
 				confirmed = data['confirmed']
 				try:
 					ManHours.objects.filter(id=info_id, is_active=True).update(confirmed=confirmed,last_fix_user=user,last_fix_status=data,
 						last_fix_date=datetime.datetime.now())
 					# return HttpResponse(json.dumps('success'))
+
 					message = "success"
 				except Exception as e:
 					return HttpResponse("保存失败"+json.dumps(e.args))
@@ -549,6 +566,9 @@ def updateWorkerValue(request):
 					return HttpResponse("删除失败"+json.dumps(e.args))
 
 		if info_type == 'assistance':
+			userId = Assistance.objects.filter(id=info_id)[0].username.id
+			all_user_ids.append(userId)
+			performDate = Assistance.objects.filter(id=int(all_data[0]['id']))[0].date
 			if action == 'update':
 				confirmed = data['confirmed']
 				b_category = data['b_category']
@@ -597,7 +617,11 @@ def updateWorkerValue(request):
 					message = "success"
 				except:
 					saveTraceLog(request.user.id, user, "Overtime Delete","Faild because: "+json.dumps(e.args),data)
-
+		all_user_ids = list(set(all_user_ids))
+		if all_user_ids != '' and performDate != '':
+			a = autoCalPerfromJzgs(request,all_user_ids,performDate)
+			if a != 'Successful':
+				message = "Failed"
 	return HttpResponse(json.dumps(message))
 
 @login_required(login_url='/accounts/login/')
@@ -652,6 +676,37 @@ def isWorker(user):
 	else:
 		return False
 
+def autoCalPerfromJzgs(request,all_user_ids,date):
+	userId = User.objects.filter(id=request.user.id)[0].id
+	username = User.objects.filter(id=request.user.id)[0].username
+	try:
+		a = autoCalPerformance(request,all_user_ids,date)
+		# saveTraceLog(userId,username,"Successful save performance",json.dumps(a),"")
+		items = []
+		for i in range(len(a)):
+			data = GroupPerform.objects.filter(date=date,username=int(a[i]['username'])).values()
+			if len(data) == 0:
+				item = GroupPerform(user=a[i]['p_user'],natural_time=a[i]['p_natural'], performance=a[i]['p_total'],
+					standard_time=a[i]['p_standard'],real_time=a[i]['p_real'],supportive_time=a[i]['p_sup_without_borrow'],
+					borrow_time=a[i]['p_sup_borrow'],kpi=a[i]['p_kpi'],efficiency=a[i]['p_efficiency'],
+					date=date,username=a[i]['username'],group=a[i]['group'],
+					work_group=a[i]['work_group'])
+				try:
+					item.save()
+				except:
+					return "Failed"
+			else:
+				GroupPerform.objects.filter(date=date,username=int(a[i]['username'])).update(user=a[i]['p_user'],natural_time=a[i]['p_natural'], performance=a[i]['p_total'],
+					standard_time=a[i]['p_standard'],real_time=a[i]['p_real'],supportive_time=a[i]['p_sup_without_borrow'],
+					borrow_time=a[i]['p_sup_borrow'],kpi=a[i]['p_kpi'],efficiency=a[i]['p_efficiency'],
+					date=date,username=a[i]['username'],group=a[i]['group'],
+					work_group=a[i]['work_group'])
+		return "Successful"
+		 
+	except Exception as ex:
+		saveTraceLog(userId,username,"Failed save performance",json.dumps(ex.args,json.dumps(a)))
+		return "Failed"
+	
 
 
 def userIdByWorkGroupDate(user_id, date):

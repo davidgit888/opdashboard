@@ -2027,7 +2027,15 @@ def perform_pop(request):
         'all_user_ids':all_user_ids,
     })
 
+########### automatic calculate employee's performance from jzgs ##########
 
+def autoCalPerformance(request,all_user_ids,date):
+
+    # get perform list for all users
+    p_perform_list, p_get_date,p_save_status = get_performance(request,all_user_ids, date)
+    return p_perform_list
+
+###### End ############
 
 # def updateOpNum(number):
 #     """
