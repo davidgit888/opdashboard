@@ -2176,14 +2176,14 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
     #  "supportive_time":"辅助工时", "borrow_time": "外借工时", "kpi": "工效比","efficiency": "工时有效率"})
 
     #####
-    data['年休假'] = 0
-    data['调休假'] = 0
-    data['婚假'] = 0
-    data['产假'] = 0
-    data['事假'] = 0
-    data['病假'] = 0
-    data['丧假'] = 0
-    data['其他假'] = 0
+    data['年休假'] = 0.00
+    data['调休假'] = 0.00
+    data['婚假'] = 0.00
+    data['产假'] = 0.00
+    data['事假'] = 0.00
+    data['病假'] = 0.00
+    data['丧假'] = 0.00
+    data['其他假'] = 0.00
     # data['统计1'] = 0
     # data['统计2'] = 0
     results_leave = AnnualLeave.objects.filter(start_date__range=(from_date,to_date)).values()
@@ -2228,7 +2228,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
                 pass
         except:
             pass
-    data['加班'] = 0
+    data['加班'] = 0.00
     for i in range(len(data)):
         try:
             a = over_time_total[over_time_total.index==data.index[i]]
@@ -2238,7 +2238,7 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
                 pass
         except:
             pass
-    data['统计发生工时'] = data.apply(lambda x: workDays * 8 + x['加班'] - (x['年休假'] + x['调休假'] + x['婚假'] + x['产假'] + x['事假'] + x['病假'] + x['丧假'] + x['其他假']), axis=1)
+    data['统计发生工时'] = data.apply(lambda x: workDays * 8 + x['加班'] - x['年休假'] - x['调休假'] - x['婚假'] - x['产假'] - x['事假'] - x['病假'] - x['丧假'] - x['其他假'], axis=1)
     data['可调休工时'] = data.apply(lambda x: x['加班'] - x['调休假'] - x['产假'] - x['丧假'], axis=1)
     total = data.sum()
     total.name = '总和'

@@ -618,10 +618,10 @@ def updateWorkerValue(request):
 				except:
 					saveTraceLog(request.user.id, user, "Overtime Delete","Faild because: "+json.dumps(e.args),data)
 		all_user_ids = list(set(all_user_ids))
-		if all_user_ids != '' and performDate != '':
-			a = autoCalPerfromJzgs(request,all_user_ids,performDate)
-			if a != 'Successful':
-				message = "Failed"
+		# if all_user_ids != '' and performDate != '':
+		# 	a = autoCalPerfromJzgs(request,all_user_ids,performDate)
+		# 	if a != 'Successful':
+		# 		message = "Failed"
 	return HttpResponse(json.dumps(message))
 
 @login_required(login_url='/accounts/login/')

@@ -75,15 +75,15 @@ class AssisType(models.Model):
     a_type = models.CharField(max_length=100,default='',verbose_name='类别')
     a_category = models.CharField(max_length=100,default='',verbose_name='大类',blank = True)
     a_subject = models.CharField(max_length=100,default='',verbose_name='小类')
-    b_category = models.CharField(max_length=100,default='',verbose_name='外借科目大类',blank = True)
-    b_subject = models.CharField(max_length=100,default='',verbose_name='外借科目小类',blank = True)
-    b_old_category = models.CharField(max_length=100,default='',verbose_name='对应老辅助工时或者外借工时')
+    b_category = models.CharField(max_length=100,default='',verbose_name='外借科目大类',blank = True,help_text="不用填写")
+    b_subject = models.CharField(max_length=100,default='',verbose_name='外借科目小类',blank = True,help_text="不用填写")
+    b_old_category = models.CharField(max_length=100,default='',verbose_name='对应老辅助工时或者外借工时',help_text="必须填写")
     create_date = models.DateTimeField(auto_now=True, auto_created=True,verbose_name='创建时间')
     last_fix_date = models.DateTimeField(auto_now=True, auto_created=True,verbose_name='最后修改时间')
     create_user = models.ForeignKey(User, on_delete=models.CASCADE, default='',verbose_name='创建人')
     last_fix_user = models.CharField(max_length=5,default='',verbose_name='最后修改人')
     last_fix_status = models.CharField(max_length=200, default='',verbose_name='最后修改状态')
-    is_active = models.BooleanField(default = False,verbose_name='是否生效')
+    is_active = models.BooleanField(default = False,verbose_name='是否生效',help_text="必须填写")
     flexible = models.TextField(null = True, blank = True, verbose_name='保留列',default='')
     def __str__(self):
         return '%s %s %s %s %s %s' %(self.a_type, self.a_category, self.a_subject,self.b_category,self.b_subject,self.b_old_category)
@@ -116,8 +116,8 @@ class UserInfomation(models.Model):
 
 class BorrowType(models.Model):
     """ 外借工时种类 """
-    b_category = models.CharField(max_length=100,default='',verbose_name='外借种类')
-    b_subject = models.CharField(max_length=100,default='',verbose_name='外借小类',blank=True)
+    b_category = models.CharField(max_length=100,default='',verbose_name='外借种类',help_text="必须填写")
+    b_subject = models.CharField(max_length=100,default='',verbose_name='外借小类',blank=True,help_text="必须填写")
     flexible = models.TextField(null = True, blank = True, verbose_name='保留列',default='')
     def __str__(self):
         return '%s %s %s' %(self.b_category, self.b_subject, self.flexible)

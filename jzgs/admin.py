@@ -23,7 +23,8 @@ class ManHoursAdmin(admin.ModelAdmin):
     list_filter = ('work_group', 'original_group','op','is_active')
 
     staff_fieldsets = (
-    (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','date','original_group','work_group')}),
+    (('基本信息'), {'fields': ('contract','sfg','product_type','op','prob','username','qty','standard', 'real_time','confirmed','date','original_group','work_group'),
+        'description':"确认工时是带系数的"}),
     # (('个人信息'), {'fields': ('last_name', 'first_name', 'email')}),
     # # No permissions
     # (('重要日期'), {'fields': ('last_login', 'date_joined')}),
@@ -135,7 +136,11 @@ class AssisTypeAdmin(admin.ModelAdmin):
     list_display = ('a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active')
     search_fields = ['a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active']
     staff_fieldsets = (
-    (('基本信息'), {'fields': ('a_type','a_category','a_subject','b_category','b_subject','b_old_category','is_active')}),
+    (('基本信息'), {'fields': ('a_type','a_category','a_subject')}),
+    (('外借种类'),{'fields':('b_category','b_subject','b_old_category','is_active'),
+            'description':"<span style='color:red'>\"外借科目大类和小类不需要填写\",<br/>\
+            <b>\"对应老辅助工时或者外借工时\"</b> 为必须项 <br/>\
+            点击生效</span>"}),
     )
     list_filter = ('a_type', 'a_category','a_subject','is_active')
 

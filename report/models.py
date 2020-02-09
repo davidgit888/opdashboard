@@ -40,7 +40,7 @@ class TypeStandard(models.Model):
 class Op(models.Model):
     op_id = models.IntegerField(unique=True, verbose_name='工步ID')
     op_name = models.CharField(max_length=5)
-    value_para = models.FloatField(max_length=4, default=1,verbose_name='系数')
+    value_para = models.FloatField(max_length=4, default=1,verbose_name='系数',help_text="11工部系数写1，其他系数根据要求填写")
     class Meta:
         verbose_name = "工步信息"
         verbose_name_plural = "工步信息"
