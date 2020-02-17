@@ -55,16 +55,17 @@ INSTALLED_APPS = [
     'report.apps.ReportConfig',
     'smallparts.apps.SmallpartsConfig',
     'jzgs.apps.JzgsConfig',
-    'django_crontab',
+    'debug_toolbar',
+    'django_extensions'
     
     # 'django_crontab',
     #'OpReport.apps.OpreportConfig',
 
     
 ]
-CRONJOBS = [
-    ('*/5 * * * *', 'jzgs.cron.my_scheduled_job','>>test.log'),
-]
+# CRONJOBS = [
+#     ('*/5 * * * *', 'jzgs.cron.my_scheduled_job','>>test.log'),
+# ]
 
 # CORS_ORIGIN_WHITELIST = (
 #     '127.0.0.1:8080',
@@ -80,6 +81,7 @@ CRONJOBS = [
 #     ('01 * * * *', 'op.views.crontTest')
 # ]
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -174,3 +176,6 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+INSTALLED_IPS = (
+    "127.0.0.1",
+)

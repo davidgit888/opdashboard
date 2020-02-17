@@ -26,6 +26,8 @@ import math
 from django.template.defaulttags import register
 from jzgs.models import UserInfomation
 
+
+
 @register.filter(name = 'filter_is_manager')
 def filter_is_manager(request):
     groups = ['报工平台-主管']
@@ -89,6 +91,93 @@ def get_current_date_data(request, result):
 
     return list_logs, standard_time_total, real_time_total
 
+##### auto compare and check GroupPerform and Report, Sup cal自动检查 #####
+
+def monthDateRange(date):
+    """get first and last date """
+    date = monthStrToDate(date)
+    dateLength = calendar.monthrange(date.year, date.month)
+    from_date = date.replace(day=1)
+    to_date = date.replace(day=dateLength[1])
+    return from_date, to_date
+
+def monthStrToDate(date):
+    if isinstance(date, str):
+        date = datetime.datetime.strptime(date,'%Y-%m-%d')
+    return date
+
+def performCal(from_date,to_date,user_ids):
+    standard_hours = standardData(from_date, to_date, user_ids)
+    sup_hours = suppotiveData(from_date, to_date, user_ids)
+    sup_hours['sup_without_borrow'] = sup_hours.apply(lambda x: x['clean_time']+x['complete_machine']+
+        x['conference']+x['document']+x['equipment_mantainence']+x['granite']+x['group_management']+
+        x['human_quality_issue_repair']+x['human_quality_issue_rework']+x['inside_group']+
+        x['inventory_check']+x['item_quality_issue']+x['outside_group']+x['plan_change']+
+        x['prob']+x['quality_check']+x['record']+x['rest']+x['shortage']+x['vertical'],axis=1)
+    supHoursPivot=sup_hours.groupby(['user_id','date']).sum()
+    standardPivot=standard_hours.groupby(['user','date']).sum()
+    standTem = standardPivot.unstack()
+    supTem = supHoursPivot.unstack()
+    perform_data = pd.merge(standTem,supTem,left_index=True, right_index=True)
+    perform_data = perform_data.stack()
+    perform_data=perform_data.reset_index()
+    userData = getUserInfo('ALL')
+    perform_data['user_full_name'] = perform_data.apply(lambda x: getfullName(x, userData),axis=1)
+    total = perform_data.sum()
+    total['user_full_name']='Total'
+    total['date']=to_date
+    perform_data = perform_data.append(total,ignore_index=True)
+    # perform_data = perform_data.groupby(['user_full_name','date']).sum()
+    # need to borrow_time, real_time, standard_tiem, sup_without_borrow
+
+    return perform_data
+
+def getUserInfo(check):
+    if check=='ALL':
+        result = User.objects.values('id','username','first_name','last_name')
+        data = pd.DataFrame(list(result))
+    data['full_name']=data['last_name']+data['first_name']
+    return data
+
+
+def getfullName(x,df):
+    """ compare the full name according to id
+    """
+    try:
+        a = df[df['id']==int(x['level_0'])]['full_name'].iloc[0]
+    except:
+        a = 'no name'
+    return a
+
+def standardData(from_date, to_date,user_ids):
+    results = Report.objects.filter(date__range=[from_date,to_date],user__in=user_ids).values('user','standard_tiem','real_time','date','groups','user__first_name','user__last_name')
+    data = pd.DataFrame(list(results))
+    data['user_full_name']=data['user__last_name']+data['user__first_name']
+    return data
+
+def suppotiveData(from_date, to_date,user_ids):
+    results = SupportiveTime.objects.filter(date__range=[from_date, to_date],user__in=user_ids).values()
+    data = pd.DataFrame(list(results))
+    return data
+
+def getCalPerformance(request):
+    user_ids, op_id_sorted,user_groups,all_work_groups=analysis_op_user(request)
+    from_date='2020-01-18'
+    to_date='2020-02-17'
+    calPerf = performCal(from_date,to_date,user_ids)
+    savePerf = groupPerformData(from_date,to_date,user_ids)
+    # borrow_time, real_time, standard_tiem, sup_without_borrow
+    return user_ids
+    return HttpResponse(a.to_html())
+
+def groupPerformData(from_date,to_date,user_ids):
+    items = GroupPerform.objects.filter(date__range=[from_date,to_date],username__in=user_ids).values('standard_time',
+        'real_time','borrow_time','supportive_time','username','date','user')
+    data = pd.DataFrame(list(items))
+    return data
+
+
+##### end #####
 
 # get employee's kpi bar chart
 @login_required(login_url='/accounts/login/')  
@@ -2238,7 +2327,8 @@ def perform_analysis(request,user_groups,a_month,all_user_ids,all_op_id,a_year):
                 pass
         except:
             pass
-    data['统计发生工时'] = data.apply(lambda x: workDays * 8 + x['加班'] - x['年休假'] - x['调休假'] - x['婚假'] - x['产假'] - x['事假'] - x['病假'] - x['丧假'] - x['其他假'], axis=1)
+    data = data.fillna(0.00)
+    data['统计发生工时'] = data.apply(lambda x: float(workDays) * 8.00 + float(x['加班']) - float(x['年休假']) - float(x['调休假']) - float(x['婚假']) - float(x['产假']) - float(x['事假']) - float(x['病假']) - float(x['丧假']) - float(x['其他假']), axis=1)
     data['可调休工时'] = data.apply(lambda x: x['加班'] - x['调休假'] - x['产假'] - x['丧假'], axis=1)
     total = data.sum()
     total.name = '总和'

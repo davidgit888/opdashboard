@@ -118,6 +118,7 @@
 		                          <th>确认工时</th>
 		                          <th>用户名</th>
 		                          <th>日期</th>
+		                          <th>删除</th>
 		                        </tr>
 		                      </thead>
 		                      <tbody>
@@ -514,8 +515,10 @@ async function get_data(begin, end){
           		},
               {data: 'confirmed'},
               {data: 'username'},
-              {data: 'date'}
-
+              {data: 'date'},
+              {data: 'id', render: function(data, type, row){
+              	return '<button class="btn btn-danger btn-xs" id="'+data+'"><i class="fa fa-trash-o"></i> 删除'+data+' </button>';
+              }},
           ]
       });
       total_chanchu1 = total_value_new;
